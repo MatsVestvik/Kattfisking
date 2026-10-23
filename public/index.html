@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kattfisking – Det daglige norske Wikipedia-spillet</title>
+  <meta name="description" content="Gjett hvilken norsk Wikipedia-artikkel det er ut fra kategoriene! Inspirert av catfishing.net." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="site-header">
+      <div class="brand-wrap" id="brandHomeBtn" role="button" tabindex="0" title="Gå til dagens utfordring">
+        <div class="brand-logo" aria-hidden="true">🐈🐟</div>
+        <div>
+          <h1 class="brand-title">Kattfisking</h1>
+          <p class="brand-subtitle">Norsk Wikipedia-kategorijakt</p>
+        </div>
+      </div>
+
+      <nav class="mode-nav" aria-label="Spillmoduser">
+        <button type="button" class="nav-btn active" id="navDailyBtn">
+          <span>📅</span> Dagens
+        </button>
+        <button type="button" class="nav-btn" id="navArchiveBtn">
+          <span>🗂️</span> Arkiv
+        </button>
+        <button type="button" class="nav-btn" id="navPracticeBtn">
+          <span>♾️</span> Frispill
+        </button>
+        <button type="button" class="nav-btn" id="navCurateBtn">
+          <span>➕</span> Legg til
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="icon-btn" id="helpModalBtn" title="Spilleregler og om Kattfisking" aria-label="Spilleregler">
+          ?
+        </button>
+        <button type="button" class="icon-btn" id="themeToggleBtn" title="Bytt mellom mørkt og lyst tema" aria-label="Bytt tema">
+          🌙
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Loading Indicator -->
+      <section id="loadingSection" class="card center-card">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="loadingText">Henter kategorier fra norsk Wikipedia…</p>
+      </section>
+
+      <!-- GAME VIEW (Daily & Practice) -->
+      <section id="gameSection" class="game-section hidden">
+        <!-- Puzzle Top Bar -->
+        <div class="puzzle-statusbar card">
+          <div class="puzzle-meta">
+            <span class="badge badge-accent" id="puzzleTitleBadge">Dagens #1</span>
+            <span class="puzzle-date-label" id="puzzleDateLabel"></span>
+          </div>
+
+          <!-- 10-step tracker (Daily mode) -->
+          <div id="dailyStepTracker" class="step-tracker" role="list" aria-label="Fremdrift 1 til 10"></div>
+
+          <!-- Practice streak tracker (Practice mode) -->
+          <div id="practiceTracker" class="practice-tracker hidden">
+            <span class="streak-pill">🔥 Rekke: <strong id="practiceStreakVal">0</strong></span>
+            <span class="streak-pill">🏆 Poeng: <strong id="practiceScoreVal">0</strong> / <span id="practiceCountVal">0</span></span>
+          </div>
+
+          <div class="score-pill-wrap" id="dailyScoreWrap">
+            <span class="score-label">Poeng:</span>
+            <strong class="score-value" id="currentScoreVal">0</strong>
+            <span class="score-max" id="currentMaxVal">/ 10</span>
+          </div>
+        </div>
+
+        <!-- Category Clues Card -->
+        <article class="card clues-card" aria-live="polite">
+          <div class="clues-header">
+            <div>
+              <h2 class="clues-heading" id="questionCounterHeading">Artikkel 1 av 10</h2>
+              <p class="clues-subheading">
+                Hvilken norsk Wikipedia-artikkel tilhører disse <strong id="categoryCountNum">0</strong> kategoriene?
+              </p>
+            </div>
+            <div class="hint-controls" id="hintControls">
+              <button type="button" class="btn btn-ghost btn-sm" id="hintLettersBtn" title="Vis ordlengde og forbokstaver">
+                🔤 Forbokstaver
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="hintSentenceBtn" title="Vis første setning (sladdet)">
+                📖 Setningshint
+              </button>
+            </div>
+          </div>
+
+          <!-- Category Tags List -->
+          <div class="category-list" id="categoryList" role="list"></div>
+
+          <!-- Revealed Hints Box -->
+          <div id="hintsDisplayBox" class="hints-box hidden">
+            <div id="letterHintRow" class="hint-item hidden">
+              <span class="hint-tag">Mønster:</span>
+              <code id="letterHintText" class="letter-mask"></code>
+            </div>
+            <div id="sentenceHintRow" class="hint-item hidden">
+              <span class="hint-tag">Fra artikkelen:</span>
+              <span id="sentenceHintText" class="sentence-mask"></span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Did You Mean ("Mente du...?") Prompt -->
+        <div id="didYouMeanBox" class="card did-you-mean-card hidden" role="alert">
+          <div class="dym-text">
+            <span>🤏 Nesten! Mente du </span>
+            <strong id="didYouMeanTarget"></strong>?
+          </div>
+          <div class="dym-actions">
+            <button type="button" class="btn btn-success btn-sm" id="dymYesBtn">
+              Ja, det var det jeg mente! (+1p)
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="dymNoBtn">
+              Nei, fortsett å gjette
+            </button>
+          </div>
+        </div>
+
+        <!-- Guess Input Card (shown while article is active) -->
+        <form id="guessForm" class="card guess-card" autocomplete="off">
+          <div class="input-row">
+            <div class="autocomplete-wrapper">
+              <input
+                type="text"
+                id="guessInput"
+                class="guess-input"
+                placeholder="Skriv navnet på Wikipedia-artikkelen…"
+                aria-label="Gjett Wikipedia-artikkel"
+              />
+              <ul id="autocompleteList" class="autocomplete-list hidden" role="listbox"></ul>
+            </div>
+            <button type="submit" class="btn btn-primary" id="submitGuessBtn">
+              Gjett ↵
+            </button>
+            <button type="button" class="btn btn-secondary" id="giveUpBtn" title="Gi opp og se svaret">
+              Gi opp
+            </button>
+          </div>
+
+          <div class="guess-footer-row">
+            <div id="wrongGuessesContainer" class="wrong-guesses"></div>
+            <label class="toggle-autocomplete" title="Slå av eller på forslag fra Wikipedia mens du skriver">
+              <input type="checkbox" id="autocompleteToggle" />
+              <span>Søkeforslag</span>
+            </label>
+          </div>
+        </form>
+
+        <!-- Reveal Card (shown after solving or giving up) -->
+        <section id="revealCard" class="card reveal-card hidden" aria-live="polite">
+          <div id="revealBanner" class="reveal-banner">
+            <div class="reveal-status-left">
+              <span id="revealIcon" class="reveal-icon">🐈</span>
+              <div>
+                <h3 id="revealStatusTitle" class="reveal-status-title">Fulltreff! (+1 poeng)</h3>
+                <p id="revealGuessSub" class="reveal-guess-sub"></p>
+              </div>
+            </div>
+
+            <div class="reveal-actions-right">
+              <button type="button" id="closeEnoughBtn" class="btn btn-amber btn-sm hidden">
+                🐟 Nære nok? Gi meg 0,5p
+              </button>
+              <button type="button" id="nextArticleBtn" class="btn btn-primary">
+                Neste artikkel →
+              </button>
+            </div>
+          </div>
+
+          <div class="reveal-body">
+            <img id="revealThumb" class="reveal-thumb hidden" alt="" loading="lazy" />
+            <div class="reveal-info">
+              <div class="reveal-title-row">
+                <a id="revealWikiLink" href="#" target="_blank" rel="noopener noreferrer" class="reveal-article-title">
+                  Artikkeltittel ↗
+                </a>
+                <span id="revealSolveBadge" class="badge badge-muted hidden"></span>
+              </div>
+
+              <p id="revealExtract" class="reveal-extract"></p>
+
+              <div id="revealAliasesRow" class="reveal-meta-row hidden">
+                <span class="meta-label">Godkjente alternativer:</span>
+                <span id="revealAliasesText" class="meta-val"></span>
+              </div>
+
+              <div id="revealHiddenCatsRow" class="reveal-meta-row hidden">
+                <span class="meta-label">Skjulte røpe-kategorier:</span>
+                <div id="revealHiddenCatsList" class="hidden-cats-inline"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Daily Summary Card (shown when all 10 daily questions are finished) -->
+        <section id="summaryCard" class="card summary-card hidden">
+          <div class="summary-header">
+            <div class="summary-badge-wrap">
+              <span class="summary-overline" id="summaryOverline">Kattfisking #1</span>
+              <h2 class="summary-score-big" id="summaryScoreBig">0 / 10</h2>
+              <p class="summary-rank-text" id="summaryRankText"></p>
+            </div>
+
+            <div class="summary-emoji-box">
+              <div id="summaryEmojiGrid" class="emoji-grid" aria-label="Resultatnett"></div>
+              <button type="button" class="btn btn-primary btn-block" id="copyShareBtn">
+                📋 Kopier resultat
+              </button>
+              <span id="copyConfirmToast" class="copy-toast hidden">Kopiert til utklippstavlen!</span>
+            </div>
+          </div>
+
+          <div class="summary-stats-strip">
+            <div class="stat-box">
+              <span class="stat-label">Din poengsum</span>
+              <strong class="stat-num" id="statPlayerScore">0</strong>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Snitt på serveren</span>
+              <strong class="stat-num" id="statServerAvg">–</strong>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Antall runder spilt</span>
+              <strong class="stat-num" id="statTotalPlays">1</strong>
+            </div>
+          </div>
+
+          <h3 class="recap-heading">Dagens 10 artikler</h3>
+          <div id="summaryRecapList" class="recap-list"></div>
+
+          <div class="summary-footer-actions">
+            <button type="button" class="btn btn-secondary" id="summaryToArchiveBtn">
+              🗂️ Spill tidligere dager i arkivet
+            </button>
+            <button type="button" class="btn btn-primary" id="summaryToPracticeBtn">
+              ♾️ Spill videre i Frispill-modus
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <!-- ARCHIVE VIEW -->
+      <section id="archiveSection" class="card archive-section hidden">
+        <div class="section-header">
+          <div>
+            <h2>🗂️ Arkiv – Tidligere dagsutfordringer</h2>
+            <p class="muted-text">Velg en dato for å spille eller se resultatet ditt.</p>
+          </div>
+        </div>
+        <div id="archiveList" class="archive-grid"></div>
+      </section>
+
+      <!-- CURATE / ADD ARTICLE VIEW -->
+      <section id="curateSection" class="card curate-section hidden">
+        <div class="section-header">
+          <div>
+            <h2>➕ Foreslå eller legg til artikkel</h2>
+            <p class="muted-text">
+              Søk opp en hvilken som helst artikkel på norsk Wikipedia (<code>no.wikipedia.org</code>),
+              forhåndsvis hvilke kategorier som blir stående etter filtrering, og legg den til i Raspberry Pi-databasen!
+            </p>
+          </div>
+        </div>
+
+        <form id="curateForm" class="curate-form" autocomplete="off">
+          <div class="input-row">
+            <div class="autocomplete-wrapper">
+              <input
+                type="text"
+                id="curateTitleInput"
+                class="guess-input"
+                placeholder="F.eks. Dovrefjell, A-ha, Brunost, Slaget på Stiklestad…"
+              />
+              <ul id="curateAutocompleteList" class="autocomplete-list hidden"></ul>
+            </div>
+            <button type="button" class="btn btn-secondary" id="curatePreviewBtn">
+              🔍 Forhåndsvis
+            </button>
+            <button type="submit" class="btn btn-primary" id="curateSaveBtn">
+              💾 Lagre i databasen
+            </button>
+          </div>
+        </form>
+
+        <div id="curateStatusMsg" class="curate-alert hidden"></div>
+
+        <div id="curatePreviewCard" class="curate-preview hidden">
+          <h3 id="curatePrevTitle"></h3>
+          <p id="curatePrevExtract" class="muted-text"></p>
+          <div class="curate-cats-block">
+            <h4>Synlige kategorier i spillet (<span id="curateKeptCount">0</span>):</h4>
+            <div id="curateKeptList" class="category-list"></div>
+          </div>
+          <div class="curate-cats-block">
+            <h4>Filtrerte røpe-kategorier (<span id="curateHiddenCount">0</span>):</h4>
+            <div id="curateHiddenList" class="hidden-cats-inline"></div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="server-pool-box">
+          <div>
+            <h3>📊 Raspberry Pi-artikkeldatabase</h3>
+            <p class="muted-text" id="dbStatsText">Laster statistikk…</p>
+          </div>
+          <button type="button" class="btn btn-secondary" id="harvestMoreBtn">
+            🔄 Hent flere populære artikler fra Wikipedia nå
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Rules / Help Modal -->
+    <div id="helpModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <div class="modal-card card">
+        <div class="modal-header">
+          <h2 id="helpModalTitle">🐈🐟 Slik spiller du Kattfisking</h2>
+          <button type="button" class="icon-btn" id="closeHelpModalBtn" aria-label="Lukk">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>Kattfisking</strong> er en norsk utgave av det daglige Wikipedia-spillet
+            <a href="https://catfishing.net" target="_blank" rel="noopener noreferrer">catfishing.net</a>.
+            Hver dag får du <strong>10 artikler fra norsk Wikipedia</strong> (Bokmål).
+          </p>
+          <ul class="rules-list">
+            <li>
+              <strong>Kun kategorier som ledetråd:</strong> Du ser kun kategoriene artikkelen er merket med på
+              Wikipedia. Kategorier som direkte røper svaret er automatisk sladdet bort.
+            </li>
+            <li>
+              <strong>🐈 1 poeng for riktig svar:</strong> Små skrivefeil fanges opp av <em>«Mente du…?»</em>, og
+              omdirigeringer/alternativer fra Wikipedia (f.eks. <em>Nidaros domkirke</em> for <em>Nidarosdomen</em>)
+              godkjennes automatisk! Parenteser som <code>(film)</code> eller <code>(band)</code> trenger du aldri skrive.
+            </li>
+            <li>
+              <strong>🐟 0,5 poeng for «Nære nok»:</strong> Hvis du gir opp, men ser at du gjettet nesten riktig
+              (eller tenkte på riktig person/verk med litt feil tittel), kan du trykke på
+              <strong>«Nære nok? Gi meg 0,5p»</strong> – akkurat som i originalen!
+            </li>
+            <li>
+              <strong>🔤 Frivillige hint:</strong> Står du fast, kan du vise forbokstavene i tittelen eller første
+              setning fra artikkelen (med oppslagsordet sladdet).
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <span>Kattfisking • Innhold fra <a href="https://no.wikipedia.org" target="_blank" rel="noopener noreferrer">Norsk Wikipedia</a> (CC BY-SA 4.0) • Inspirert av <a href="https://catfishing.net" target="_blank" rel="noopener noreferrer">catfishing.net</a></span>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+[Unit]
+Description=Kattfisking - Norsk Wikipedia-spill (catfishing.net-klone)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Kattfisking
+Environment="PORT=3000"
+Environment="HOST=0.0.0.0"
+ExecStart=/home/pi/Kattfisking/start.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
