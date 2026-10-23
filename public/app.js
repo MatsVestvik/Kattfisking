@@ -577,10 +577,10 @@
         btn.innerHTML = '<img src="/assets/cat.png" alt="Katt" class="pixel-icon step-pixel-icon" />';
       } else if (p.status === "half") {
         btn.classList.add("done-half");
-        btn.innerHTML = '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon step-pixel-icon" />';
+        btn.innerHTML = '<img src="/assets/catfish.png" alt="Kattfisk" class="pixel-icon step-pixel-icon" />';
       } else if (p.status === "gaveup") {
         btn.classList.add("done-zero");
-        btn.textContent = "🦴";
+        btn.innerHTML = '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon step-pixel-icon" />';
       } else {
         btn.textContent = String(idx + 1);
       }
@@ -610,13 +610,13 @@
       el.closeEnoughBtn.classList.add("hidden");
     } else if (item.status === "half") {
       el.revealBanner.classList.add("status-half");
-      el.revealIcon.innerHTML = '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon reveal-pixel-icon" />';
+      el.revealIcon.innerHTML = '<img src="/assets/catfish.png" alt="Kattfisk" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Nære nok! (+0,5 poeng)";
       el.revealGuessSub.textContent = "Du ga deg selv 0,5 poeng for å være nære.";
       el.closeEnoughBtn.classList.add("hidden");
     } else {
       el.revealBanner.classList.add("status-zero");
-      el.revealIcon.textContent = "🦴";
+      el.revealIcon.innerHTML = '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Feil svar (0 poeng)";
       const lastGuess = item.guesses[item.guesses.length - 1];
       el.revealGuessSub.textContent = lastGuess
@@ -816,8 +816,8 @@
 
   function getRankComment(score) {
     if (score >= 9.5) return "👑 Leksikalsk mesterkatt! Utrolig imponerende!";
-    if (score >= 7.5) return "🐈 Skarp kattepus! Du kan ditt norske leksikon!";
-    if (score >= 5.0) return "🐟 Solid fangst ved fiskedammen!";
+    if (score >= 7.5) return '<img src="/assets/cat.png" class="pixel-icon inline-pixel-icon" alt="" /> Skarp kattepus! Du kan ditt norske leksikon!';
+    if (score >= 5.0) return '<img src="/assets/fish.png" class="pixel-icon inline-pixel-icon" alt="" /> Solid fangst ved fiskedammen!';
     if (score >= 3.0) return "🐾 Godt forsøk – noen vriene kategorier i dag!";
     return "🧶 Krevende sett i dag – ny sjanse i morgen!";
   }
@@ -839,8 +839,24 @@
 
     el.summaryOverline.textContent = `Kattfisking #${state.puzzleNumber} (${state.activeDate})`;
     el.summaryScoreBig.textContent = `${formatNoScore(totalScore)} / ${state.articles.length}`;
-    el.summaryRankText.textContent = getRankComment(totalScore);
-    el.summaryEmojiGrid.textContent = buildEmojiGridString();
+    el.summaryRankText.innerHTML = getRankComment(totalScore);
+
+    el.summaryEmojiGrid.innerHTML = "";
+    state.progress.forEach((p) => {
+      const img = document.createElement("img");
+      img.className = "pixel-icon grid-pixel-icon";
+      if (p.status === "solved") {
+        img.src = "/assets/cat.png";
+        img.alt = "Katt (1p)";
+      } else if (p.status === "half") {
+        img.src = "/assets/catfish.png";
+        img.alt = "Kattfisk (0.5p)";
+      } else {
+        img.src = "/assets/fish.png";
+        img.alt = "Fisk (0p)";
+      }
+      el.summaryEmojiGrid.appendChild(img);
+    });
 
     el.statPlayerScore.textContent = `${formatNoScore(totalScore)} / 10`;
     el.statServerAvg.textContent =
@@ -854,8 +870,8 @@
         p.status === "solved"
           ? '<img src="/assets/cat.png" alt="Katt" class="pixel-icon recap-pixel-icon" />'
           : p.status === "half"
-          ? '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon recap-pixel-icon" />'
-          : "🦴";
+          ? '<img src="/assets/catfish.png" alt="Kattfisk" class="pixel-icon recap-pixel-icon" />'
+          : '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon recap-pixel-icon" />';
       const row = document.createElement("div");
       row.className = "recap-row";
 

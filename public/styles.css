@@ -898,11 +898,27 @@ a:hover {
 }
 
 .emoji-grid {
-  font-size: 1.45rem;
-  line-height: 1.35;
-  letter-spacing: 0.15em;
-  text-align: center;
-  white-space: pre-line;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.grid-pixel-icon {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  display: inline-block;
+  transition: transform 0.12s ease;
+}
+
+.grid-pixel-icon:hover {
+  transform: scale(1.15);
 }
 
 .copy-toast {
