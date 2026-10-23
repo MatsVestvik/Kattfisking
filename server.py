@@ -327,6 +327,8 @@ class KattfiskingHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(content)))
+        if safe_rel.endswith((".js", ".css", ".html")) or not safe_rel:
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
         self.end_headers()
         self.wfile.write(content)
 

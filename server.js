@@ -264,11 +264,14 @@ const server = http.createServer(async (req, res) => {
 
     const ext = path.extname(fullPath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
-    const content = fs.readFileSync(fullPath);
-    res.writeHead(200, {
+    const headers = {
       "Content-Type": contentType,
       "Content-Length": content.length,
-    });
+    };
+    if ([".js", ".css", ".html"].includes(ext) || !safePath) {
+      headers["Cache-Control"] = "no-cache, must-revalidate";
+    }
+    res.writeHead(200, headers);
     res.end(content);
   } catch (err) {
     console.error(err);
