@@ -19,6 +19,7 @@ import wiki_harvester as harvester
 PORT = int(os.environ.get("PORT", "3000"))
 HOST = os.environ.get("HOST", "0.0.0.0")
 PUBLIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")
+mimetypes.add_type("font/ttf", ".ttf")
 
 
 class KattfiskingHandler(BaseHTTPRequestHandler):

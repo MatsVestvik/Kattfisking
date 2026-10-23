@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="/assets/catfish.png" />
   <link rel="apple-touch-icon" href="/assets/catfish.png" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="stylesheet" href="/styles.css?v=4.0" />
+  <link rel="stylesheet" href="/styles.css?v=5.0" />
 </head>
 <body>
   <div class="app-shell">
@@ -26,16 +26,16 @@
 
       <nav class="mode-nav" aria-label="Spillmoduser">
         <button type="button" class="nav-btn active" id="navDailyBtn">
-          <span>📅</span> Dagens
+          Dagens
         </button>
         <button type="button" class="nav-btn" id="navArchiveBtn">
-          <span>🗂️</span> Arkiv
+          Arkiv
         </button>
         <button type="button" class="nav-btn" id="navPracticeBtn">
-          <span>♾️</span> Frispill
+          Frispill
         </button>
         <button type="button" class="nav-btn" id="navCurateBtn">
-          <span>➕</span> Legg til
+          Legg til
         </button>
       </nav>
 
@@ -44,7 +44,7 @@
           ?
         </button>
         <button type="button" class="icon-btn" id="themeToggleBtn" title="Bytt mellom mørkt og lyst tema" aria-label="Bytt tema">
-          🌙
+          TEMA
         </button>
       </div>
     </header>
@@ -71,8 +71,8 @@
 
           <!-- Practice streak tracker (Practice mode) -->
           <div id="practiceTracker" class="practice-tracker hidden">
-            <span class="streak-pill">🔥 Rekke: <strong id="practiceStreakVal">0</strong></span>
-            <span class="streak-pill">🏆 Poeng: <strong id="practiceScoreVal">0</strong> / <span id="practiceCountVal">0</span></span>
+            <span class="streak-pill">Rekke: <strong id="practiceStreakVal">0</strong></span>
+            <span class="streak-pill">Poeng: <strong id="practiceScoreVal">0</strong> / <span id="practiceCountVal">0</span></span>
           </div>
 
           <div class="score-pill-wrap" id="dailyScoreWrap">
@@ -93,10 +93,10 @@
             </div>
             <div class="hint-controls" id="hintControls">
               <button type="button" class="btn btn-ghost btn-sm" id="hintLettersBtn" title="Vis ordlengde og forbokstaver">
-                🔤 Forbokstaver
+                Forbokstaver
               </button>
               <button type="button" class="btn btn-ghost btn-sm" id="hintSentenceBtn" title="Vis første setning (sladdet)">
-                📖 Setningshint
+                Setningshint
               </button>
             </div>
           </div>
@@ -120,7 +120,7 @@
         <!-- Did You Mean ("Mente du...?") Prompt -->
         <div id="didYouMeanBox" class="card did-you-mean-card hidden" role="alert">
           <div class="dym-text">
-            <span>🤏 Nesten! Mente du </span>
+            <span>Nesten! Mente du </span>
             <strong id="didYouMeanTarget"></strong>?
           </div>
           <div class="dym-actions">
@@ -136,7 +136,7 @@
         <!-- Guess Input Card (shown while article is active) -->
         <form id="guessForm" class="card guess-card" autocomplete="off">
           <div class="guess-attempts-note">
-            <span>🎯 Du har <strong>kun 1 gjett</strong> per artikkel</span>
+            <span>Du har <strong>kun 1 gjett</strong> per artikkel</span>
           </div>
           <div class="input-row">
             <div class="autocomplete-wrapper">
@@ -150,7 +150,7 @@
               <ul id="autocompleteList" class="autocomplete-list hidden" role="listbox"></ul>
             </div>
             <button type="submit" class="btn btn-primary" id="submitGuessBtn">
-              Gjett ↵
+              Gjett
             </button>
             <button type="button" class="btn btn-secondary" id="giveUpBtn" title="Gi opp og se svaret">
               Gi opp
@@ -194,7 +194,7 @@
             <div class="reveal-info">
               <div class="reveal-title-row">
                 <a id="revealWikiLink" href="#" target="_blank" rel="noopener noreferrer" class="reveal-article-title">
-                  Artikkeltittel ↗
+                  Artikkeltittel →
                 </a>
                 <span id="revealSolveBadge" class="badge badge-muted hidden"></span>
               </div>
@@ -226,7 +226,7 @@
             <div class="summary-emoji-box">
               <div id="summaryEmojiGrid" class="emoji-grid" aria-label="Resultatnett"></div>
               <button type="button" class="btn btn-primary btn-block" id="copyShareBtn">
-                📋 Kopier resultat
+                Kopier resultat
               </button>
               <span id="copyConfirmToast" class="copy-toast hidden">Kopiert til utklippstavlen!</span>
             </div>
@@ -252,10 +252,10 @@
 
           <div class="summary-footer-actions">
             <button type="button" class="btn btn-secondary" id="summaryToArchiveBtn">
-              🗂️ Spill tidligere dager i arkivet
+              Spill tidligere dager i arkivet
             </button>
             <button type="button" class="btn btn-primary" id="summaryToPracticeBtn">
-              ♾️ Spill videre i Frispill-modus
+              Spill videre i Frispill-modus
             </button>
           </div>
         </section>
@@ -265,7 +265,7 @@
       <section id="archiveSection" class="card archive-section hidden">
         <div class="section-header">
           <div>
-            <h2>🗂️ Arkiv – Tidligere dagsutfordringer</h2>
+            <h2>Arkiv – Tidligere dagsutfordringer</h2>
             <p class="muted-text">Velg en dato for å spille eller se resultatet ditt.</p>
           </div>
         </div>
@@ -276,7 +276,7 @@
       <section id="curateSection" class="card curate-section hidden">
         <div class="section-header">
           <div>
-            <h2>➕ Foreslå eller legg til artikkel</h2>
+            <h2>Foreslå eller legg til artikkel</h2>
             <p class="muted-text">
               Søk opp en hvilken som helst artikkel på norsk Wikipedia (<code>no.wikipedia.org</code>),
               forhåndsvis hvilke kategorier som blir stående etter filtrering, og legg den til i Raspberry Pi-databasen!
@@ -296,10 +296,10 @@
               <ul id="curateAutocompleteList" class="autocomplete-list hidden"></ul>
             </div>
             <button type="button" class="btn btn-secondary" id="curatePreviewBtn">
-              🔍 Forhåndsvis
+              Forhåndsvis
             </button>
             <button type="submit" class="btn btn-primary" id="curateSaveBtn">
-              💾 Lagre i databasen
+              Lagre i databasen
             </button>
           </div>
         </form>
@@ -323,11 +323,11 @@
 
         <div class="server-pool-box">
           <div>
-            <h3>📊 Raspberry Pi-artikkeldatabase</h3>
+            <h3>Raspberry Pi-artikkeldatabase</h3>
             <p class="muted-text" id="dbStatsText">Laster statistikk…</p>
           </div>
           <button type="button" class="btn btn-secondary" id="harvestMoreBtn">
-            🔄 Hent flere populære artikler fra Wikipedia nå
+            Hent flere populære artikler fra Wikipedia nå
           </button>
         </div>
       </section>
@@ -340,7 +340,7 @@
           <h2 id="helpModalTitle">
             <img src="/assets/catfish.png" alt="" class="pixel-icon modal-title-icon" /> Slik spiller du Kattfisking
           </h2>
-          <button type="button" class="icon-btn" id="closeHelpModalBtn" aria-label="Lukk">✕</button>
+          <button type="button" class="icon-btn" id="closeHelpModalBtn" aria-label="Lukk">X</button>
         </div>
         <div class="modal-body">
           <p>
@@ -354,7 +354,7 @@
               Wikipedia. Kategorier som direkte røper svaret er automatisk sladdet bort.
             </li>
             <li>
-              <strong>🎯 Kun 1 gjett per artikkel:</strong> Du har kun ett forsøk per oppgave! Gjetter du riktig får du 1 poeng (<img src="/assets/cat.png" alt="Katt" class="pixel-icon inline-pixel-icon" />).
+              <strong>Kun 1 gjett per artikkel:</strong> Du har kun ett forsøk per oppgave! Gjetter du riktig får du 1 poeng (<img src="/assets/cat.png" alt="Katt" class="pixel-icon inline-pixel-icon" />).
               Gjetter du feil får du 0 poeng (<img src="/assets/fish.png" alt="Fisk" class="pixel-icon inline-pixel-icon" />).
             </li>
             <li>
@@ -368,7 +368,7 @@
               <strong>«Nære nok? Gi meg 0,5p»</strong> – akkurat som i originalen catfishing.net!
             </li>
             <li>
-              <strong>🔤 Frivillige hint:</strong> Står du fast, kan du vise forbokstavene i tittelen eller første
+              <strong>Frivillige hint:</strong> Står du fast, kan du vise forbokstavene i tittelen eller første
               setning fra artikkelen (med oppslagsordet sladdet).
             </li>
           </ul>
@@ -381,6 +381,6 @@
     </footer>
   </div>
 
-  <script src="/app.js?v=4.0"></script>
+  <script src="/app.js?v=5.0"></script>
 </body>
 </html>

@@ -488,7 +488,7 @@
 
       renderStepDots();
     } else {
-      el.puzzleTitleBadge.textContent = "♾️ Frispill";
+      el.puzzleTitleBadge.textContent = "Frispill";
       el.puzzleDateLabel.textContent = "Tilfeldige norske artikler";
       el.dailyStepTracker.classList.add("hidden");
       el.dailyScoreWrap.classList.add("hidden");
@@ -539,7 +539,7 @@
     item.guesses.forEach((g) => {
       const pill = document.createElement("span");
       pill.className = "wrong-pill";
-      pill.textContent = `✕ ${g}`;
+      pill.textContent = `[X] ${g}`;
       el.wrongGuessesContainer.appendChild(pill);
     });
 
@@ -815,21 +815,21 @@
   }
 
   function getRankComment(score) {
-    if (score >= 9.5) return "👑 Leksikalsk mesterkatt! Utrolig imponerende!";
+    if (score >= 9.5) return '<img src="/assets/cat.png" class="pixel-icon inline-pixel-icon" alt="" /> Leksikalsk mesterkatt! Helt suverent!';
     if (score >= 7.5) return '<img src="/assets/cat.png" class="pixel-icon inline-pixel-icon" alt="" /> Skarp kattepus! Du kan ditt norske leksikon!';
     if (score >= 5.0) return '<img src="/assets/fish.png" class="pixel-icon inline-pixel-icon" alt="" /> Solid fangst ved fiskedammen!';
-    if (score >= 3.0) return "🐾 Godt forsøk – noen vriene kategorier i dag!";
-    return "🧶 Krevende sett i dag – ny sjanse i morgen!";
+    if (score >= 3.0) return "Godt forsøk – noen vriene kategorier i dag!";
+    return "Krevende sett i dag – ny sjanse i morgen!";
   }
 
   function buildEmojiGridString() {
-    const emojis = state.progress.map((p) => {
-      if (p.status === "solved") return "🐈";
-      if (p.status === "half") return "🐟";
-      return "⬛";
+    const symbols = state.progress.map((p) => {
+      if (p.status === "solved") return "[1.0]";
+      if (p.status === "half") return "[0.5]";
+      return "[0.0]";
     });
-    const row1 = emojis.slice(0, 5).join("");
-    const row2 = emojis.slice(5, 10).join("");
+    const row1 = symbols.slice(0, 5).join(" ");
+    const row2 = symbols.slice(5, 10).join(" ");
     return `${row1}\n${row2}`;
   }
 
@@ -877,7 +877,7 @@
 
       const left = document.createElement("div");
       left.className = "recap-left";
-      left.innerHTML = `<span>${icon}</span> <strong>${idx + 1}.</strong> <a href="${art.wikiUrl}" target="_blank" rel="noopener noreferrer">${art.title} ↗</a>`;
+      left.innerHTML = `<span>${icon}</span> <strong>${idx + 1}.</strong> <a href="${art.wikiUrl}" target="_blank" rel="noopener noreferrer">${art.title} -></a>`;
 
       const right = document.createElement("div");
       right.className = "recap-right";
@@ -938,7 +938,7 @@
               isDone
                 ? `<img src="/assets/cat.png" alt="" class="pixel-icon inline-pixel-icon" /> Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
                 : saved
-                ? "⏳ Påbegynt"
+                ? "Påbegynt"
                 : "Ikke spilt ennå"
             }</span>
             <span class="muted-text">Snitt: ${formatNoScore(p.averageScore)}</span>
@@ -994,8 +994,8 @@
       const art = data.article;
       el.curateStatusMsg.className = "curate-alert success";
       el.curateStatusMsg.textContent = data.saved
-        ? `✅ «${art.title}» er lagret i databasen med ${art.categories.length} kategorier!`
-        : `🔍 Forhåndsvisning av «${art.title}» (${art.categories.length} gyldige kategorier):`;
+        ? `«${art.title}» er lagret i databasen med ${art.categories.length} kategorier!`
+        : `Forhåndsvisning av «${art.title}» (${art.categories.length} gyldige kategorier):`;
 
       el.curatePreviewCard.classList.remove("hidden");
       el.curatePrevTitle.textContent = art.title;
@@ -1091,7 +1091,7 @@
   function initTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
     document.documentElement.setAttribute("data-theme", savedTheme);
-    el.themeToggleBtn.textContent = savedTheme === "dark" ? "🌙" : "☀️";
+    el.themeToggleBtn.textContent = savedTheme === "dark" ? "MØRK" : "LYS";
 
     const savedAuto = localStorage.getItem(AUTOCOMPLETE_KEY);
     el.autocompleteToggle.checked = savedAuto === null ? true : savedAuto === "1";
@@ -1110,7 +1110,7 @@
       const next = current === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
       localStorage.setItem(THEME_KEY, next);
-      el.themeToggleBtn.textContent = next === "dark" ? "🌙" : "☀️";
+      el.themeToggleBtn.textContent = next === "dark" ? "MØRK" : "LYS";
     });
 
     el.autocompleteToggle.addEventListener("change", () => {
@@ -1215,11 +1215,11 @@
     });
     el.harvestMoreBtn.addEventListener("click", async () => {
       el.harvestMoreBtn.disabled = true;
-      el.harvestMoreBtn.textContent = "⏳ Henter artikler fra Wikipedia…";
+      el.harvestMoreBtn.textContent = "Henter artikler fra Wikipedia…";
       try {
         const res = await fetch("/api/harvest", { method: "POST" });
         const data = await res.json();
-        el.harvestMoreBtn.textContent = `✅ Hentet ${data.added || 0} nye artikler!`;
+        el.harvestMoreBtn.textContent = `Hentet ${data.added || 0} nye artikler!`;
         refreshDbStats();
       } catch (_) {
         el.harvestMoreBtn.textContent = "Feil ved henting";
@@ -1227,7 +1227,7 @@
         setTimeout(() => {
           el.harvestMoreBtn.disabled = false;
           el.harvestMoreBtn.textContent =
-            "🔄 Hent flere populære artikler fra Wikipedia nå";
+            "Hent flere populære artikler fra Wikipedia nå";
         }, 3000);
       }
     });
