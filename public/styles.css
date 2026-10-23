@@ -454,6 +454,19 @@ a:hover {
   padding: 1rem 1.2rem;
 }
 
+.guess-attempts-note {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.guess-attempts-note strong {
+  color: var(--accent);
+}
+
 .input-row {
   display: flex;
   gap: 0.55rem;

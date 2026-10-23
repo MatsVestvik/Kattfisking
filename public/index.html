@@ -124,21 +124,24 @@
               Ja, det var det jeg mente! (+1p)
             </button>
             <button type="button" class="btn btn-secondary btn-sm" id="dymNoBtn">
-              Nei, fortsett å gjette
+              Nei, det var feil
             </button>
           </div>
         </div>
 
         <!-- Guess Input Card (shown while article is active) -->
         <form id="guessForm" class="card guess-card" autocomplete="off">
+          <div class="guess-attempts-note">
+            <span>🎯 Du har <strong>kun 1 gjett</strong> per artikkel</span>
+          </div>
           <div class="input-row">
             <div class="autocomplete-wrapper">
               <input
                 type="text"
                 id="guessInput"
                 class="guess-input"
-                placeholder="Skriv navnet på Wikipedia-artikkelen…"
-                aria-label="Gjett Wikipedia-artikkel"
+                placeholder="Skriv navnet på Wikipedia-artikkelen (1 forsøk)…"
+                aria-label="Gjett Wikipedia-artikkel (1 forsøk)"
               />
               <ul id="autocompleteList" class="autocomplete-list hidden" role="listbox"></ul>
             </div>
@@ -343,14 +346,18 @@
               Wikipedia. Kategorier som direkte røper svaret er automatisk sladdet bort.
             </li>
             <li>
+              <strong>🎯 Kun 1 gjett per artikkel:</strong> Du har kun ett forsøk per oppgave! Gjetter du riktig får du 1 poeng (🐈).
+              Gjetter du feil avsløres fasiten umiddelbart (0 poeng).
+            </li>
+            <li>
               <strong>🐈 1 poeng for riktig svar:</strong> Små skrivefeil fanges opp av <em>«Mente du…?»</em>, og
               omdirigeringer/alternativer fra Wikipedia (f.eks. <em>Nidaros domkirke</em> for <em>Nidarosdomen</em>)
               godkjennes automatisk! Parenteser som <code>(film)</code> eller <code>(band)</code> trenger du aldri skrive.
             </li>
             <li>
-              <strong>🐟 0,5 poeng for «Nære nok»:</strong> Hvis du gir opp, men ser at du gjettet nesten riktig
+              <strong>🐟 0,5 poeng for «Nære nok»:</strong> Hvis du bommer eller gir opp, men ser at du gjettet nesten riktig
               (eller tenkte på riktig person/verk med litt feil tittel), kan du trykke på
-              <strong>«Nære nok? Gi meg 0,5p»</strong> – akkurat som i originalen!
+              <strong>«Nære nok? Gi meg 0,5p»</strong> – akkurat som i originalen catfishing.net!
             </li>
             <li>
               <strong>🔤 Frivillige hint:</strong> Står du fast, kan du vise forbokstavene i tittelen eller første

@@ -8,9 +8,9 @@ Hver dag trekkes **10 artikler fra norsk Wikipedia** (`no.wikipedia.org`). Du f�
 
 ## ✨ Funksjoner
 
-- **📅 Dagens utfordring (10 artikler):** Alle som spiller på samme dato får de samme 10 norske Wikipedia-artiklene.
+- **📅 Dagens utfordring (10 artikler):** Alle som spiller på samme dato får de samme 10 norske Wikipedia-artiklene. Du har **kun 1 gjett per artikkel**!
 - **🤏 «Mente du…?» (skrivefeil- og etternavnstoleranse):** Små tastefeil fanges opp med Damerau-Levenshtein-sjekk, og alle norske Wikipedia-omdirigeringer (f.eks. *Nidaros domkirke* → *Nidarosdomen*, *Ap* → *Arbeiderpartiet*) godkjennes automatisk.
-- **🐟 «Nære nok? Gi meg 0,5p»:** Akkurat som på catfishing.net kan du tildele deg selv et halvt poeng etter at fasiten vises dersom du var inne på riktig emne.
+- **🐟 «Nære nok? Gi meg 0,5p»:** Hvis du bommer på ditt ene gjett, kan du tildele deg selv et halvt poeng etter at fasiten vises dersom du var inne på riktig emne (akkurat som på catfishing.net).
 - **🔤 Frivillige hint:** Vis ordmønster/forbokstaver eller første setning fra artikkelen med oppslagsordet sladdet (`[███]`).
 - **🗂️ Arkivmodus:** Spill tidligere dagers utfordringer.
 - **♾️ Frispill (Evig modus):** Spill tilfeldige artikler fra databasen med rekke-teller (`🔥 Rekke`).

@@ -617,9 +617,10 @@
     } else {
       el.revealBanner.classList.add("status-zero");
       el.revealIcon.textContent = "🦴";
-      el.revealStatusTitle.textContent = "Ikke denne gangen (0 poeng)";
-      el.revealGuessSub.textContent = item.guesses.length
-        ? `Dine forsøk: ${item.guesses.join(", ")}`
+      el.revealStatusTitle.textContent = "Feil svar (0 poeng)";
+      const lastGuess = item.guesses[item.guesses.length - 1];
+      el.revealGuessSub.textContent = lastGuess
+        ? `Du gjettet «${lastGuess}»`
         : "Du ga opp denne artikkelen.";
       el.closeEnoughBtn.classList.remove("hidden");
     }
@@ -713,12 +714,9 @@
       el.didYouMeanTarget.textContent = evalRes.matchedLabel;
       el.didYouMeanBox.classList.remove("hidden");
     } else {
-      if (!item.guesses.includes(rawGuess)) {
-        item.guesses.push(rawGuess);
-      }
-      el.guessInput.value = "";
-      saveDailyProgress();
-      renderGameView();
+      // Kun 1 gjett: feil svar avslutter runden for denne artikkelen (0 poeng)
+      item.guesses.push(rawGuess);
+      markCurrentArticle("gaveup", 0.0);
     }
   }
 
@@ -1162,9 +1160,7 @@
       }
       state.dymCandidate = null;
       el.didYouMeanBox.classList.add("hidden");
-      el.guessInput.value = "";
-      saveDailyProgress();
-      renderGameView();
+      markCurrentArticle("gaveup", 0.0);
     });
 
     // Reveal card actions
