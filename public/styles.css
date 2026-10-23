@@ -1,23 +1,23 @@
 :root,
 [data-theme="dark"] {
-  --bg: #0f172a;
-  --bg-elevated: #1e293b;
-  --bg-subtle: #263449;
-  --border: #334155;
+  --bg: #090e1c;
+  --bg-elevated: rgba(18, 28, 48, 0.90);
+  --bg-subtle: rgba(28, 42, 68, 0.85);
+  --border: rgba(60, 80, 115, 0.45);
   --text: #f8fafc;
   --text-muted: #94a3b8;
   --accent: #f59e0b;
   --accent-hover: #d97706;
-  --accent-soft: rgba(245, 158, 11, 0.14);
+  --accent-soft: rgba(245, 158, 11, 0.16);
   --blue: #38bdf8;
-  --blue-soft: rgba(56, 189, 248, 0.14);
+  --blue-soft: rgba(56, 189, 248, 0.16);
   --success: #22c55e;
-  --success-soft: rgba(34, 197, 94, 0.16);
+  --success-soft: rgba(34, 197, 94, 0.18);
   --danger: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.16);
-  --cat-pill-bg: #0b1120;
-  --cat-pill-border: #3b4c66;
-  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+  --danger-soft: rgba(239, 68, 68, 0.18);
+  --cat-pill-bg: rgba(11, 17, 32, 0.85);
+  --cat-pill-border: rgba(59, 76, 102, 0.7);
+  --shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.55);
 }
 
 [data-theme="light"] {
@@ -49,10 +49,32 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
-  background-color: var(--bg);
   color: var(--text);
   line-height: 1.55;
   min-height: 100vh;
+  position: relative;
+  background-color: var(--bg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-color: #090e1c;
+  background-image: 
+    linear-gradient(to bottom, rgba(9, 14, 28, 0.3) 0%, rgba(9, 14, 28, 0.05) 45%, rgba(9, 14, 28, 0.45) 100%),
+    url("/assets/seabed.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  pointer-events: none;
 }
 
 a {
@@ -205,6 +227,8 @@ a:hover {
   display: flex;
   gap: 0.35rem;
   background: var(--bg-elevated);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 0.28rem;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -266,6 +290,8 @@ a:hover {
   border-radius: 14px;
   padding: 1.25rem;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .center-card {
