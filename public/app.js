@@ -574,10 +574,10 @@
 
       if (p.status === "solved") {
         btn.classList.add("done-full");
-        btn.textContent = "🐈";
+        btn.innerHTML = '<img src="/assets/cat.png" alt="Katt" class="pixel-icon step-pixel-icon" />';
       } else if (p.status === "half") {
         btn.classList.add("done-half");
-        btn.textContent = "🐟";
+        btn.innerHTML = '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon step-pixel-icon" />';
       } else if (p.status === "gaveup") {
         btn.classList.add("done-zero");
         btn.textContent = "🦴";
@@ -601,7 +601,7 @@
 
     if (item.status === "solved") {
       el.revealBanner.classList.add("status-full");
-      el.revealIcon.textContent = "🐈";
+      el.revealIcon.innerHTML = '<img src="/assets/cat.png" alt="Katt" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Fulltreff! (+1 poeng)";
       const lastGuess = item.guesses[item.guesses.length - 1];
       el.revealGuessSub.textContent = lastGuess
@@ -610,7 +610,7 @@
       el.closeEnoughBtn.classList.add("hidden");
     } else if (item.status === "half") {
       el.revealBanner.classList.add("status-half");
-      el.revealIcon.textContent = "🐟";
+      el.revealIcon.innerHTML = '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Nære nok! (+0,5 poeng)";
       el.revealGuessSub.textContent = "Du ga deg selv 0,5 poeng for å være nære.";
       el.closeEnoughBtn.classList.add("hidden");
@@ -851,7 +851,11 @@
     state.articles.forEach((art, idx) => {
       const p = state.progress[idx];
       const icon =
-        p.status === "solved" ? "🐈" : p.status === "half" ? "🐟" : "🦴";
+        p.status === "solved"
+          ? '<img src="/assets/cat.png" alt="Katt" class="pixel-icon recap-pixel-icon" />'
+          : p.status === "half"
+          ? '<img src="/assets/fish.png" alt="Fisk" class="pixel-icon recap-pixel-icon" />'
+          : "🦴";
       const row = document.createElement("div");
       row.className = "recap-row";
 
@@ -916,7 +920,7 @@
           <div class="archive-bottom">
             <span>${
               isDone
-                ? `🐈 Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
+                ? `<img src="/assets/cat.png" alt="" class="pixel-icon inline-pixel-icon" /> Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
                 : saved
                 ? "⏳ Påbegynt"
                 : "Ikke spilt ennå"

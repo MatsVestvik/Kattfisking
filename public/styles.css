@@ -97,13 +97,97 @@ a:hover {
   user-select: none;
 }
 
+/* Pixel Art Icons */
+.pixel-icon {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .brand-logo {
-  font-size: 1.85rem;
   background: var(--accent-soft);
-  border: 1px solid var(--accent);
+  border: 1.5px solid var(--accent);
   border-radius: 12px;
-  padding: 0.25rem 0.5rem;
-  line-height: 1.1;
+  padding: 0.2rem 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease;
+}
+
+.brand-wrap:hover .brand-logo {
+  transform: scale(1.06);
+}
+
+.brand-logo-img {
+  width: 42px;
+  height: 42px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
+.step-pixel-icon {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  display: block;
+}
+
+.reveal-pixel-icon {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
+.btn-pixel-icon {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  vertical-align: -3px;
+  margin-right: 0.35rem;
+}
+
+.inline-pixel-icon {
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  vertical-align: -2px;
+  margin: 0 0.15rem;
+}
+
+.modal-title-icon {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  vertical-align: -4px;
+  margin-right: 0.35rem;
+}
+
+.recap-pixel-icon {
+  width: 22px;
+  height: 22px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  vertical-align: -4px;
 }
 
 .brand-title {
