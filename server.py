@@ -235,16 +235,16 @@ def main() -> None:
             return
         raise
 
-    print(f"🎮 Spillhjørnet kjører på http://{HOST}:{PORT}")
+    print(f"🎮 NTNU Games kjører på http://{HOST}:{PORT}")
     print(f"   • Hub:          http://{HOST}:{PORT}/")
     print(f"   • Kattfisking:  http://{HOST}:{PORT}/kattfisking/")
     print(f"   • Mer/Mindre:   http://{HOST}:{PORT}/mer-eller-mindre/")
-    print(f"   • Norgeguesser: http://{HOST}:{PORT}/geoguesser/\n")
+    print(f"   • NTNU guesser: http://{HOST}:{PORT}/geoguesser/ (under utvikling)\n")
 
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nAvslutter Spillhjørnet...")
+        print("\nAvslutter NTNU Games...")
         server.server_close()
 
 

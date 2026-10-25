@@ -414,9 +414,9 @@ else:
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`🎮 Spillhjørnet (Node.js) kjører på http://${HOST}:${PORT}`);
+  console.log(`🎮 NTNU Games (Node.js) kjører på http://${HOST}:${PORT}`);
   console.log(`   • Hub:          http://${HOST}:${PORT}/`);
   console.log(`   • Kattfisking:  http://${HOST}:${PORT}/kattfisking/`);
   console.log(`   • Mer/Mindre:   http://${HOST}:${PORT}/mer-eller-mindre/`);
-  console.log(`   • Norgeguesser: http://${HOST}:${PORT}/geoguesser/\n`);
+  console.log(`   • NTNU guesser: http://${HOST}:${PORT}/geoguesser/ (under utvikling)\n`);
 });

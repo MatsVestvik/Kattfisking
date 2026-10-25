@@ -686,16 +686,8 @@
     }
   });
 
-  // Theme Sync
-  const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-
-  el.themeToggleBtn.addEventListener("click", () => {
-    const cur = document.documentElement.getAttribute("data-theme") || "dark";
-    const next = cur === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem(THEME_KEY, next);
-  });
+  // Always locked to dark theme
+  document.documentElement.setAttribute("data-theme", "dark");
 
   // Fallback 25-pack in case offline or API unavailable
   function getFallback25Pack() {

@@ -52,7 +52,6 @@
     navPracticeBtn: document.getElementById("navPracticeBtn"),
     navCurateBtn: document.getElementById("navCurateBtn"),
     helpModalBtn: document.getElementById("helpModalBtn"),
-    themeToggleBtn: document.getElementById("themeToggleBtn"),
 
     loadingSection: document.getElementById("loadingSection"),
     loadingText: document.getElementById("loadingText"),
@@ -1089,10 +1088,7 @@
   // --- Theme & Event Listeners ---
 
   function initTheme() {
-    const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
-    document.documentElement.setAttribute("data-theme", savedTheme);
-    el.themeToggleBtn.textContent = savedTheme === "dark" ? "MØRK" : "LYS";
-
+    document.documentElement.setAttribute("data-theme", "dark");
     const savedAuto = localStorage.getItem(AUTOCOMPLETE_KEY);
     el.autocompleteToggle.checked = savedAuto === null ? true : savedAuto === "1";
   }
@@ -1103,15 +1099,6 @@
     el.navArchiveBtn.addEventListener("click", () => openArchiveView());
     el.navPracticeBtn.addEventListener("click", () => startPracticeMode());
     el.navCurateBtn.addEventListener("click", () => openCurateView());
-
-    el.themeToggleBtn.addEventListener("click", () => {
-      const current =
-        document.documentElement.getAttribute("data-theme") || "dark";
-      const next = current === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem(THEME_KEY, next);
-      el.themeToggleBtn.textContent = next === "dark" ? "MØRK" : "LYS";
-    });
 
     el.autocompleteToggle.addEventListener("change", () => {
       localStorage.setItem(

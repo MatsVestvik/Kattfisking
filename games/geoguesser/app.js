@@ -60,7 +60,6 @@
   const feedbackTitle = document.getElementById("feedbackTitle");
   const feedbackText = document.getElementById("feedbackText");
   const btnNext = document.getElementById("btnNext");
-  const themeToggleBtn = document.getElementById("themeToggleBtn");
 
   function loadRound(idx) {
     feedbackOverlay.classList.add("hidden");
@@ -117,7 +116,7 @@
       // Game ended
       feedbackIcon.textContent = "🏆";
       feedbackTitle.textContent = `Fullført! ${score} / ${TOTAL_ROUNDS * 1000} poeng`;
-      feedbackText.textContent = `Fantastisk spilt! Du har fullført dagens runde i Norgeguesser.`;
+      feedbackText.textContent = `Fantastisk spilt! Du har fullført dagens runde i NTNU guesser.`;
       btnNext.textContent = "Spill på nytt ↺";
       btnNext.onclick = () => {
         currentRound = 0;
@@ -128,15 +127,8 @@
     }
   });
 
-  // Theme support
-  const savedTheme = localStorage.getItem("kattfisking_theme") || "dark";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-  themeToggleBtn.addEventListener("click", () => {
-    const cur = document.documentElement.getAttribute("data-theme") || "dark";
-    const next = cur === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("kattfisking_theme", next);
-  });
+  // Locked to dark theme
+  document.documentElement.setAttribute("data-theme", "dark");
 
   loadRound(0);
 })();

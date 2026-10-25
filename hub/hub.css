@@ -130,149 +130,23 @@ body {
   border-radius: 6px;
 }
 
-.theme-toggle-btn {
-  font-family: var(--font-pixel);
-  background: var(--bg-card);
-  color: var(--text);
-  border: 2px solid var(--border-strong);
-  padding: 0.4rem 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 800;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.15s ease;
+/* Disabled Card State */
+.game-card.disabled-card {
+  opacity: 0.62;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
 }
 
-.theme-toggle-btn:hover {
-  background: var(--bg-subtle);
-  border-color: var(--accent);
+.game-card.disabled-card:hover {
+  transform: none !important;
+  box-shadow: var(--card-shadow) !important;
+  border-color: var(--border) !important;
+  background: rgba(19, 27, 46, 0.82) !important;
 }
 
-/* Hero / Featured */
-.featured-hero {
-  background: linear-gradient(135deg, rgba(19, 27, 46, 0.82) 0%, rgba(28, 39, 66, 0.85) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 2px solid rgba(255, 209, 102, 0.35);
-  border-radius: 16px;
-  padding: 2.25rem;
-  margin-bottom: 2.5rem;
-  box-shadow: var(--card-shadow), 0 0 30px rgba(255, 209, 102, 0.12);
-  position: relative;
-  overflow: hidden;
-}
-
-.featured-hero::before {
-  content: "";
-  position: absolute;
-  top: -50px;
-  right: -50px;
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle, rgba(255, 209, 102, 0.15) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.featured-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 209, 102, 0.18);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-}
-
-.featured-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-}
-
-@media (max-width: 768px) {
-  .featured-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.featured-title {
-  font-size: 2.2rem;
-  font-weight: 900;
-  line-height: 1.15;
-  margin-bottom: 0.5rem;
-}
-
-.featured-desc {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  max-width: 540px;
-  margin-bottom: 1.25rem;
-}
-
-.featured-cta {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.primary-btn {
-  background: var(--accent);
-  color: #0a0e17;
-  text-decoration: none;
-  font-family: var(--font-pixel);
-  font-size: 1.05rem;
-  font-weight: 800;
-  padding: 0.85rem 1.75rem;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 14px rgba(255, 209, 102, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 209, 102, 0.5);
-}
-
-.status-indicator {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.status-indicator.completed {
-  color: var(--accent-green);
-}
-
-.featured-visual {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.featured-mascot {
-  width: 96px;
-  height: 96px;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
-  animation: floatMascot 3s ease-in-out infinite;
-}
-
-@keyframes floatMascot {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.card-btn-disabled {
+  color: var(--text-muted) !important;
+  cursor: not-allowed;
 }
 
 /* Section Title */
@@ -404,6 +278,12 @@ body {
   border: 1px solid var(--accent-blue);
 }
 
+.tag-disabled {
+  background: rgba(139, 155, 180, 0.15);
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+}
+
 .card-title {
   font-size: 1.35rem;
   font-weight: 800;
@@ -509,6 +389,12 @@ body {
 .tracker-badge.done {
   border-color: var(--accent-green);
   color: var(--accent-green);
+}
+
+.tracker-badge.tracker-disabled {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: not-allowed;
 }
 
 /* Footer */

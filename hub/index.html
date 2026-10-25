@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spillhjørnet – Daglige norske spill & hjernetrim</title>
-  <meta name="description" content="Spill daglige norske hjernetrim-spill: Kattfisking (Wikipedia-kategorijakt), Mer eller Mindre, og Norgeguesser." />
-  <link rel="icon" type="image/png" href="/assets/icons/catfish.png" />
-  <link rel="apple-touch-icon" href="/assets/icons/catfish.png" />
+  <title>NTNU Games – Daglige norske spill & hjernetrim</title>
+  <meta name="description" content="Spill daglige spill fra NTNU Games: Kattfisking, Mer eller Mindre og NTNU guesser." />
+  <link rel="icon" type="image/png" href="/assets/icons/ntnu_guesser.png" />
+  <link rel="apple-touch-icon" href="/assets/icons/ntnu_guesser.png" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="stylesheet" href="/hub.css?v=1.1" />
+  <link rel="stylesheet" href="/hub.css?v=1.2" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
 <body>
@@ -25,52 +25,26 @@
   <div class="hub-shell">
     <!-- Top Header -->
     <header class="hub-header">
-      <a href="/" class="hub-brand" aria-label="Spillhjørnet Hjem">
+      <a href="/" class="hub-brand" aria-label="NTNU Games Hjem">
         <div class="brand-icon-wrap">
-          <img src="/assets/icons/catfish.png" alt="Spillhjørnet maskot" class="brand-icon-img" />
+          <img src="/assets/icons/ntnu_guesser.png" alt="NTNU Games ikon" class="brand-icon-img" />
         </div>
         <div>
-          <h1 class="brand-title">Spillhjørnet</h1>
-          <p class="brand-subtitle">Norske dagsspill & hjernetrim</p>
+          <h1 class="brand-title">NTNU Games</h1>
+          <p class="brand-subtitle">Norske dagsspill & studenttrim</p>
         </div>
       </a>
 
       <div class="hub-header-right">
         <div class="date-badge" id="hubDateBadge">Laster dato…</div>
-        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Bytt mellom lyst og mørkt tema">
-          TEMA
-        </button>
       </div>
     </header>
-
-    <!-- Featured Game Spotlight -->
-    <section class="featured-hero" aria-labelledby="featuredHeading">
-      <div class="featured-badge">⭐ Dagens Hovedspill</div>
-      <div class="featured-content">
-        <div>
-          <h2 class="featured-title" id="featuredHeading">Kattfisking</h2>
-          <p class="featured-desc">
-            Gjett den hemmelige norske Wikipedia-artikkelen kun ut fra kategoriene den tilhører. 
-            Én sjanse per artikkel. Ny utgave slippes hver dag ved midnatt!
-          </p>
-          <div class="featured-cta">
-            <a href="/kattfisking/" class="primary-btn" id="btnPlayFeatured">
-              Spill Kattfisking →
-            </a>
-            <span class="status-indicator" id="kattfiskingHeroStatus">Klar til å spilles</span>
-          </div>
-        </div>
-        <div class="featured-visual" aria-hidden="true">
-          <img src="/assets/icons/catfish.png" alt="Kattfisk" class="featured-mascot" />
-        </div>
-      </div>
-    </section>
 
     <!-- Game Selection Grid -->
     <section aria-labelledby="gamesSectionHeading">
       <div class="section-header">
         <h2 class="section-title" id="gamesSectionHeading">Alle spill</h2>
-        <span class="section-counter">3 tilgjengelige spill</span>
+        <span class="section-counter">2 aktive spill • 1 under utvikling</span>
       </div>
 
       <div class="games-grid">
@@ -99,37 +73,37 @@
             <div class="card-icon-box">
               <img src="/assets/icons/moreorless.png" alt="Mer eller Mindre ikon" />
             </div>
-            <span class="card-tag tag-daily">5-delt daglig</span>
+            <span class="card-tag tag-daily">25 dueller daglig</span>
           </div>
           <h3 class="card-title">Mer eller Mindre</h3>
-          <p class="card-subtitle">Skoler, snitt og studenter</p>
+          <p class="card-subtitle">Karakterer, søkere & strykprosent</p>
           <p class="card-desc">
-            Har Indøk NTNU høyere snitt enn Medisin UiO? Hvilket universitet har flest studenter? 5-delt Lessgames-stil kunnskapsduell.
+            5 kategorier med 5 spørsmål hver: Karaktergrenser, førsteprioritetssøkere, strykprosent, studenttall og inntakssnitt på VGS.
           </p>
           <div class="card-footer">
-            <span class="card-status" id="merMindreStatus">5 dueller per dag</span>
+            <span class="card-status" id="merMindreStatus">25 dueller per dag</span>
             <span class="card-btn">Spill nå →</span>
           </div>
         </a>
 
-        <!-- Game 3: Norgeguesser -->
-        <a href="/geoguesser/" class="game-card card-blue" id="cardGeoguesser">
+        <!-- Game 3: NTNU guesser (Disabled / Under utvikling) -->
+        <div class="game-card card-blue disabled-card" id="cardGeoguesser" aria-disabled="true">
           <div class="card-top">
             <div class="card-icon-box">
-              <img src="/assets/icons/ntnu_guesser.png" alt="Norgeguesser ikon" />
+              <img src="/assets/icons/ntnu_guesser.png" alt="NTNU guesser ikon" />
             </div>
-            <span class="card-tag tag-beta">Beta</span>
+            <span class="card-tag tag-disabled">Kommer snart</span>
           </div>
-          <h3 class="card-title">Norgeguesser</h3>
-          <p class="card-subtitle">Hvor i Norge er dette?</p>
+          <h3 class="card-title">NTNU guesser</h3>
+          <p class="card-subtitle">Hvor på campus er dette?</p>
           <p class="card-desc">
-            Kjenner du igjen Norges kjente steder, bygg, naturperler og fylker? Gjett riktig plassering og samle poeng!
+            Kjenner du igjen NTNUs campuser, historiske bygg, auditorier og linjeforeningsrom? Gjett riktig plassering og samle poeng!
           </p>
           <div class="card-footer">
-            <span class="card-status">5 runder</span>
-            <span class="card-btn">Spill nå →</span>
+            <span class="card-status">Under utvikling</span>
+            <span class="card-btn card-btn-disabled">Kommer snart 🔒</span>
           </div>
-        </a>
+        </div>
       </div>
     </section>
 
@@ -146,8 +120,8 @@
         <div class="tracker-badge" id="trackerMerMindre">
           <span>○</span> Mer eller Mindre
         </div>
-        <div class="tracker-badge" id="trackerGeoguesser">
-          <span>○</span> Norgeguesser
+        <div class="tracker-badge tracker-disabled" id="trackerGeoguesser">
+          <span>🔒</span> NTNU guesser (snart)
         </div>
       </div>
     </section>
@@ -155,13 +129,13 @@
     <!-- Footer -->
     <footer class="hub-footer">
       <p>
-        <strong>Spillhjørnet</strong> • Norsk hjernetrim og dagsspill inspirert av NYT Games og catfishing.net.<br />
+        <strong>NTNU Games</strong> • Norske dagsspill og hjernetrim inspirert av studentlivet og kunnskapsdueller.<br />
         Innhold og trivia fra <a href="https://no.wikipedia.org" target="_blank" rel="noopener noreferrer">Norsk Wikipedia</a> (CC BY-SA 4.0).
       </p>
     </footer>
   </div>
 
-  <script src="/hub.js?v=1.0"></script>
+  <script src="/hub.js?v=1.1"></script>
   <script src="/parallax-bg.js?v=1.0"></script>
 </body>
 </html>

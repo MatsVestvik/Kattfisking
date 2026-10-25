@@ -3,20 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Norgeguesser – Hvor i Norge er vi?</title>
-  <meta name="description" content="Gjett steder og landemerker i Norge! En uformell norsk geoguesser." />
+  <title>NTNU guesser – Hvor på campus er dette?</title>
+  <meta name="description" content="Kjenner du igjen NTNUs campuser, bygg og auditorier? NTNU guesser." />
   <link rel="icon" type="image/png" href="/assets/icons/ntnu_guesser.png" />
-  <link rel="stylesheet" href="/geoguesser/styles.css?v=1.1" />
+  <link rel="stylesheet" href="/geoguesser/styles.css?v=1.2" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
 <body>
+  <!-- Dynamic Multilayered Parallax Background (Trondheim / NTNU) -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
   <div class="app-shell">
     <header class="game-header">
       <div class="header-left">
-        <a href="/" class="icon-btn text-btn-link" title="Tilbake til spillutvalg">‹ SPILL</a>
-        <img src="/assets/icons/ntnu_guesser.png" alt="Norgeguesser ikon" class="header-pixel-icon" />
+        <a href="/" class="icon-btn text-btn-link" title="Tilbake til NTNU Games">‹ NTNU GAMES</a>
+        <img src="/assets/icons/ntnu_guesser.png" alt="NTNU guesser ikon" class="header-pixel-icon" />
         <div class="game-branding">
-          <h1 class="game-title">Norgeguesser</h1>
-          <span class="game-subtitle">Hvor i Norge er dette?</span>
+          <h1 class="game-title">NTNU guesser</h1>
+          <span class="game-subtitle">Hvor på campus er dette?</span>
         </div>
       </div>
       <div class="header-stats">
@@ -28,20 +39,19 @@
           <span class="stat-label">Poeng</span>
           <span class="stat-val" id="scoreDisplay">0</span>
         </div>
-        <button type="button" class="icon-btn" id="themeToggleBtn" title="Bytt tema">TEMA</button>
       </div>
     </header>
 
     <main class="game-main">
       <div class="geo-card" id="geoCard">
         <div class="geo-visual" id="geoVisual">
-          <div class="geo-badge" id="categoryBadge">LANDEMERKE</div>
-          <div class="geo-icon-large" id="geoIcon">🏔️</div>
+          <div class="geo-badge" id="categoryBadge">CAMPUS</div>
+          <div class="geo-icon-large" id="geoIcon">🏛️</div>
           <p class="geo-clue" id="geoClue">Laster ledetråd…</p>
         </div>
 
         <div class="geo-prompt-box">
-          <h2 class="geo-question">Hvilket fylke eller sted befinner vi oss i?</h2>
+          <h2 class="geo-question">Hvilken campus eller bygg befinner vi oss ved?</h2>
           <div class="options-grid" id="optionsGrid">
             <!-- Dynamically populated buttons -->
           </div>
@@ -53,17 +63,18 @@
         <div class="feedback-box" id="feedbackBox">
           <div class="feedback-icon" id="feedbackIcon">🎯</div>
           <h3 class="feedback-title" id="feedbackTitle">Blink!</h3>
-          <p class="feedback-text" id="feedbackText">Dette var Nidarosdomen i Trondheim, Trøndelag!</p>
+          <p class="feedback-text" id="feedbackText">Dette var Hovedbygningen på Gløshaugen!</p>
           <button type="button" class="pixel-btn next-btn" id="btnNext">Neste runde →</button>
         </div>
       </div>
     </main>
 
     <footer class="game-footer">
-      <p>Del av <a href="/">Spillhjørnet</a> • Geografi- og landemerkegjett i Norge</p>
+      <p>Del av <a href="/">NTNU Games</a> • Campus- og stedsquiz for NTNU</p>
     </footer>
   </div>
 
-  <script src="/geoguesser/app.js?v=1.0"></script>
+  <script src="/geoguesser/app.js?v=1.1"></script>
+  <script src="/parallax-bg.js?v=1.0"></script>
 </body>
 </html>

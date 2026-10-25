@@ -1,8 +1,10 @@
 (() => {
   "use strict";
 
-  const THEME_KEY = "kattfisking_theme";
   const STORAGE_PREFIX = "kattfisking_daily_v1_";
+
+  // Lock to dark theme permanently
+  document.documentElement.setAttribute("data-theme", "dark");
 
   // Date formatting in Norwegian
   const dateBadge = document.getElementById("hubDateBadge");
@@ -26,7 +28,6 @@
 
   // Check Kattfisking completion
   const kattfiskingStatus = document.getElementById("kattfiskingStatus");
-  const kattfiskingHeroStatus = document.getElementById("kattfiskingHeroStatus");
   const trackerKattfisking = document.getElementById("trackerKattfisking");
 
   try {
@@ -41,10 +42,6 @@
           kattfiskingStatus.textContent = text;
           kattfiskingStatus.classList.add("completed");
         }
-        if (kattfiskingHeroStatus) {
-          kattfiskingHeroStatus.textContent = text;
-          kattfiskingHeroStatus.classList.add("completed");
-        }
         if (trackerKattfisking) {
           trackerKattfisking.classList.add("done");
           trackerKattfisking.innerHTML = `<span>✓</span> Kattfisking (${solved}/${total})`;
@@ -55,45 +52,32 @@
     console.warn("Could not check local storage for kattfisking progress", e);
   }
 
-  // Check Mer eller Mindre Completion and Status
+  // Check Mer eller Mindre Completion and Status (supports both 25-duel and legacy keys)
   const merMindreStatus = document.getElementById("merMindreStatus");
   const trackerMerMindre = document.getElementById("trackerMerMindre");
   try {
-    const rawMM = localStorage.getItem("mer_eller_mindre_daily_" + todayIso);
-    if (rawMM) {
-      const dataMM = JSON.parse(rawMM);
+    const rawMM25 = localStorage.getItem("mer_eller_mindre_25_daily_" + todayIso) || localStorage.getItem("mer_eller_mindre_daily_" + todayIso);
+    if (rawMM25) {
+      const dataMM = JSON.parse(rawMM25);
       if (dataMM && typeof dataMM.score === "number") {
-        const textMM = `Fullført i dag (${dataMM.score}/5 ✓)`;
+        const maxScore = dataMM.total || 25;
+        const textMM = `Fullført i dag (${dataMM.score}/${maxScore} ✓)`;
         if (merMindreStatus) {
           merMindreStatus.textContent = textMM;
           merMindreStatus.classList.add("completed");
         }
         if (trackerMerMindre) {
           trackerMerMindre.classList.add("done");
-          trackerMerMindre.innerHTML = `<span>✓</span> Mer eller Mindre (${dataMM.score}/5)`;
+          trackerMerMindre.innerHTML = `<span>✓</span> Mer eller Mindre (${dataMM.score}/${maxScore})`;
         }
       }
     } else {
-      const hs = localStorage.getItem("mer_eller_mindre_highscore");
+      const hs = localStorage.getItem("mer_eller_mindre_25_highscore") || localStorage.getItem("mer_eller_mindre_highscore");
       if (hs && merMindreStatus) {
-        merMindreStatus.textContent = `Beste: ${hs}/5`;
+        merMindreStatus.textContent = `Beste: ${hs} poeng`;
       }
     }
   } catch (e) {
     console.warn("Could not check mer eller mindre progress", e);
-  }
-
-  // Theme Sync
-  const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-
-  const themeBtn = document.getElementById("themeToggleBtn");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const current = document.documentElement.getAttribute("data-theme") || "dark";
-      const next = current === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem(THEME_KEY, next);
-    });
   }
 })();
