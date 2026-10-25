@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mer eller Mindre – Norsk Tall- og Faktaduell</title>
+  <meta name="description" content="Gjett om neste tall er mer eller mindre! En norsk fakta- og statistikkduell." />
+  <link rel="icon" type="image/png" href="/assets/catfish.png?v=2" />
+  <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=1.0" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/" class="icon-btn text-btn-link" title="Tilbake til spillutvalg">‹ SPILL</a>
+        <div class="game-branding">
+          <h1 class="game-title">Mer eller Mindre</h1>
+          <span class="game-subtitle">Høyere eller lavere?</span>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-pill">
+          <span class="stat-label">Poeng</span>
+          <span class="stat-val" id="scoreDisplay">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">Beste</span>
+          <span class="stat-val" id="highScoreDisplay">0</span>
+        </div>
+        <button type="button" class="icon-btn" id="themeToggleBtn" title="Bytt tema">TEMA</button>
+      </div>
+    </header>
+
+    <main class="game-main">
+      <div class="duel-container" id="duelContainer">
+        <!-- Card Left: Current Entity -->
+        <div class="entity-card current-card" id="cardA">
+          <div class="card-badge">NÅVÆRENDE</div>
+          <h2 class="entity-title" id="titleA">Laster…</h2>
+          <p class="entity-metric" id="metricA">--</p>
+          <div class="entity-value-box">
+            <span class="entity-value" id="valA">---</span>
+            <span class="entity-unit" id="unitA"></span>
+          </div>
+        </div>
+
+        <!-- VS Divider / Action Controls -->
+        <div class="vs-divider">
+          <div class="vs-circle">VS</div>
+          <div class="guess-controls" id="controlsWrap">
+            <button type="button" class="guess-btn btn-higher" id="btnHigher">
+              <span class="btn-icon">▲</span>
+              <span class="btn-text">MER / HØYERE</span>
+            </button>
+            <button type="button" class="guess-btn btn-lower" id="btnLower">
+              <span class="btn-icon">▼</span>
+              <span class="btn-text">MINDRE / LAVERE</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card Right: Challenger Entity -->
+        <div class="entity-card challenger-card" id="cardB">
+          <div class="card-badge">UTFORDRER</div>
+          <h2 class="entity-title" id="titleB">Laster…</h2>
+          <p class="entity-metric" id="metricB">--</p>
+          <div class="entity-value-box">
+            <span class="entity-value blurred-value" id="valB">???</span>
+            <span class="entity-unit" id="unitB"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Banner Modal/Overlay -->
+      <div class="feedback-overlay hidden" id="feedbackOverlay">
+        <div class="feedback-box" id="feedbackBox">
+          <div class="feedback-icon" id="feedbackIcon">🎉</div>
+          <h3 class="feedback-title" id="feedbackTitle">Riktig!</h3>
+          <p class="feedback-text" id="feedbackText">Galdhøpiggen er høyere.</p>
+          <button type="button" class="pixel-btn next-btn" id="btnNext">Neste oppgave →</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="game-footer">
+      <p>Del av <a href="/">Spillhjørnet</a> • Norske fakta, geografi og statistikk</p>
+    </footer>
+  </div>
+
+  <script src="/mer-eller-mindre/app.js?v=1.0"></script>
+</body>
+</html>

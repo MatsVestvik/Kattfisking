@@ -309,7 +309,20 @@ class KattfiskingHandler(BaseHTTPRequestHandler):
             return
 
         full_path = os.path.join(PUBLIC_DIR, safe_rel)
-        if not os.path.isfile(full_path):
+        if os.path.isdir(full_path):
+            if not req_path.endswith("/"):
+                self.send_response(301)
+                self.send_header("Location", req_path + "/")
+                self.end_headers()
+                return
+            full_path = os.path.join(full_path, "index.html")
+        elif not os.path.isfile(full_path):
+            dir_index = os.path.join(PUBLIC_DIR, safe_rel, "index.html")
+            if os.path.isfile(dir_index):
+                self.send_response(301)
+                self.send_header("Location", req_path.rstrip("/") + "/")
+                self.end_headers()
+                return
             # SPA fallback to index.html
             full_path = os.path.join(PUBLIC_DIR, "index.html")
             if not os.path.isfile(full_path):

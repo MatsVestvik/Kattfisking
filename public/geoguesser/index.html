@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Norgeguesser – Hvor i Norge er vi?</title>
+  <meta name="description" content="Gjett steder og landemerker i Norge! En uformell norsk geoguesser." />
+  <link rel="icon" type="image/png" href="/assets/catfish.png?v=2" />
+  <link rel="stylesheet" href="/geoguesser/styles.css?v=1.0" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/" class="icon-btn text-btn-link" title="Tilbake til spillutvalg">‹ SPILL</a>
+        <div class="game-branding">
+          <h1 class="game-title">Norgeguesser</h1>
+          <span class="game-subtitle">Hvor i Norge er dette?</span>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-pill">
+          <span class="stat-label">Runde</span>
+          <span class="stat-val" id="roundDisplay">1/5</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">Poeng</span>
+          <span class="stat-val" id="scoreDisplay">0</span>
+        </div>
+        <button type="button" class="icon-btn" id="themeToggleBtn" title="Bytt tema">TEMA</button>
+      </div>
+    </header>
+
+    <main class="game-main">
+      <div class="geo-card" id="geoCard">
+        <div class="geo-visual" id="geoVisual">
+          <div class="geo-badge" id="categoryBadge">LANDEMERKE</div>
+          <div class="geo-icon-large" id="geoIcon">🏔️</div>
+          <p class="geo-clue" id="geoClue">Laster ledetråd…</p>
+        </div>
+
+        <div class="geo-prompt-box">
+          <h2 class="geo-question">Hvilket fylke eller sted befinner vi oss i?</h2>
+          <div class="options-grid" id="optionsGrid">
+            <!-- Dynamically populated buttons -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Banner Modal/Overlay -->
+      <div class="feedback-overlay hidden" id="feedbackOverlay">
+        <div class="feedback-box" id="feedbackBox">
+          <div class="feedback-icon" id="feedbackIcon">🎯</div>
+          <h3 class="feedback-title" id="feedbackTitle">Blink!</h3>
+          <p class="feedback-text" id="feedbackText">Dette var Nidarosdomen i Trondheim, Trøndelag!</p>
+          <button type="button" class="pixel-btn next-btn" id="btnNext">Neste runde →</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="game-footer">
+      <p>Del av <a href="/">Spillhjørnet</a> • Geografi- og landemerkegjett i Norge</p>
+    </footer>
+  </div>
+
+  <script src="/geoguesser/app.js?v=1.0"></script>
+</body>
+</html>

@@ -347,6 +347,11 @@ a:hover {
   box-shadow: none;
 }
 
+a.icon-btn {
+  text-decoration: none;
+  color: var(--text);
+}
+
 /* Cards (Retro Pixel Windows) */
 .card {
   background: var(--bg-elevated);

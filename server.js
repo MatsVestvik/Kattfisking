@@ -259,10 +259,26 @@ const server = http.createServer(async (req, res) => {
     const safePath = path.normalize(relPath).replace(/^(\.\.(\/|\\|$))+/, "");
     let fullPath = path.join(PUBLIC_DIR, safePath);
 
-    if (!fs.existsSync(fullPath) || fs.statSync(fullPath).isDirectory()) {
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+      if (!pathname.endsWith("/")) {
+        res.writeHead(301, { Location: pathname + "/" });
+        return res.end();
+      }
+      fullPath = path.join(fullPath, "index.html");
+    } else if (!fs.existsSync(fullPath)) {
+      const dirIndex = path.join(PUBLIC_DIR, safePath, "index.html");
+      if (fs.existsSync(dirIndex)) {
+        res.writeHead(301, { Location: pathname.replace(/\/+$/, "") + "/" });
+        return res.end();
+      }
       fullPath = path.join(PUBLIC_DIR, "index.html");
     }
 
+    if (!fs.existsSync(fullPath)) {
+      return sendJson(res, { error: "Ikke funnet" }, 404);
+    }
+
+    const content = fs.readFileSync(fullPath);
     const ext = path.extname(fullPath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
     const headers = {
