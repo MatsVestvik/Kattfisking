@@ -1,7 +1,7 @@
 """
 Mer eller Mindre - Backend API router
 Inspired by lessgames.com More or Less, tailored for Norwegian schools,
-universities, admission cutoffs, and student counts.
+universities, admission cutoffs, and student counts with matching photos.
 """
 
 import datetime
@@ -9,7 +9,6 @@ import hashlib
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
-# Categories of Norwegian educational statistics
 DATASETS: Dict[str, Dict[str, Any]] = {
     "snitt_studier": {
         "id": "snitt_studier",
@@ -18,26 +17,146 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "unit": "poeng",
         "description": "Hvilket studium krever høyest poenggrense for å komme inn?",
         "items": [
-            {"title": "Medisin", "org": "Universitetet i Oslo (UiO)", "val": 68.5, "extra": "Tradisjonelt Norges vanskeligste studium å komme inn på."},
-            {"title": "Industriell økonomi og teknologiledelse (Indøk)", "org": "NTNU Trondheim", "val": 67.8, "extra": "Norges mest krevende sivilingeniørstudium."},
-            {"title": "Psykologi (profesjon)", "org": "Universitetet i Oslo (UiO)", "val": 66.8, "extra": "Seksårig profesjonsutdanning med svært høyt snitt."},
-            {"title": "Odontologi (tannlege)", "org": "Universitetet i Bergen (UiB)", "val": 66.2, "extra": "Femårig integrert master i tannhelse."},
-            {"title": "Veterinærmedisin", "org": "NMBU Ås", "val": 65.4, "extra": "Landets eneste veterinærutdanning."},
-            {"title": "Nanoteknologi (siv.ing)", "org": "NTNU Trondheim", "val": 64.5, "extra": "Spisset teknologistudium for fremtidens materialer."},
-            {"title": "Datateknologi (siv.ing)", "org": "NTNU Trondheim", "val": 64.1, "extra": "Svært populært IT-studium på Gløshaugen."},
-            {"title": "Rettsvitenskap (juss)", "org": "Universitetet i Oslo (UiO)", "val": 63.6, "extra": "Det juridiske fakultet ved Karl Johans gate."},
-            {"title": "Siviløkonom", "org": "Norges handelshøyskole (NHH)", "val": 63.5, "extra": "NHHs prestisjetunge femårige siviløkonomprogram."},
-            {"title": "Kybernetikk og robotikk (siv.ing)", "org": "NTNU Trondheim", "val": 63.2, "extra": "Autonome systemer og avansert reguleringsteknikk."},
-            {"title": "Arkitektur", "org": "Arkitektur- og designhøgskolen i Oslo (AHO)", "val": 62.8, "extra": "Krever opptaksprøve i tillegg til høye karakterer."},
-            {"title": "Fysikk og matematikk (siv.ing)", "org": "NTNU Trondheim", "val": 61.2, "extra": "Teoretisk tungt teknologistudium på Gløshaugen."},
-            {"title": "Marin teknikk (siv.ing)", "org": "NTNU Trondheim", "val": 59.8, "extra": "Skips- og havteknologi på Tyholt."},
-            {"title": "Rettsvitenskap (juss)", "org": "Universitetet i Bergen (UiB)", "val": 59.2, "extra": "Det juridiske fakultet på Dragefjellet i Bergen."},
-            {"title": "Journalistikk", "org": "OsloMet – storbyuniversitetet", "val": 57.2, "extra": "Et av Norges mest tradisjonsrike journaliststudier."},
-            {"title": "Statsvitenskap (bachelor)", "org": "Universitetet i Oslo (UiO)", "val": 55.4, "extra": "Det samfunnsvitenskapelige fakultet på Blindern."},
-            {"title": "Økonomi og administrasjon", "org": "Handelshøyskolen BI Oslo", "val": 51.0, "extra": "BIs største og mest kjente bachelorprogram."},
-            {"title": "Informatikk: programmering og nettverk", "org": "Universitetet i Bergen (UiB)", "val": 50.8, "extra": "Matematisk-naturvitenskapelig fakultet i Bergen."},
-            {"title": "Grunnskolelærerutdanning 1–7", "org": "OsloMet – storbyuniversitetet", "val": 43.5, "extra": "Lærerutdanning for barnetrinnet i Pilestredet."},
-            {"title": "Sykepleie", "org": "UiT Norges arktiske universitet (Tromsø)", "val": 39.5, "extra": "Treårig helsefaglig bachelor i Nord-Norge."},
+            {
+                "title": "Medisin",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 68.5,
+                "extra": "Tradisjonelt Norges vanskeligste studium å komme inn på.",
+                "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Industriell økonomi (Indøk)",
+                "org": "NTNU Trondheim",
+                "val": 67.8,
+                "extra": "Norges mest krevende sivilingeniørstudium.",
+                "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Psykologi (profesjon)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 66.8,
+                "extra": "Seksårig profesjonsutdanning med svært høyt snitt.",
+                "image": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Odontologi (tannlege)",
+                "org": "Universitetet i Bergen (UiB)",
+                "val": 66.2,
+                "extra": "Femårig integrert master i tannhelse.",
+                "image": "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Veterinærmedisin",
+                "org": "NMBU Ås",
+                "val": 65.4,
+                "extra": "Landets eneste veterinærutdanning.",
+                "image": "https://images.unsplash.com/photo-1532592950000-5d6ba01646fa?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Nanoteknologi (siv.ing)",
+                "org": "NTNU Trondheim",
+                "val": 64.5,
+                "extra": "Spisset teknologistudium for fremtidens materialer.",
+                "image": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Datateknologi (siv.ing)",
+                "org": "NTNU Trondheim",
+                "val": 64.1,
+                "extra": "Svært populært IT-studium på Gløshaugen.",
+                "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Rettsvitenskap (juss)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 63.6,
+                "extra": "Det juridiske fakultet ved Karl Johans gate.",
+                "image": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Siviløkonom",
+                "org": "Norges handelshøyskole (NHH)",
+                "val": 63.5,
+                "extra": "NHHs prestisjetunge femårige siviløkonomprogram.",
+                "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Kybernetikk og robotikk (siv.ing)",
+                "org": "NTNU Trondheim",
+                "val": 63.2,
+                "extra": "Autonome systemer og avansert reguleringsteknikk.",
+                "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Arkitektur",
+                "org": "Arkitektur- og designhøgskolen i Oslo (AHO)",
+                "val": 62.8,
+                "extra": "Krever opptaksprøve i tillegg til høye karakterer.",
+                "image": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Fysikk og matematikk (siv.ing)",
+                "org": "NTNU Trondheim",
+                "val": 61.2,
+                "extra": "Teoretisk tungt teknologistudium på Gløshaugen.",
+                "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Marin teknikk (siv.ing)",
+                "org": "NTNU Trondheim",
+                "val": 59.8,
+                "extra": "Skips- og havteknologi på Tyholt.",
+                "image": "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Rettsvitenskap (juss)",
+                "org": "Universitetet i Bergen (UiB)",
+                "val": 59.2,
+                "extra": "Det juridiske fakultet på Dragefjellet i Bergen.",
+                "image": "https://images.unsplash.com/photo-1453733190028-57a68841e402?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Journalistikk",
+                "org": "OsloMet – storbyuniversitetet",
+                "val": 57.2,
+                "extra": "Et av Norges mest tradisjonsrike journaliststudier.",
+                "image": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Statsvitenskap (bachelor)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 55.4,
+                "extra": "Det samfunnsvitenskapelige fakultet på Blindern.",
+                "image": "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Økonomi og administrasjon",
+                "org": "Handelshøyskolen BI Oslo",
+                "val": 51.0,
+                "extra": "BIs største og mest kjente bachelorprogram.",
+                "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Informatikk: programmering og nettverk",
+                "org": "Universitetet i Bergen (UiB)",
+                "val": 50.8,
+                "extra": "Matematisk-naturvitenskapelig fakultet i Bergen.",
+                "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Grunnskolelærerutdanning 1–7",
+                "org": "OsloMet – storbyuniversitetet",
+                "val": 43.5,
+                "extra": "Lærerutdanning for barnetrinnet i Pilestredet.",
+                "image": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Sykepleie",
+                "org": "UiT Norges arktiske universitet (Tromsø)",
+                "val": 39.5,
+                "extra": "Treårig helsefaglig bachelor i Nord-Norge.",
+                "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
+            },
         ],
     },
     "studenttall": {
@@ -47,24 +166,132 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "unit": "studenter",
         "description": "Hvilket universitet eller høyskole har flest registrerte studenter?",
         "items": [
-            {"title": "NTNU", "org": "Trondheim, Gjøvik og Ålesund", "val": 42500, "extra": "Norges desidert største universitet etter fusjonen i 2016."},
-            {"title": "Universitetet i Oslo (UiO)", "org": "Oslo (Blindern, sentrum)", "val": 26500, "extra": "Norges eldste universitet, grunnlagt i 1811."},
-            {"title": "OsloMet – storbyuniversitetet", "org": "Oslo og Kjeller", "val": 22000, "extra": "Norges tredje største lærested med profesjonsutdanninger."},
-            {"title": "Handelshøyskolen BI", "org": "Oslo, Bergen, Trondheim, Stavanger", "val": 20000, "extra": "Norges største private handelshøyskole."},
-            {"title": "Universitetet i Bergen (UiB)", "org": "Bergen (Nygårdshøyden)", "val": 19500, "extra": "Byuniversitet med sterke maritime og medisinske fag."},
-            {"title": "UiT Norges arktiske universitet", "org": "Tromsø, Alta, Narvik, Harstad", "val": 17000, "extra": "Verdens nordligste universitet med campus over hele landsdelen."},
-            {"title": "Universitetet i Sørøst-Norge (USN)", "org": "Kongsberg, Vestfold, Telemark, Drammen", "val": 16500, "extra": "Distriktsuniversitet spredt over åtte campuser."},
-            {"title": "Høgskulen på Vestlandet (HVL)", "org": "Bergen, Sogndal, Førde, Haugesund, Stord", "val": 16000, "extra": "Stor profesjonshøgskole på Vestlandet."},
-            {"title": "Universitetet i Agder (UiA)", "org": "Kristiansand og Grimstad", "val": 13000, "extra": "Universitet på Sørlandet med bred fagkrets."},
-            {"title": "Universitetet i Stavanger (UiS)", "org": "Stavanger (Ullandhaug)", "val": 12500, "extra": "Kjent for petroleums-, helse- og teknologifag."},
-            {"title": "Høgskolen i Innlandet (HINN)", "org": "Lillehammer, Hamar, Elverum, Rena", "val": 11500, "extra": "Kjent for filmskolen på Lillehammer og lærerutdanning."},
-            {"title": "Høgskolen i Østfold (HiØ)", "org": "Halden og Fredrikstad", "val": 7800, "extra": "Campus ved grensen med IT- og helsefag."},
-            {"title": "NMBU (Norges miljø- og biovitenskapelige universitet)", "org": "Ås (Akershus)", "val": 6400, "extra": "Landbruk, biovitenskap, veterinærmedisin og bærekraft."},
-            {"title": "Høyskolen Kristiania", "org": "Oslo og Bergen", "val": 5500, "extra": "Privat høyskole innen markedsføring, ledelse og kreative fag."},
-            {"title": "Norges handelshøyskole (NHH)", "org": "Bergen (Sandviken)", "val": 3600, "extra": "Spisset økonomisk eliteutdanning grunnlagt i 1936."},
-            {"title": "Norges idrettshøgskole (NIH)", "org": "Oslo (Sognsvann)", "val": 1600, "extra": "Nasjonalt senter for forskning og utdanning innen idrettsvitenskap."},
-            {"title": "Norges musikkhøgskole (NMH)", "org": "Oslo (Majorstuen)", "val": 650, "extra": "Landets fremste høyere utdanning innen musikkutøving."},
-            {"title": "Kunsthøgskolen i Oslo (KHiO)", "org": "Oslo (Grünerløkka)", "val": 550, "extra": "Utdanning innen teater, dans, opera og billedkunst."},
+            {
+                "title": "NTNU",
+                "org": "Trondheim, Gjøvik og Ålesund",
+                "val": 42500,
+                "extra": "Norges desidert største universitet etter fusjonen i 2016.",
+                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/NTNU_Trondheim_Mainbuilding.jpg/800px-NTNU_Trondheim_Mainbuilding.jpg",
+            },
+            {
+                "title": "Universitetet i Oslo (UiO)",
+                "org": "Oslo (Blindern, sentrum)",
+                "val": 26500,
+                "extra": "Norges eldste universitet, grunnlagt i 1811.",
+                "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "OsloMet – storbyuniversitetet",
+                "org": "Oslo og Kjeller",
+                "val": 22000,
+                "extra": "Norges tredje største lærested med profesjonsutdanninger.",
+                "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Handelshøyskolen BI",
+                "org": "Oslo, Bergen, Trondheim, Stavanger",
+                "val": 20000,
+                "extra": "Norges største private handelshøyskole i Nydalen.",
+                "image": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Universitetet i Bergen (UiB)",
+                "org": "Bergen (Nygårdshøyden)",
+                "val": 19500,
+                "extra": "Byuniversitet med sterke maritime og medisinske fag.",
+                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/University_of_Bergen%2C_Rector_s_Office%2C_Museplass_1.jpg/800px-University_of_Bergen%2C_Rector_s_Office%2C_Museplass_1.jpg",
+            },
+            {
+                "title": "UiT Norges arktiske universitet",
+                "org": "Tromsø, Alta, Narvik, Harstad",
+                "val": 17000,
+                "extra": "Verdens nordligste universitet med campus over hele landsdelen.",
+                "image": "https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Universitetet i Sørøst-Norge (USN)",
+                "org": "Kongsberg, Vestfold, Telemark, Drammen",
+                "val": 16500,
+                "extra": "Distriktsuniversitet spredt over åtte campuser.",
+                "image": "https://images.unsplash.com/photo-1562774053-701939374585?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Høgskulen på Vestlandet (HVL)",
+                "org": "Bergen, Sogndal, Førde, Haugesund, Stord",
+                "val": 16000,
+                "extra": "Stor profesjonshøgskole på Vestlandet.",
+                "image": "https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Universitetet i Agder (UiA)",
+                "org": "Kristiansand og Grimstad",
+                "val": 13000,
+                "extra": "Universitet på Sørlandet med bred fagkrets.",
+                "image": "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Universitetet i Stavanger (UiS)",
+                "org": "Stavanger (Ullandhaug)",
+                "val": 12500,
+                "extra": "Kjent for petroleums-, helse- og teknologifag.",
+                "image": "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Høgskolen i Innlandet (HINN)",
+                "org": "Lillehammer, Hamar, Elverum, Rena",
+                "val": 11500,
+                "extra": "Kjent for filmskolen på Lillehammer og lærerutdanning.",
+                "image": "https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Høgskolen i Østfold (HiØ)",
+                "org": "Halden og Fredrikstad",
+                "val": 7800,
+                "extra": "Campus ved grensen med IT- og helsefag.",
+                "image": "https://images.unsplash.com/photo-1525921429624-479b6a26d84d?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "NMBU (Norges miljø- og biovitenskapelige universitet)",
+                "org": "Ås (Akershus)",
+                "val": 6400,
+                "extra": "Landbruk, biovitenskap, veterinærmedisin og bærekraft.",
+                "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Høyskolen Kristiania",
+                "org": "Oslo og Bergen",
+                "val": 5500,
+                "extra": "Privat høyskole innen markedsføring, ledelse og kreative fag.",
+                "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Norges handelshøyskole (NHH)",
+                "org": "Bergen (Sandviken)",
+                "val": 3600,
+                "extra": "Spisset økonomisk eliteutdanning grunnlagt i 1936.",
+                "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Norges idrettshøgskole (NIH)",
+                "org": "Oslo (Sognsvann)",
+                "val": 1600,
+                "extra": "Nasjonalt senter for forskning og utdanning innen idrettsvitenskap.",
+                "image": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Norges musikkhøgskole (NMH)",
+                "org": "Oslo (Majorstuen)",
+                "val": 650,
+                "extra": "Landets fremste høyere utdanning innen musikkutøving.",
+                "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Kunsthøgskolen i Oslo (KHiO)",
+                "org": "Oslo (Grünerløkka)",
+                "val": 550,
+                "extra": "Utdanning innen teater, dans, opera og billedkunst.",
+                "image": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&auto=format&fit=crop&q=80",
+            },
         ],
     },
     "snitt_vgs": {
@@ -74,23 +301,125 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "unit": "poeng",
         "description": "Hvilken videregående skole krevde høyest poengsum for å komme inn?",
         "items": [
-            {"title": "Elvebakken videregående skole", "org": "Oslo (Grünerløkka)", "val": 53.8, "extra": "Oslos mest søkte skole med et snitt på nesten 5,4."},
-            {"title": "Oslo Katedralskole («Katta»)", "org": "Oslo (St. Hanshaugen)", "val": 53.2, "extra": "Norges eldste skole med tradisjoner helt tilbake til 1153."},
-            {"title": "Amalie Skram videregående skole", "org": "Bergen (sentrum)", "val": 51.5, "extra": "Bergens mest populære og moderne videregående skole."},
-            {"title": "Bergen Katedralskole («Katten»)", "org": "Bergen (sentrum)", "val": 50.2, "extra": "Historisk katedralskole ved Domkirken i Bergen."},
-            {"title": "Ullern videregående skole", "org": "Oslo (Ullern)", "val": 50.1, "extra": "Tett samarbeid med Oslo Cancer Cluster og forskningsmiljøer."},
-            {"title": "Trondheim Katedralskole («Katta»)", "org": "Trondheim (Midtbyen)", "val": 49.8, "extra": "Norges eldste skole i drift, grunnlagt i 1152."},
-            {"title": "Sandvika videregående skole", "org": "Bærum (Akershus)", "val": 49.5, "extra": "Svært populær videregående skole i Vestre Viken."},
-            {"title": "Foss videregående skole", "org": "Oslo (Grünerløkka)", "val": 49.2, "extra": "Tradisjonsrik skole kjent for musikklinje og høyt fagsnitt."},
-            {"title": "Edvard Munch videregående skole", "org": "Oslo (Ullevålsveien)", "val": 49.0, "extra": "Kjent for kunst, design og studiespesialisering."},
-            {"title": "Nydalen videregående skole", "org": "Oslo (Nydalen)", "val": 48.6, "extra": "Moderne skole ved Akerselva med populære faglinjer."},
-            {"title": "Stavanger Katedralskole («Kongsgård»)", "org": "Stavanger (sentrum)", "val": 48.5, "extra": "Ikonisk skolebygg ved Breiavatnet i hjertet av Stavanger."},
-            {"title": "Valler videregående skole", "org": "Bærum (Sandvika)", "val": 48.2, "extra": "Kjent for et sterkt realfagsmiljø i Bærum."},
-            {"title": "Thora Storm videregående skole", "org": "Trondheim (sentrum)", "val": 47.5, "extra": "Sentrumsskole i Trondheim med mange studiesøkere."},
-            {"title": "Lambertseter videregående skole", "org": "Oslo (Nordstrand)", "val": 46.5, "extra": "Idrettsfag og studiespesialisering i Oslo syd."},
-            {"title": "Kristiansand Katedralskole Gimle", "org": "Kristiansand (Agder)", "val": 45.5, "extra": "Tradisjonsrik skole med IB-linje på Sørlandet."},
-            {"title": "Kongsbakken videregående skole", "org": "Tromsø (sentrum)", "val": 45.0, "extra": "Tromsøs kjente sentrumsskole oppført i rød murstein."},
-            {"title": "Drammen videregående skole", "org": "Drammen (Buskerud)", "val": 44.0, "extra": "Største videregående skole i Drammensregionen."},
+            {
+                "title": "Elvebakken videregående skole",
+                "org": "Oslo (Grünerløkka)",
+                "val": 53.8,
+                "extra": "Oslos mest søkte skole med et snitt på nesten 5,4.",
+                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Elvebakken_vgs_Oslo.jpg/800px-Elvebakken_vgs_Oslo.jpg",
+            },
+            {
+                "title": "Oslo Katedralskole («Katta»)",
+                "org": "Oslo (St. Hanshaugen)",
+                "val": 53.2,
+                "extra": "Norges eldste skole med tradisjoner helt tilbake til 1153.",
+                "image": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Amalie Skram videregående skole",
+                "org": "Bergen (sentrum)",
+                "val": 51.5,
+                "extra": "Bergens mest populære og moderne videregående skole.",
+                "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Bergen Katedralskole («Katten»)",
+                "org": "Bergen (sentrum)",
+                "val": 50.2,
+                "extra": "Historisk katedralskole ved Domkirken i Bergen.",
+                "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Ullern videregående skole",
+                "org": "Oslo (Ullern)",
+                "val": 50.1,
+                "extra": "Tett samarbeid med Oslo Cancer Cluster og forskningsmiljøer.",
+                "image": "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Trondheim Katedralskole («Katta»)",
+                "org": "Trondheim (Midtbyen)",
+                "val": 49.8,
+                "extra": "Norges eldste skole i drift, grunnlagt i 1152.",
+                "image": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Sandvika videregående skole",
+                "org": "Bærum (Akershus)",
+                "val": 49.5,
+                "extra": "Svært populær videregående skole i Vestre Viken.",
+                "image": "https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Foss videregående skole",
+                "org": "Oslo (Grünerløkka)",
+                "val": 49.2,
+                "extra": "Tradisjonsrik skole kjent for musikklinje og høyt fagsnitt.",
+                "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Edvard Munch videregående skole",
+                "org": "Oslo (Ullevålsveien)",
+                "val": 49.0,
+                "extra": "Kjent for kunst, design og studiespesialisering.",
+                "image": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Nydalen videregående skole",
+                "org": "Oslo (Nydalen)",
+                "val": 48.6,
+                "extra": "Moderne skole ved Akerselva med populære faglinjer.",
+                "image": "https://images.unsplash.com/photo-1562774053-701939374585?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Stavanger Katedralskole («Kongsgård»)",
+                "org": "Stavanger (sentrum)",
+                "val": 48.5,
+                "extra": "Ikonisk skolebygg ved Breiavatnet i hjertet av Stavanger.",
+                "image": "https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Valler videregående skole",
+                "org": "Bærum (Sandvika)",
+                "val": 48.2,
+                "extra": "Kjent for et sterkt realfagsmiljø i Bærum.",
+                "image": "https://images.unsplash.com/photo-1525921429624-479b6a26d84d?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Thora Storm videregående skole",
+                "org": "Trondheim (sentrum)",
+                "val": 47.5,
+                "extra": "Sentrumsskole i Trondheim med mange studiesøkere.",
+                "image": "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Lambertseter videregående skole",
+                "org": "Oslo (Nordstrand)",
+                "val": 46.5,
+                "extra": "Idrettsfag og studiespesialisering i Oslo syd.",
+                "image": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Kristiansand Katedralskole Gimle",
+                "org": "Kristiansand (Agder)",
+                "val": 45.5,
+                "extra": "Tradisjonsrik skole med IB-linje på Sørlandet.",
+                "image": "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Kongsbakken videregående skole",
+                "org": "Tromsø (sentrum)",
+                "val": 45.0,
+                "extra": "Tromsøs kjente sentrumsskole oppført i rød murstein.",
+                "image": "https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Drammen videregående skole",
+                "org": "Drammen (Buskerud)",
+                "val": 44.0,
+                "extra": "Største videregående skole i Drammensregionen.",
+                "image": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&auto=format&fit=crop&q=80",
+            },
         ],
     },
     "sokertall": {
@@ -100,44 +429,97 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "unit": "søkere",
         "description": "Hvilket studium hadde flest søkere som satte det som sitt 1. valg?",
         "items": [
-            {"title": "Siviløkonom", "org": "Norges handelshøyskole (NHH)", "val": 2150, "extra": "Det enkeltstudiet i Norge med aller flest førsteprioritetssøkere."},
-            {"title": "Rettsvitenskap (juss)", "org": "Universitetet i Oslo (UiO)", "val": 1950, "extra": "Fast i toppen over landets mest søkte utdanninger."},
-            {"title": "Medisin", "org": "Universitetet i Oslo (UiO)", "val": 1350, "extra": "Kamp om studieplassene blant landets skarpeste elever."},
-            {"title": "Industriell økonomi og teknologiledelse", "org": "NTNU Trondheim", "val": 1210, "extra": "Sivilingeniørlinjen med flest søkere på Gløshaugen."},
-            {"title": "Psykologi (profesjon)", "org": "Universitetet i Oslo (UiO)", "val": 1050, "extra": "Svært attraktivt profesjonsstudium i hovedstaden."},
-            {"title": "Sykepleie (bachelor)", "org": "OsloMet – storbyuniversitetet", "val": 950, "extra": "Landets største enkeltutdanning innen sykepleie."},
-            {"title": "Datateknologi (siv.ing)", "org": "NTNU Trondheim", "val": 860, "extra": "Høy etterspørsel etter IT-spesialister i næringslivet."},
-            {"title": "Politiutdanningen", "org": "Politihøgskolen (Oslo)", "val": 780, "extra": "Bachelorutdanningen som fører til fast politiembete."},
-            {"title": "Veterinærmedisin", "org": "NMBU Ås", "val": 680, "extra": "Mange drømmer om å bli dyrlege hvert eneste år."},
-            {"title": "Arkitektur (master)", "org": "Arkitektur- og designhøgskolen (AHO)", "val": 610, "extra": "Hard kamp om de kreative studieplassene i Oslo."},
+            {
+                "title": "Siviløkonom",
+                "org": "Norges handelshøyskole (NHH)",
+                "val": 2150,
+                "extra": "Det enkeltstudiet i Norge med aller flest førsteprioritetssøkere.",
+                "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Rettsvitenskap (juss)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 1950,
+                "extra": "Fast i toppen over landets mest søkte utdanninger.",
+                "image": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Medisin",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 1350,
+                "extra": "Kamp om studieplassene blant landets skarpeste elever.",
+                "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Industriell økonomi og teknologiledelse",
+                "org": "NTNU Trondheim",
+                "val": 1210,
+                "extra": "Sivilingeniørlinjen med flest søkere på Gløshaugen.",
+                "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Psykologi (profesjon)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 1050,
+                "extra": "Svært attraktivt profesjonsstudium i hovedstaden.",
+                "image": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Sykepleie (bachelor)",
+                "org": "OsloMet – storbyuniversitetet",
+                "val": 950,
+                "extra": "Landets største enkeltutdanning innen sykepleie.",
+                "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Datateknologi (siv.ing)",
+                "org": "NTNU Trondheim",
+                "val": 860,
+                "extra": "Høy etterspørsel etter IT-spesialister i næringslivet.",
+                "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Politiutdanningen",
+                "org": "Politihøgskolen (Oslo)",
+                "val": 780,
+                "extra": "Bachelorutdanningen som fører til fast politiembete.",
+                "image": "https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Veterinærmedisin",
+                "org": "NMBU Ås",
+                "val": 680,
+                "extra": "Mange drømmer om å bli dyrlege hvert eneste år.",
+                "image": "https://images.unsplash.com/photo-1532592950000-5d6ba01646fa?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Arkitektur (master)",
+                "org": "Arkitektur- og designhøgskolen (AHO)",
+                "val": 610,
+                "extra": "Hard kamp om de kreative studieplassene i Oslo.",
+                "image": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80",
+            },
         ],
     },
 }
 
 
 def _deterministic_seed(seed_str: str) -> int:
-    """Generate a 32-bit integer seed from a string."""
     h = hashlib.sha256(seed_str.encode("utf-8")).hexdigest()
     return int(h[:8], 16)
 
 
 def _pseudo_random_choice(items: List[Any], rng_state: int) -> Tuple[Any, int]:
-    """Simple linear congruential generator for deterministic sampling."""
     rng_state = (rng_state * 1103515245 + 12345) & 0x7FFFFFFF
     idx = rng_state % len(items)
     return items[idx], rng_state
 
 
 def generate_game_pack(category_id: Optional[str] = None, seed_str: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Builds a 5-comparison game pack (consisting of 6 items).
-    Each step compares item i vs item i+1.
-    """
     category_keys = list(DATASETS.keys())
 
     if seed_str:
         rng = _deterministic_seed(seed_str)
-        # Select category based on seed if not explicitly passed
         if not category_id or category_id not in DATASETS:
             cat_key, rng = _pseudo_random_choice(category_keys, rng)
         else:
@@ -150,15 +532,12 @@ def generate_game_pack(category_id: Optional[str] = None, seed_str: Optional[str
     category = DATASETS[cat_key]
     items_pool = list(category["items"])
 
-    # Pick 6 distinct items deterministically or randomly
     selected: List[Dict[str, Any]] = []
     available = list(items_pool)
 
-    # Avoid picks that have identical values sequentially so there is always a clear more/less
     for _ in range(6):
         if not available:
             break
-        # Filter out candidates identical to last chosen val
         last_val = selected[-1]["val"] if selected else None
         valid_candidates = [it for it in available if it["val"] != last_val] or available
         chosen, rng = _pseudo_random_choice(valid_candidates, rng)

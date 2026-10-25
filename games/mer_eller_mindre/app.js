@@ -1,6 +1,8 @@
 /**
  * Mer eller Mindre – Norsk 5-delt kunnskapsduell
  * "Hvem har mest?" - Spilleren trykker direkte på kortet som er høyest!
+ * Inkluderer ekte bilder av skoler, studiesteder og universiteter.
+ * Automatisk fremgang og gjenbruk av Alternativ B som nytt Alternativ A.
  */
 
 (() => {
@@ -10,6 +12,8 @@
   const DAILY_PREFIX = "mer_eller_mindre_daily_";
   const HIGHSCORE_KEY = "mer_eller_mindre_highscore";
 
+  const FALLBACK_IMG = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80";
+
   // App State
   const state = {
     mode: "daily", // "daily" | "practice"
@@ -18,9 +22,11 @@
     items: [],
     currentIndex: 0, // 0 to 4 (5 comparisons total)
     score: 0,
-    results: [], // Array of { a, b, chosen, winner, won }
+    results: [], // Array of { itemA, itemB, chosen, actualWinner, won }
     isLocked: false,
   };
+
+  let autoAdvanceTimer = null;
 
   // DOM Elements
   const el = {
@@ -38,6 +44,8 @@
 
     // Card A
     cardA: document.getElementById("cardA"),
+    imgA: document.getElementById("imgA"),
+    roleA: document.getElementById("roleA"),
     titleA: document.getElementById("titleA"),
     orgA: document.getElementById("orgA"),
     extraA: document.getElementById("extraA"),
@@ -49,6 +57,8 @@
 
     // Card B
     cardB: document.getElementById("cardB"),
+    imgB: document.getElementById("imgB"),
+    roleB: document.getElementById("roleB"),
     titleB: document.getElementById("titleB"),
     orgB: document.getElementById("orgB"),
     extraB: document.getElementById("extraB"),
@@ -62,7 +72,8 @@
     roundFeedback: document.getElementById("roundFeedback"),
     feedbackBadge: document.getElementById("feedbackBadge"),
     feedbackMsg: document.getElementById("feedbackMsg"),
-    btnNextRound: document.getElementById("btnNextRound"),
+    autoAdvanceHint: document.getElementById("autoAdvanceHint"),
+    toastProgressBar: document.getElementById("toastProgressBar"),
 
     // Summary Modal
     summaryModal: document.getElementById("summaryModal"),
@@ -84,7 +95,7 @@
   }
 
   // Count-up animation for revealing challenger value
-  function animateValue(elem, start, end, durationMs = 500) {
+  function animateValue(elem, start, end, durationMs = 400) {
     const startTime = performance.now();
     const isFloat = !Number.isInteger(end);
 
@@ -104,6 +115,11 @@
   }
 
   async function loadGame(mode = "daily") {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
+
     state.mode = mode;
     state.currentIndex = 0;
     state.score = 0;
@@ -135,17 +151,53 @@
         description: "Hvilket studium krever høyest poenggrense for å komme inn?"
       };
       state.items = [
-        { title: "Medisin", org: "Universitetet i Oslo (UiO)", val: 68.5, extra: "Tradisjonelt Norges vanskeligste studium å komme inn på." },
-        { title: "Industriell økonomi (Indøk)", org: "NTNU Trondheim", val: 67.8, extra: "Norges mest krevende sivilingeniørstudium." },
-        { title: "Psykologi profesjon", org: "Universitetet i Oslo (UiO)", val: 66.8, extra: "Seksårig profesjonsutdanning med høyt snitt." },
-        { title: "Rettsvitenskap (juss)", org: "Universitetet i Oslo (UiO)", val: 63.6, extra: "Det juridiske fakultet ved Karl Johans gate." },
-        { title: "Siviløkonom", org: "Norges handelshøyskole (NHH)", val: 63.5, extra: "NHHs prestisjetunge femårige masterprogram." },
-        { title: "Datateknologi (siv.ing)", org: "NTNU Trondheim", val: 64.1, extra: "Svært populært IT-studium på Gløshaugen." }
+        {
+          title: "Medisin",
+          org: "Universitetet i Oslo (UiO)",
+          val: 68.5,
+          extra: "Tradisjonelt Norges vanskeligste studium å komme inn på.",
+          image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+          title: "Industriell økonomi (Indøk)",
+          org: "NTNU Trondheim",
+          val: 67.8,
+          extra: "Norges mest krevende sivilingeniørstudium.",
+          image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+          title: "Psykologi profesjon",
+          org: "Universitetet i Oslo (UiO)",
+          val: 66.8,
+          extra: "Seksårig profesjonsutdanning med høyt snitt.",
+          image: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+          title: "Rettsvitenskap (juss)",
+          org: "Universitetet i Oslo (UiO)",
+          val: 63.6,
+          extra: "Det juridiske fakultet ved Karl Johans gate.",
+          image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+          title: "Siviløkonom",
+          org: "Norges handelshøyskole (NHH)",
+          val: 63.5,
+          extra: "NHHs prestisjetunge femårige masterprogram.",
+          image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+          title: "Datateknologi (siv.ing)",
+          org: "NTNU Trondheim",
+          val: 64.1,
+          extra: "Svært populært IT-studium på Gløshaugen.",
+          image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80"
+        }
       ];
     }
 
     renderCategory();
-    renderStep();
+    renderStep(false);
   }
 
   function renderCategory() {
@@ -175,12 +227,23 @@
     el.scoreDisplay.textContent = `${state.score} / 5`;
   }
 
-  function renderStep() {
+  function renderStep(isTransition = false) {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
+
     state.isLocked = false;
     el.roundFeedback.classList.add("hidden");
 
     updateProgressTrack();
 
+    // In a 5-round chain:
+    // Round 0: items[0] vs items[1]
+    // Round 1: items[1] vs items[2] (items[1] is previous Card B, now Card A!)
+    // Round 2: items[2] vs items[3] (items[2] is previous Card B, now Card A!)
+    // Round 3: items[3] vs items[4] (items[3] is previous Card B, now Card A!)
+    // Round 4: items[4] vs items[5] (items[4] is previous Card B, now Card A!)
     const itemA = state.items[state.currentIndex];
     const itemB = state.items[state.currentIndex + 1];
 
@@ -191,26 +254,59 @@
     el.statusBadgeA.className = "card-status-badge hidden";
     el.statusBadgeB.className = "card-status-badge hidden";
 
-    // Card A (Known baseline)
+    // Card A (Known baseline - previous duel's Card B)
     el.cardA.classList.add("base-card");
+    if (el.roleA) {
+      el.roleA.textContent = state.currentIndex > 0 ? "ALTERNATIV A (FRA FORRIGE)" : "ALTERNATIV A";
+    }
     el.titleA.textContent = itemA.title;
     el.orgA.textContent = itemA.org;
     el.extraA.textContent = itemA.extra || "";
     el.valA.textContent = formatNumber(itemA.val);
     el.promptTextA.textContent = `Trykk her hvis ${itemA.title} har mest`;
 
+    el.imgA.src = itemA.image || FALLBACK_IMG;
+    el.imgA.alt = `${itemA.title} (${itemA.org})`;
+    el.imgA.onerror = () => { el.imgA.src = FALLBACK_IMG; };
+
     // Card B (Challenger with hidden value)
     el.cardB.classList.add("challenger-card");
+    if (el.roleB) {
+      el.roleB.textContent = state.currentIndex > 0 ? "ALTERNATIV B (NY UTFORDRER)" : "ALTERNATIV B";
+    }
     el.titleB.textContent = itemB.title;
     el.orgB.textContent = itemB.org;
     el.extraB.textContent = itemB.extra || "";
     el.valB.textContent = "???";
     el.valB.className = "metric-number hidden-val";
     el.promptTextB.textContent = `Trykk her hvis ${itemB.title} har mest`;
+
+    el.imgB.src = itemB.image || FALLBACK_IMG;
+    el.imgB.alt = `${itemB.title} (${itemB.org})`;
+    el.imgB.onerror = () => { el.imgB.src = FALLBACK_IMG; };
+
+    // Visual transfer & slide-in animations
+    if (isTransition) {
+      el.cardA.classList.add("card-transferred");
+      el.cardB.classList.add("card-slide-in");
+      setTimeout(() => {
+        el.cardA.classList.remove("card-transferred");
+        el.cardB.classList.remove("card-slide-in");
+      }, 450);
+    }
   }
 
   function selectCard(chosen) {
-    if (state.isLocked) return;
+    // If already locked and a countdown timer is running, allow skipping immediately!
+    if (state.isLocked) {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+        nextRound();
+      }
+      return;
+    }
+
     state.isLocked = true;
 
     const itemA = state.items[state.currentIndex];
@@ -230,13 +326,13 @@
       won,
     });
 
-    // Lock cards
+    // Lock cards visually
     el.cardA.classList.add("locked");
     el.cardB.classList.add("locked");
 
     // Reveal Card B's value
     el.valB.classList.remove("hidden-val");
-    animateValue(el.valB, 0, itemB.val, 450);
+    animateValue(el.valB, 0, itemB.val, 400);
 
     // Apply visual winner / loser states
     if (actualWinner === "A") {
@@ -264,36 +360,55 @@
     // Update progress track
     updateProgressTrack();
 
-    // Show feedback banner after short count-up
-    setTimeout(() => {
-      el.feedbackBadge.className = `feedback-badge ${won ? "correct" : "wrong"}`;
-      el.feedbackBadge.textContent = won ? "RIKTIG! (+1p)" : "FEIL!";
+    // Display result feedback toast
+    el.feedbackBadge.className = `feedback-badge ${won ? "correct" : "wrong"}`;
+    el.feedbackBadge.textContent = won ? "RIKTIG! (+1p)" : "FEIL!";
 
-      const winItem = actualWinner === "A" ? itemA : itemB;
-      const loseItem = actualWinner === "A" ? itemB : itemA;
+    const winItem = actualWinner === "A" ? itemA : itemB;
+    const loseItem = actualWinner === "A" ? itemB : itemA;
 
-      el.feedbackMsg.textContent = `${winItem.title} (${formatNumber(winItem.val)} ${state.category.unit}) har mer enn ${loseItem.title} (${formatNumber(loseItem.val)} ${state.category.unit}).`;
+    el.feedbackMsg.textContent = `${winItem.title} (${formatNumber(winItem.val)} ${state.category.unit}) har mer enn ${loseItem.title} (${formatNumber(loseItem.val)} ${state.category.unit}).`;
 
-      if (state.currentIndex + 1 < 5) {
-        el.btnNextRound.textContent = `Neste duell (${state.currentIndex + 2}/5) →`;
-      } else {
-        el.btnNextRound.textContent = "Se sluttresultat 🎉";
-      }
+    if (el.autoAdvanceHint) {
+      el.autoAdvanceHint.textContent = (state.currentIndex + 1 < 5) ? "Neste duell… ⚡" : "Fullfører… 🏆";
+    }
 
-      el.roundFeedback.classList.remove("hidden");
-    }, 500);
+    // Retrigger countdown progress bar animation
+    if (el.toastProgressBar) {
+      el.toastProgressBar.style.animation = "none";
+      void el.toastProgressBar.offsetHeight; // force reflow
+      el.toastProgressBar.style.animation = "countdownBar 1.4s linear forwards";
+    }
+
+    el.roundFeedback.classList.remove("hidden");
+
+    // Auto-advance to next duel after 1400ms (or on fast skip)
+    autoAdvanceTimer = setTimeout(() => {
+      autoAdvanceTimer = null;
+      nextRound();
+    }, 1400);
   }
 
   function nextRound() {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
+
     state.currentIndex++;
     if (state.currentIndex < 5) {
-      renderStep();
+      renderStep(true);
     } else {
       finishGame();
     }
   }
 
   function finishGame() {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+    }
+
     el.roundFeedback.classList.add("hidden");
 
     if (state.mode === "daily") {
@@ -328,10 +443,13 @@
     state.results.forEach((r, idx) => {
       const chosenItem = r.chosen === "A" ? r.itemA : r.itemB;
       const winItem = r.actualWinner === "A" ? r.itemA : r.itemB;
+      const thumbSrc = winItem.image || r.itemB.image || FALLBACK_IMG;
+
       const li = document.createElement("li");
       li.className = `review-item ${r.won ? "correct" : "wrong"}`;
       li.innerHTML = `
-        <div>
+        <img src="${thumbSrc}" alt="${winItem.title}" class="review-thumb" onerror="this.src='${FALLBACK_IMG}'" />
+        <div class="review-details">
           <div class="review-names">${idx + 1}. ${r.itemA.title} vs ${r.itemB.title}</div>
           <div class="review-vals">Du valgte: <strong>${chosenItem.title}</strong> • Fasit: <strong>${winItem.title}</strong> (${formatNumber(winItem.val)} ${state.category.unit})</div>
         </div>
@@ -376,7 +494,15 @@
     }
   });
 
-  el.btnNextRound.addEventListener("click", nextRound);
+  // Clicking on feedback toast or cards while locked skips the timer immediately
+  el.roundFeedback.addEventListener("click", () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      autoAdvanceTimer = null;
+      nextRound();
+    }
+  });
+
   el.btnCopyResult.addEventListener("click", copyResult);
 
   el.btnModeDaily.addEventListener("click", () => loadGame("daily"));
@@ -393,11 +519,15 @@
   // Global Keyboard shortcuts:
   // "1" or ArrowLeft = Select Card A
   // "2" or ArrowRight = Select Card B
-  // Space or Enter when feedback open = Next round
+  // Space or Enter = Next round if feedback is visible or skip timer
   window.addEventListener("keydown", (e) => {
     if (!el.roundFeedback.classList.contains("hidden")) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
+        if (autoAdvanceTimer) {
+          clearTimeout(autoAdvanceTimer);
+          autoAdvanceTimer = null;
+        }
         nextRound();
       }
       return;

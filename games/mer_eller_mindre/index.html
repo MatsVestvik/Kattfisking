@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mer eller Mindre – Hvem har mest? (Norsk Skoleduell)</title>
-  <meta name="description" content="Trykk på skolen eller studiet du tror har høyest snitt eller flest studenter! 5-delt daglig kunnskapsduell." />
+  <meta name="description" content="Trykk på skolen eller studiet du tror har høyest snitt eller flest studenter! 5-delt daglig kunnskapsduell med ekte bilder." />
   <link rel="icon" type="image/png" href="/assets/catfish.png?v=2" />
-  <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=3.0" />
+  <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=4.0" />
 </head>
 <body>
   <div class="app-shell">
@@ -76,25 +76,32 @@
       <div class="duel-container" id="duelContainer">
         <!-- Card Left: Option A -->
         <div class="entity-card base-card selectable-card" id="cardA" role="button" tabindex="0" aria-label="Velg første alternativ">
-          <div class="card-header">
-            <span class="card-role" id="roleA">ALTERNATIV A</span>
-            <span class="card-status-badge hidden" id="statusBadgeA"></span>
-          </div>
-          <h2 class="entity-title" id="titleA">Laster…</h2>
-          <p class="entity-org" id="orgA">--</p>
-          <p class="entity-extra" id="extraA">--</p>
-
-          <div class="value-box known-box" id="boxA">
-            <span class="metric-label" id="metricLabelA">Verdi</span>
-            <div class="metric-row">
-              <span class="metric-number" id="valA">---</span>
-              <span class="metric-unit" id="unitA"></span>
+          <div class="card-hero-wrap">
+            <img src="" alt="" class="card-hero-img" id="imgA" />
+            <div class="card-hero-overlay"></div>
+            <div class="card-header-floating">
+              <span class="card-role" id="roleA">ALTERNATIV A</span>
+              <span class="card-status-badge hidden" id="statusBadgeA"></span>
             </div>
           </div>
 
-          <div class="card-click-prompt" id="clickPromptA">
-            <span class="prompt-icon">👆</span>
-            <span class="prompt-text" id="promptTextA">Trykk her hvis denne har mest</span>
+          <div class="card-body">
+            <h2 class="entity-title" id="titleA">Laster…</h2>
+            <p class="entity-org" id="orgA">--</p>
+            <p class="entity-extra" id="extraA">--</p>
+
+            <div class="value-box known-box" id="boxA">
+              <span class="metric-label" id="metricLabelA">Verdi</span>
+              <div class="metric-row">
+                <span class="metric-number" id="valA">---</span>
+                <span class="metric-unit" id="unitA"></span>
+              </div>
+            </div>
+
+            <div class="card-click-prompt" id="clickPromptA">
+              <span class="prompt-icon">👆</span>
+              <span class="prompt-text" id="promptTextA">Trykk her hvis denne har mest</span>
+            </div>
           </div>
         </div>
 
@@ -109,38 +116,44 @@
 
         <!-- Card Right: Option B -->
         <div class="entity-card challenger-card selectable-card" id="cardB" role="button" tabindex="0" aria-label="Velg andre alternativ">
-          <div class="card-header">
-            <span class="card-role challenger-role" id="roleB">ALTERNATIV B</span>
-            <span class="card-status-badge hidden" id="statusBadgeB"></span>
-          </div>
-          <h2 class="entity-title" id="titleB">Laster…</h2>
-          <p class="entity-org" id="orgB">--</p>
-          <p class="entity-extra" id="extraB">--</p>
-
-          <div class="value-box challenger-box" id="boxB">
-            <span class="metric-label" id="metricLabelB">Verdi</span>
-            <div class="metric-row">
-              <span class="metric-number hidden-val" id="valB">???</span>
-              <span class="metric-unit" id="unitB"></span>
+          <div class="card-hero-wrap">
+            <img src="" alt="" class="card-hero-img" id="imgB" />
+            <div class="card-hero-overlay"></div>
+            <div class="card-header-floating">
+              <span class="card-role challenger-role" id="roleB">ALTERNATIV B</span>
+              <span class="card-status-badge hidden" id="statusBadgeB"></span>
             </div>
           </div>
 
-          <div class="card-click-prompt" id="clickPromptB">
-            <span class="prompt-icon">👆</span>
-            <span class="prompt-text" id="promptTextB">Trykk her hvis denne har mest</span>
+          <div class="card-body">
+            <h2 class="entity-title" id="titleB">Laster…</h2>
+            <p class="entity-org" id="orgB">--</p>
+            <p class="entity-extra" id="extraB">--</p>
+
+            <div class="value-box challenger-box" id="boxB">
+              <span class="metric-label" id="metricLabelB">Gjett verdien</span>
+              <div class="metric-row">
+                <span class="metric-number hidden-val" id="valB">???</span>
+                <span class="metric-unit" id="unitB"></span>
+              </div>
+            </div>
+
+            <div class="card-click-prompt" id="clickPromptB">
+              <span class="prompt-icon">👆</span>
+              <span class="prompt-text" id="promptTextB">Trykk her hvis denne har mest</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Feedback Banner Overlay -->
-      <div class="round-feedback hidden" id="roundFeedback">
-        <div class="feedback-inner" id="feedbackInner">
-          <div class="feedback-badge" id="feedbackBadge">RIKTIG!</div>
-          <p class="feedback-msg" id="feedbackMsg">OsloMet har flere studenter enn Høyskolen Kristiania.</p>
-          <button type="button" class="next-action-btn" id="btnNextRound">
-            Neste duell →
-          </button>
+      <!-- Auto-advancing Result Toast -->
+      <div class="result-toast hidden" id="roundFeedback" role="status" title="Trykk her eller trykk mellomrom for å hoppe videre">
+        <div class="toast-inner" id="feedbackInner">
+          <span class="feedback-badge" id="feedbackBadge">RIKTIG!</span>
+          <span class="feedback-msg" id="feedbackMsg">Laster resultat…</span>
+          <span class="toast-auto-hint" id="autoAdvanceHint">Går videre…</span>
         </div>
+        <div class="toast-progress-bar" id="toastProgressBar"></div>
       </div>
     </main>
 
@@ -171,7 +184,7 @@
         <div class="review-section">
           <h3 class="review-heading">Gjennomgang av dagens dueller:</h3>
           <ul class="review-list" id="reviewList">
-            <!-- Populated dynamically -->
+            <!-- Populated dynamically with photos -->
           </ul>
         </div>
 
@@ -196,7 +209,7 @@
         <div class="rules-body">
           <ul class="rules-list">
             <li>
-              <strong>Trykk på den du tror har mest:</strong> I hver duell ser du to skoler eller studier. Trykk direkte på kortet du tror har det høyeste tallet!
+              <strong>Trykk på den du tror har mest:</strong> I hver duell ser du to skoler eller studier med matchende bilder. Trykk direkte på kortet du tror har det høyeste tallet!
             </li>
             <li>
               <strong>5 dueller:</strong> Spillet har 5 runder. Klarer du full pott (5 / 5 riktige)?
@@ -205,7 +218,7 @@
               <strong>Kjeden ruller videre:</strong> Utfordreren i hver runde blir med videre til neste duell.
             </li>
             <li>
-              <strong>Ekte tall:</strong> Offisielle tall fra Samordna opptak, Database for statistikk om høgre utdanning (DBH) og fylkene.
+              <strong>Ekte tall & bilder:</strong> Offisielle tall og bilder fra norske læresteder, Samordna opptak og DBH.
             </li>
             <li>
               <strong>Del resultatet:</strong> Del ditt daglige resultat (🟩 / 🟥) med venner og kjente!
@@ -224,6 +237,6 @@
     </footer>
   </div>
 
-  <script src="/mer-eller-mindre/app.js?v=3.0"></script>
+  <script src="/mer-eller-mindre/app.js?v=4.0"></script>
 </body>
 </html>
