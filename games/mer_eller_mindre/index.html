@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mer eller Mindre – Norsk Skole- og Kunnskapsduell</title>
+  <meta name="description" content="Gjett om neste skole eller linje har høyere eller lavere snitt, flere eller færre studenter! 5-delt daglig dagsspill inspirert av lessgames More or Less." />
+  <link rel="icon" type="image/png" href="/assets/catfish.png?v=2" />
+  <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=2.0" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/" class="icon-btn text-btn-link" title="Tilbake til Spillhjørnet">‹ SPILL</a>
+        <div class="game-branding">
+          <h1 class="game-title">Mer eller Mindre</h1>
+          <span class="game-subtitle">Skoler, snitt og studenter</span>
+        </div>
+      </div>
+
+      <nav class="mode-nav" aria-label="Spillmodus">
+        <button type="button" class="mode-btn active" id="btnModeDaily">
+          Dagens (5-delt)
+        </button>
+        <button type="button" class="mode-btn" id="btnModePractice">
+          Frispill
+        </button>
+      </nav>
+
+      <div class="header-right">
+        <button type="button" class="icon-btn" id="btnHelp" title="Hvordan spille" aria-label="Hjelp">?</button>
+        <button type="button" class="icon-btn" id="themeToggleBtn" title="Bytt mellom lyst og mørkt tema">TEMA</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="game-main">
+      <!-- 5-Round Progress Bar -->
+      <section class="progress-section" aria-label="Fremgang">
+        <div class="progress-track" id="progressTrack">
+          <div class="step-dot active" data-step="1">
+            <span class="step-num">1</span>
+          </div>
+          <div class="track-line"></div>
+          <div class="step-dot" data-step="2">
+            <span class="step-num">2</span>
+          </div>
+          <div class="track-line"></div>
+          <div class="step-dot" data-step="3">
+            <span class="step-num">3</span>
+          </div>
+          <div class="track-line"></div>
+          <div class="step-dot" data-step="4">
+            <span class="step-num">4</span>
+          </div>
+          <div class="track-line"></div>
+          <div class="step-dot" data-step="5">
+            <span class="step-num">5</span>
+          </div>
+        </div>
+        <div class="score-pill">
+          <span class="score-label">Poeng:</span>
+          <span class="score-val" id="scoreDisplay">0 / 5</span>
+        </div>
+      </section>
+
+      <!-- Category info banner -->
+      <div class="category-banner" id="categoryBanner">
+        <span class="cat-badge" id="catBadge">Laster tema…</span>
+        <p class="cat-desc" id="catDesc">Laster spørsmål fra serveren…</p>
+      </div>
+
+      <!-- Duel Arena -->
+      <div class="duel-container" id="duelContainer">
+        <!-- Card Left: Current baseline -->
+        <article class="entity-card base-card" id="cardA">
+          <div class="card-header">
+            <span class="card-role">GJELDENDE</span>
+            <span class="card-icon" id="iconA">🎓</span>
+          </div>
+          <h2 class="entity-title" id="titleA">Laster…</h2>
+          <p class="entity-org" id="orgA">--</p>
+          <p class="entity-extra" id="extraA">--</p>
+
+          <div class="value-box known-box">
+            <span class="metric-label" id="metricLabelA">Verdi</span>
+            <div class="metric-row">
+              <span class="metric-number" id="valA">---</span>
+              <span class="metric-unit" id="unitA"></span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Center Divider & Buttons -->
+        <div class="vs-divider">
+          <div class="vs-circle">VS</div>
+          <p class="vs-prompt">Har utfordreren mer eller mindre?</p>
+          <div class="guess-controls" id="controlsWrap">
+            <button type="button" class="guess-btn btn-higher" id="btnHigher">
+              <span class="btn-arrow">▲</span>
+              <span class="btn-text">MER / HØYERE</span>
+            </button>
+            <button type="button" class="guess-btn btn-lower" id="btnLower">
+              <span class="btn-arrow">▼</span>
+              <span class="btn-text">MINDRE / LAVERE</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card Right: Challenger -->
+        <article class="entity-card challenger-card" id="cardB">
+          <div class="card-header">
+            <span class="card-role challenger-role">UTFORDRER</span>
+            <span class="card-icon" id="iconB">🏫</span>
+          </div>
+          <h2 class="entity-title" id="titleB">Laster…</h2>
+          <p class="entity-org" id="orgB">--</p>
+          <p class="entity-extra" id="extraB">--</p>
+
+          <div class="value-box challenger-box" id="boxB">
+            <span class="metric-label" id="metricLabelB">Gjett verdien</span>
+            <div class="metric-row">
+              <span class="metric-number hidden-val" id="valB">???</span>
+              <span class="metric-unit" id="unitB"></span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Feedback Banner Overlay -->
+      <div class="round-feedback hidden" id="roundFeedback">
+        <div class="feedback-inner" id="feedbackInner">
+          <div class="feedback-badge" id="feedbackBadge">RIKTIG!</div>
+          <p class="feedback-msg" id="feedbackMsg">Indøk NTNU er lavere enn Medisin UiO.</p>
+          <button type="button" class="next-action-btn" id="btnNextRound">
+            Neste oppgave →
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Final Game Summary Modal -->
+    <div class="modal-backdrop hidden" id="summaryModal">
+      <div class="summary-card" role="dialog" aria-modal="true" aria-labelledby="summaryHeading">
+        <div class="summary-header">
+          <span class="summary-badge" id="summaryModeBadge">DAGENS UTGAVE</span>
+          <h2 class="summary-title" id="summaryHeading">Spillet er fullført!</h2>
+          <p class="summary-subtitle" id="summarySubtitle">Her er ditt resultat i dag:</p>
+        </div>
+
+        <div class="summary-score-box">
+          <div class="big-score" id="bigScore">4 / 5</div>
+          <div class="score-praise" id="scorePraise">Kjempebra spilt! 👏</div>
+        </div>
+
+        <!-- Emoji share block -->
+        <div class="share-box">
+          <pre class="emoji-grid" id="emojiGrid">🟩 🟩 🟥 🟩 🟩</pre>
+          <button type="button" class="share-btn" id="btnCopyResult">
+            Kopier resultat 📋
+          </button>
+          <span class="toast-msg hidden" id="toastMsg">Kopiert til utklippstavlen!</span>
+        </div>
+
+        <!-- Detailed Review List -->
+        <div class="review-section">
+          <h3 class="review-heading">Gjennomgang av dagens dueller:</h3>
+          <ul class="review-list" id="reviewList">
+            <!-- Populated dynamically -->
+          </ul>
+        </div>
+
+        <div class="summary-actions">
+          <button type="button" class="action-btn-primary" id="btnPlayAgain">
+            Spill Frispill (ny runde) ↺
+          </button>
+          <a href="/" class="action-btn-secondary">
+            Tilbake til Spillhjørnet ‹
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-backdrop hidden" id="helpModal">
+      <div class="rules-card" role="dialog" aria-modal="true" aria-labelledby="helpHeading">
+        <div class="rules-header">
+          <h2 class="rules-title" id="helpHeading">Hvordan spille Mer eller Mindre</h2>
+          <button type="button" class="close-btn" id="btnCloseHelp">×</button>
+        </div>
+        <div class="rules-body">
+          <ul class="rules-list">
+            <li>
+              <strong>5-delt utfordring:</strong> Spillet består av 5 dueller etter hverandre (6 skoler/studier totalt).
+            </li>
+            <li>
+              <strong>Høyere eller lavere?</strong> Du ser verdien til det første studiet eller skolen. Gjett om utfordreren har <em>høyere</em> eller <em>lavere</em> snitt, studenttall eller søkertall!
+            </li>
+            <li>
+              <strong>Kjeden fortsetter:</strong> Utfordreren blir den nye basislinjen for neste runde!
+            </li>
+            <li>
+              <strong>Ekte tall:</strong> Dataene er hentet fra Samordna opptak, Database for statistikk om høgre utdanning (DBH) og fylkenes inntakskontorer.
+            </li>
+            <li>
+              <strong>Del resultatet:</strong> Når du har fullført alle 5 rundene, får du et shareable resultat med farge-emojis (🟩 / 🟥) akkurat som i Wordle og lessgames!
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>
+        <strong>Mer eller Mindre</strong> • Del av <a href="/">Spillhjørnet</a> • 
+        Offisielle data fra Samordna opptak & DBH
+      </p>
+    </footer>
+  </div>
+
+  <script src="/mer-eller-mindre/app.js?v=2.0"></script>
+</body>
+</html>

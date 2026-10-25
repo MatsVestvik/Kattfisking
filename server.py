@@ -1,32 +1,38 @@
 #!/usr/bin/env python3
 """
-Kattfisking HTTP Server (Zero-dependency Python 3 + SQLite)
-Designed for lightweight hosting on a Raspberry Pi.
+Spillhjørnet - Multi-game HTTP Gateway Server
+Mounts the main hub and modular games from the `games/` directory.
+Zero external dependencies, designed for Raspberry Pi & lightweight hosting.
 """
 
-import datetime
 import json
 import mimetypes
 import os
 import traceback
 import urllib.parse
-import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
-import wiki_harvester as harvester
+from games.kattfisking import KattfiskingAPI
+from games.mer_eller_mindre import MerEllerMindreAPI
+from games.geoguesser import GeoguesserAPI
 
 PORT = int(os.environ.get("PORT", "3000"))
 HOST = os.environ.get("HOST", "0.0.0.0")
-PUBLIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+HUB_DIR = os.path.join(BASE_DIR, "hub")
+GAMES_DIR = os.path.join(BASE_DIR, "games")
+
 mimetypes.add_type("font/ttf", ".ttf")
+mimetypes.add_type("image/svg+xml", ".svg")
 
 
-class KattfiskingHandler(BaseHTTPRequestHandler):
-    server_version = "KattfiskingPi/1.0"
+class GameGatewayHandler(BaseHTTPRequestHandler):
+    server_version = "SpillhjornetPi/1.0"
 
     def log_message(self, fmt: str, *args: Any) -> None:
-        # Quiet static asset logs unless error
+        # Quiet normal static requests, log warnings & errors
         if len(args) >= 2 and str(args[1]).startswith(("4", "5")):
             super().log_message(fmt, *args)
 
@@ -46,24 +52,42 @@ class KattfiskingHandler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length).decode("utf-8")
         return json.loads(raw)
 
-    def do_GET(self) -> None:
+    def do_HEAD(self) -> None:
+        self.do_GET(head_only=True)
+
+    def do_GET(self, head_only: bool = False) -> None:
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
         try:
-            if path == "/api/daily":
-                self.handle_get_daily(query)
-            elif path == "/api/archive":
-                self.handle_get_archive()
-            elif path == "/api/practice":
-                self.handle_get_practice(query)
-            elif path == "/api/wiki-search":
-                self.handle_wiki_search(query)
-            elif path == "/api/stats":
-                self.handle_get_stats()
-            else:
-                self.serve_static(path)
+            # 1. Check Kattfisking API (legacy and namespaced paths)
+            if path.startswith("/api/kattfisking/") or path in (
+                "/api/daily",
+                "/api/archive",
+                "/api/practice",
+                "/api/wiki-search",
+                "/api/stats",
+            ):
+                res = KattfiskingAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 2. Check Mer eller Mindre API
+            if path.startswith("/api/mer-eller-mindre/"):
+                res = MerEllerMindreAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 3. Check Geoguesser API
+            if path.startswith("/api/geoguesser/"):
+                res = GeoguesserAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 4. Static files
+            self.serve_static(path, head_only=head_only)
+
         except Exception as exc:
             traceback.print_exc()
             self._send_json({"error": str(exc)}, status=500)
@@ -73,298 +97,152 @@ class KattfiskingHandler(BaseHTTPRequestHandler):
         path = parsed.path
 
         try:
-            if path == "/api/submit":
-                self.handle_post_submit()
-            elif path == "/api/curate":
-                self.handle_post_curate()
-            elif path == "/api/harvest":
-                self.handle_post_harvest()
-            else:
-                self._send_json({"error": "Not found"}, status=404)
+            body = self._read_json_body()
+
+            # 1. Check Kattfisking API
+            if path.startswith("/api/kattfisking/") or path in (
+                "/api/submit",
+                "/api/curate",
+                "/api/harvest",
+            ):
+                res = KattfiskingAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 2. Check Mer eller Mindre API
+            if path.startswith("/api/mer-eller-mindre/"):
+                res = MerEllerMindreAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 3. Check Geoguesser API
+            if path.startswith("/api/geoguesser/"):
+                res = GeoguesserAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            self._send_json({"error": "Endepunkt finnes ikke."}, status=404)
+
         except Exception as exc:
             traceback.print_exc()
             self._send_json({"error": str(exc)}, status=500)
 
-    def handle_get_daily(self, query: Dict[str, Any]) -> None:
-        today_str = datetime.date.today().isoformat()
-        req_date = (query.get("date", [today_str])[0] or today_str).strip()
-        # Validate YYYY-MM-DD format and prevent future dates
-        try:
-            parsed_date = datetime.date.fromisoformat(req_date)
-            if parsed_date > datetime.date.today():
-                req_date = today_str
-        except ValueError:
-            req_date = today_str
-
-        puzzle = harvester.ensure_daily_puzzle(req_date)
-        if not puzzle:
-            self._send_json(
-                {"error": "Kunne ikke generere dagens utfordring (for få artikler i databasen)."},
-                status=503,
-            )
-            return
-
-        puzzle["today"] = today_str
-        self._send_json(puzzle)
-
-    def handle_get_archive(self) -> None:
-        today_str = datetime.date.today().isoformat()
-        # Ensure today's puzzle is ready
-        harvester.ensure_daily_puzzle(today_str)
-
-        conn = harvester.get_db_connection()
-        rows = conn.execute(
-            """
-            SELECT
-                dp.date,
-                dp.puzzle_number,
-                COUNT(ps.id) AS total_plays,
-                ROUND(AVG(ps.total_score), 2) AS avg_score
-            FROM daily_puzzles dp
-            LEFT JOIN puzzle_submissions ps ON ps.date = dp.date
-            WHERE dp.date <= ?
-            GROUP BY dp.date, dp.puzzle_number
-            ORDER BY dp.date DESC
-            """,
-            (today_str,),
-        ).fetchall()
-        conn.close()
-
-        archive_list = [
-            {
-                "date": r["date"],
-                "puzzleNumber": r["puzzle_number"],
-                "totalPlays": r["total_plays"],
-                "averageScore": r["avg_score"],
-            }
-            for r in rows
-        ]
-        self._send_json({"today": today_str, "puzzles": archive_list})
-
-    def handle_get_practice(self, query: Dict[str, Any]) -> None:
-        exclude_raw = query.get("exclude", [""])[0]
-        exclude_ids = [
-            int(x) for x in exclude_raw.split(",") if x.strip().isdigit()
-        ][:200]
-
-        conn = harvester.get_db_connection()
-        if exclude_ids:
-            placeholders = ",".join("?" for _ in exclude_ids)
-            row = conn.execute(
-                f"SELECT * FROM articles WHERE id NOT IN ({placeholders}) ORDER BY RANDOM() LIMIT 1",
-                exclude_ids,
-            ).fetchone()
-        else:
-            row = None
-
-        if not row:
-            row = conn.execute(
-                "SELECT * FROM articles ORDER BY RANDOM() LIMIT 1"
-            ).fetchone()
-        conn.close()
-
-        if not row:
-            self._send_json({"error": "Ingen artikler tilgjengelig."}, status=404)
-            return
-
-        self._send_json({"article": harvester.format_article_row(dict(row))})
-
-    def handle_post_submit(self) -> None:
-        body = self._read_json_body()
-        date_str = str(body.get("date") or datetime.date.today().isoformat())
-        results = body.get("results")
-        if not isinstance(results, list) or len(results) == 0:
-            self._send_json({"error": "Ugyldig resultatliste."}, status=400)
-            return
-
-        clean_results = [max(0.0, min(1.0, float(x))) for x in results[:10]]
-        total_score = round(sum(clean_results), 2)
-
-        conn = harvester.get_db_connection()
-        with conn:
-            conn.execute(
-                "INSERT INTO puzzle_submissions (date, total_score, results_json) VALUES (?, ?, ?)",
-                (date_str, total_score, json.dumps(clean_results)),
-            )
-        conn.close()
-
-        puzzle = harvester.ensure_daily_puzzle(date_str)
-        self._send_json(
-            {
-                "ok": True,
-                "totalPlays": puzzle["totalPlays"] if puzzle else 1,
-                "averageScore": puzzle["averageScore"] if puzzle else total_score,
-                "articles": puzzle["articles"] if puzzle else [],
-            }
-        )
-
-    def handle_wiki_search(self, query: Dict[str, Any]) -> None:
-        q = (query.get("q", [""])[0] or "").strip()
-        if len(q) < 2:
-            self._send_json({"suggestions": []})
-            return
-
-        params = urllib.parse.urlencode(
-            {
-                "action": "opensearch",
-                "format": "json",
-                "search": q,
-                "limit": "8",
-                "namespace": "0",
-            }
-        )
-        url = f"https://no.wikipedia.org/w/api.php?{params}"
-        req = urllib.request.Request(url, headers={"User-Agent": harvester.USER_AGENT})
-        try:
-            with urllib.request.urlopen(req, timeout=6) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                suggestions = data[1] if isinstance(data, list) and len(data) > 1 else []
-                self._send_json({"suggestions": suggestions})
-        except Exception:
-            self._send_json({"suggestions": []})
-
-    def handle_post_curate(self) -> None:
-        body = self._read_json_body()
-        title = (body.get("title") or "").strip()
-        preview_only = bool(body.get("previewOnly", False))
-        if not title:
-            self._send_json({"error": "Mangler artikkeltittel."}, status=400)
-            return
-
-        fetched = harvester.fetch_mediawiki_articles([title])
-        if not fetched:
-            self._send_json(
-                {
-                    "error": (
-                        f"Fant ikke «{title}» på norsk Wikipedia, eller artikkelen har "
-                        "for få gyldige kategorier (minimum 4 kategorier etter filtrering)."
-                    )
-                },
-                status=400,
-            )
-            return
-
-        art = fetched[0]
-        if not preview_only:
-            harvester.save_articles_to_db([art], is_curated=True)
-
-        self._send_json(
-            {
-                "ok": True,
-                "saved": not preview_only,
-                "article": {
-                    "pageId": art["page_id"],
-                    "title": art["title"],
-                    "cleanTitle": art["clean_title"],
-                    "categories": art["categories"],
-                    "hiddenCategories": art["hidden_categories"],
-                    "aliases": art["aliases"],
-                    "extract": art["extract"],
-                    "thumbnailUrl": art["thumbnail_url"],
-                    "wikiUrl": art["wiki_url"],
-                },
-            }
-        )
-
-    def handle_post_harvest(self) -> None:
-        pop_map = harvester.fetch_popular_norwegian_titles(days_back=2, limit_per_day=50)
-        conn = harvester.get_db_connection()
-        existing = {
-            r["title"] for r in conn.execute("SELECT title FROM articles").fetchall()
-        }
-        conn.close()
-        candidates = [t for t in pop_map.keys() if t not in existing][:40]
-        added = 0
-        if candidates:
-            fetched = harvester.fetch_mediawiki_articles(candidates)
-            added = harvester.save_articles_to_db(fetched, views_map=pop_map)
-        self._send_json({"ok": True, "added": added})
-
-    def handle_get_stats(self) -> None:
-        conn = harvester.get_db_connection()
-        total_articles = conn.execute("SELECT COUNT(*) AS c FROM articles").fetchone()["c"]
-        unused_articles = conn.execute(
-            "SELECT COUNT(*) AS c FROM articles WHERE used_date IS NULL"
-        ).fetchone()["c"]
-        total_puzzles = conn.execute("SELECT COUNT(*) AS c FROM daily_puzzles").fetchone()["c"]
-        total_plays = conn.execute(
-            "SELECT COUNT(*) AS c FROM puzzle_submissions"
-        ).fetchone()["c"]
-        conn.close()
-        self._send_json(
-            {
-                "totalArticles": total_articles,
-                "unusedArticles": unused_articles,
-                "totalPuzzles": total_puzzles,
-                "totalPlays": total_plays,
-            }
-        )
-
-    def serve_static(self, req_path: str) -> None:
-        if req_path in ("", "/"):
-            req_path = "/index.html"
+    def serve_static(self, req_path: str, head_only: bool = False) -> None:
         safe_rel = os.path.normpath(req_path.lstrip("/"))
         if safe_rel.startswith(".."):
             self._send_json({"error": "Forbidden"}, status=403)
             return
 
-        full_path = os.path.join(PUBLIC_DIR, safe_rel)
-        if os.path.isdir(full_path):
-            if not req_path.endswith("/"):
-                self.send_response(301)
-                self.send_header("Location", req_path + "/")
-                self.end_headers()
-                return
-            full_path = os.path.join(full_path, "index.html")
-        elif not os.path.isfile(full_path):
-            dir_index = os.path.join(PUBLIC_DIR, safe_rel, "index.html")
-            if os.path.isfile(dir_index):
-                self.send_response(301)
-                self.send_header("Location", req_path.rstrip("/") + "/")
-                self.end_headers()
-                return
-            # SPA fallback to index.html
-            full_path = os.path.join(PUBLIC_DIR, "index.html")
-            if not os.path.isfile(full_path):
-                self._send_json({"error": "Not found"}, status=404)
-                return
+        # Check if the request is for a specific game under games/<game_name>/
+        game_names = [
+            d for d in os.listdir(GAMES_DIR) if os.path.isdir(os.path.join(GAMES_DIR, d))
+        ]
+
+        full_path: Optional[str] = None
+
+        for game in game_names:
+            game_slug = game.replace("_", "-")
+            clean_rel = safe_rel.rstrip("/\\")
+            matches_route = (clean_rel == game or clean_rel == game_slug)
+            starts_route = (
+                safe_rel.startswith(game + "/")
+                or safe_rel.startswith(game_slug + "/")
+                or safe_rel.startswith(game + "\\")
+                or safe_rel.startswith(game_slug + "\\")
+            )
+
+            if matches_route:
+                if not req_path.endswith("/"):
+                    self.send_response(301)
+                    self.send_header("Location", f"/{game_slug}/")
+                    self.end_headers()
+                    return
+                full_path = os.path.join(GAMES_DIR, game, "index.html")
+                break
+
+            if starts_route:
+                prefix_len = len(game if safe_rel.startswith(game) else game_slug) + 1
+                sub_rel = safe_rel[prefix_len:]
+                target = os.path.join(GAMES_DIR, game, sub_rel)
+                if os.path.isdir(target):
+                    target = os.path.join(target, "index.html")
+                if os.path.isfile(target):
+                    full_path = target
+                    break
+
+        # If not a game file, resolve from hub directory
+        if not full_path:
+            if safe_rel in ("", "."):
+                candidate = os.path.join(HUB_DIR, "index.html")
+            else:
+                candidate = os.path.join(HUB_DIR, safe_rel)
+
+            if os.path.isdir(candidate):
+                candidate = os.path.join(candidate, "index.html")
+
+            if os.path.isfile(candidate):
+                full_path = candidate
+            else:
+                # Fallback to hub index.html for root SPA navigation
+                hub_index = os.path.join(HUB_DIR, "index.html")
+                if os.path.isfile(hub_index) and not safe_rel.startswith("api/"):
+                    full_path = hub_index
+                else:
+                    self._send_json({"error": "Fil ikke funnet"}, status=404)
+                    return
 
         ctype, _ = mimetypes.guess_type(full_path)
         if not ctype:
             ctype = "application/octet-stream"
-        if ctype.startswith("text/") or ctype in ("application/javascript", "application/json"):
+        if ctype.startswith("text/") or ctype in (
+            "application/javascript",
+            "application/json",
+        ):
             ctype += "; charset=utf-8"
 
-        with open(full_path, "rb") as f:
-            content = f.read()
+        try:
+            with open(full_path, "rb") as f:
+                content = f.read()
+        except OSError:
+            self._send_json({"error": "Kunne ikke lese fil"}, status=500)
+            return
 
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(content)))
-        if safe_rel.endswith((".js", ".css", ".html")) or not safe_rel:
+        if full_path.endswith((".js", ".css", ".html")):
             self.send_header("Cache-Control", "no-cache, must-revalidate")
         self.end_headers()
-        self.wfile.write(content)
+
+        if not head_only:
+            self.wfile.write(content)
 
 
 def main() -> None:
-    harvester.seed_database_if_needed()
+    # Ensure Kattfisking database seed if needed
+    KattfiskingAPI.seed_if_needed()
+
     try:
-        server = ThreadingHTTPServer((HOST, PORT), KattfiskingHandler)
+        server = ThreadingHTTPServer((HOST, PORT), GameGatewayHandler)
     except OSError as exc:
         if exc.errno == 98 or getattr(exc, "winerror", None) == 10048:
             print(f"\n❌ Port {PORT} er allerede i bruk!")
-            print(f"👉 Kattfisking kjører antakeligvis allerede på http://localhost:{PORT}")
-            print(f"   For å restarte:     ./start.sh restart (eller fuser -k {PORT}/tcp)")
+            print(f"👉 Serveren kjører antakeligvis allerede på http://localhost:{PORT}")
+            print(f"   For å restarte:     ./start.sh restart")
             print(f"   For en annen port:  PORT={PORT + 1} ./start.sh\n")
             return
         raise
 
-    print(f"🐈🐟 Kattfisking-server kjører på http://{HOST}:{PORT}")
+    print(f"🎮 Spillhjørnet kjører på http://{HOST}:{PORT}")
+    print(f"   • Hub:          http://{HOST}:{PORT}/")
+    print(f"   • Kattfisking:  http://{HOST}:{PORT}/kattfisking/")
+    print(f"   • Mer/Mindre:   http://{HOST}:{PORT}/mer-eller-mindre/")
+    print(f"   • Norgeguesser: http://{HOST}:{PORT}/geoguesser/\n")
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nAvslutter Kattfisking-server...")
+        print("\nAvslutter Spillhjørnet...")
         server.server_close()
 
 

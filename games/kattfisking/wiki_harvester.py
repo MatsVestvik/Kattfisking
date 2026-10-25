@@ -17,9 +17,11 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+_local_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "kattfisking.db")
+_root_db = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data", "kattfisking.db")
 DB_PATH = os.environ.get(
     "KATTFISKING_DB",
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "kattfisking.db"),
+    _local_db if os.path.exists(_local_db) or not os.path.exists(_root_db) else _root_db,
 )
 USER_AGENT = "Kattfisking/1.0 (https://github.com/kattfisking; RaspberryPi trivia game)"
 

@@ -55,11 +55,32 @@
     console.warn("Could not check local storage for kattfisking progress", e);
   }
 
-  // Check Mer eller Mindre High Score
+  // Check Mer eller Mindre Completion and Status
   const merMindreStatus = document.getElementById("merMindreStatus");
-  const hs = localStorage.getItem("mer_eller_mindre_highscore");
-  if (hs && merMindreStatus) {
-    merMindreStatus.textContent = `Beste rekke: ${hs}`;
+  const trackerMerMindre = document.getElementById("trackerMerMindre");
+  try {
+    const rawMM = localStorage.getItem("mer_eller_mindre_daily_" + todayIso);
+    if (rawMM) {
+      const dataMM = JSON.parse(rawMM);
+      if (dataMM && typeof dataMM.score === "number") {
+        const textMM = `Fullført i dag (${dataMM.score}/5 ✓)`;
+        if (merMindreStatus) {
+          merMindreStatus.textContent = textMM;
+          merMindreStatus.classList.add("completed");
+        }
+        if (trackerMerMindre) {
+          trackerMerMindre.classList.add("done");
+          trackerMerMindre.innerHTML = `<span>✓</span> Mer eller Mindre (${dataMM.score}/5)`;
+        }
+      }
+    } else {
+      const hs = localStorage.getItem("mer_eller_mindre_highscore");
+      if (hs && merMindreStatus) {
+        merMindreStatus.textContent = `Beste: ${hs}/5`;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not check mer eller mindre progress", e);
   }
 
   // Theme Sync

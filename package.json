@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:python": "python3 server.py",
-    "seed": "python3 wiki_harvester.py"
+    "seed": "python3 games/kattfisking/wiki_harvester.py"
   },
   "engines": {
     "node": ">=18.0.0"

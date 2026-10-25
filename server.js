@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * Kattfisking - Node.js HTTP Server (Zero npm dependencies)
- * Uses built-in Node.js modules + SQLite (via sqlite3 / wiki_harvester.py)
- * so it runs out of the box on any Raspberry Pi without native C++ compilation.
+ * Spillhjørnet - Node.js Multi-Game HTTP Gateway Server
+ * Zero npm dependencies, built for Raspberry Pi & modern web hosting.
  */
 
 const http = require("node:http");
@@ -12,11 +11,10 @@ const { execFileSync } = require("node:child_process");
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const HOST = process.env.HOST || "0.0.0.0";
-const PUBLIC_DIR = path.join(__dirname, "public");
-const DB_PATH =
-  process.env.KATTFISKING_DB || path.join(__dirname, "data", "kattfisking.db");
-const USER_AGENT =
-  "Kattfisking/1.0 (https://github.com/kattfisking; RaspberryPi trivia game)";
+
+const BASE_DIR = __dirname;
+const HUB_DIR = path.join(BASE_DIR, "hub");
+const GAMES_DIR = path.join(BASE_DIR, "games");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -30,13 +28,11 @@ const MIME_TYPES = {
   ".ttf": "font/ttf",
 };
 
-/**
- * Helper that runs a Python one-liner against wiki_harvester.py & SQLite
- * so Node.js and Python share the exact same database and Wikipedia filtering logic.
- */
-function runDbAction(action, payload = {}) {
+function runKattfiskingDbAction(action, payload = {}) {
   const script = `
-import sys, json, datetime, wiki_harvester as h
+import sys, json, datetime
+sys.path.insert(0, ${JSON.stringify(path.join(GAMES_DIR, "kattfisking"))})
+import wiki_harvester as h
 
 action = sys.argv[1]
 payload = json.loads(sys.argv[2])
@@ -112,7 +108,7 @@ elif action == "curate":
     preview_only = bool(payload.get("previewOnly", False))
     fetched = h.fetch_mediawiki_articles([title])
     if not fetched:
-        print(json.dumps({"error": f"Fant ikke «{title}» på norsk Wikipedia, eller artikkelen har for få gyldige kategorier (minimum 4)."}, ensure_ascii=False))
+        print(json.dumps({"error": f"Fant ikke «{title}» på norsk Wikipedia."}, ensure_ascii=False))
     else:
         art = fetched[0]
         if not preview_only:
@@ -154,14 +150,11 @@ elif action == "stats":
     conn.close()
     print(json.dumps({"totalArticles": ta, "unusedArticles": ua, "totalPuzzles": tp, "totalPlays": ts}))
 `;
+
   const out = execFileSync(
     "python3",
     ["-c", script, action, JSON.stringify(payload)],
-    {
-      cwd: __dirname,
-      encoding: "utf-8",
-      env: { ...process.env, KATTFISKING_DB: DB_PATH },
-    }
+    { cwd: BASE_DIR, encoding: "utf-8" }
   );
   return JSON.parse(out.trim());
 }
@@ -195,39 +188,92 @@ function readJsonBody(req) {
   });
 }
 
-// Seed database on startup if needed
-execFileSync("python3", [path.join(__dirname, "wiki_harvester.py")], {
-  stdio: "inherit",
-});
+// Seed Kattfisking database on startup if python3 exists
+try {
+  execFileSync(
+    "python3",
+    [path.join(GAMES_DIR, "kattfisking", "wiki_harvester.py")],
+    { stdio: "inherit" }
+  );
+} catch (e) {
+  console.warn("Could not seed Kattfisking database automatically", e.message);
+}
 
 const server = http.createServer(async (req, res) => {
   try {
-    const parsedUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+    const parsedUrl = new URL(
+      req.url,
+      `http://${req.headers.host || "localhost"}`
+    );
     const pathname = parsedUrl.pathname;
 
-    if (req.method === "GET" && pathname === "/api/daily") {
+    // Kattfisking API endpoints
+    if (
+      req.method === "GET" &&
+      (pathname === "/api/daily" || pathname === "/api/kattfisking/daily")
+    ) {
       const date = parsedUrl.searchParams.get("date") || "";
-      const data = runDbAction("daily", { date });
+      const data = runKattfiskingDbAction("daily", { date });
       return sendJson(res, data, data ? 200 : 503);
     }
 
-    if (req.method === "GET" && pathname === "/api/archive") {
-      return sendJson(res, runDbAction("archive"));
+    if (
+      req.method === "GET" &&
+      (pathname === "/api/archive" || pathname === "/api/kattfisking/archive")
+    ) {
+      return sendJson(res, runKattfiskingDbAction("archive"));
     }
 
-    if (req.method === "GET" && pathname === "/api/practice") {
+    if (
+      req.method === "GET" &&
+      (pathname === "/api/practice" || pathname === "/api/kattfisking/practice")
+    ) {
       const exclude = parsedUrl.searchParams.get("exclude") || "";
-      return sendJson(res, runDbAction("practice", { exclude }));
+      return sendJson(res, runKattfiskingDbAction("practice", { exclude }));
     }
 
-    if (req.method === "GET" && pathname === "/api/wiki-search") {
+    if (
+      req.method === "GET" &&
+      (pathname === "/api/stats" || pathname === "/api/kattfisking/stats")
+    ) {
+      return sendJson(res, runKattfiskingDbAction("stats"));
+    }
+
+    if (
+      req.method === "POST" &&
+      (pathname === "/api/submit" || pathname === "/api/kattfisking/submit")
+    ) {
+      const body = await readJsonBody(req);
+      return sendJson(res, runKattfiskingDbAction("submit", body));
+    }
+
+    if (
+      req.method === "POST" &&
+      (pathname === "/api/curate" || pathname === "/api/kattfisking/curate")
+    ) {
+      const body = await readJsonBody(req);
+      const result = runKattfiskingDbAction("curate", body);
+      return sendJson(res, result, result.error ? 400 : 200);
+    }
+
+    if (
+      req.method === "POST" &&
+      (pathname === "/api/harvest" || pathname === "/api/kattfisking/harvest")
+    ) {
+      return sendJson(res, runKattfiskingDbAction("harvest"));
+    }
+
+    if (req.method === "GET" && (pathname === "/api/wiki-search" || pathname === "/api/kattfisking/wiki-search")) {
       const q = (parsedUrl.searchParams.get("q") || "").trim();
       if (q.length < 2) return sendJson(res, { suggestions: [] });
       const wikiUrl = `https://no.wikipedia.org/w/api.php?action=opensearch&format=json&search=${encodeURIComponent(
         q
       )}&limit=8&namespace=0`;
       const wikiRes = await fetch(wikiUrl, {
-        headers: { "User-Agent": USER_AGENT },
+        headers: {
+          "User-Agent":
+            "Kattfisking/1.0 (https://github.com/kattfisking; trivia game)",
+        },
       });
       const wikiData = await wikiRes.json();
       return sendJson(res, {
@@ -235,47 +281,112 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    if (req.method === "GET" && pathname === "/api/stats") {
-      return sendJson(res, runDbAction("stats"));
+    // Mer eller Mindre API endpoints
+    if (
+      req.method === "GET" &&
+      (pathname === "/api/mer-eller-mindre/daily" ||
+        pathname === "/api/mer-eller-mindre/practice" ||
+        pathname === "/api/mer-eller-mindre/status")
+    ) {
+      const date = parsedUrl.searchParams.get("date") || "";
+      const isDaily = pathname.includes("daily");
+      const script = `
+import sys, json, os
+sys.path.insert(0, ${JSON.stringify(path.join(GAMES_DIR, "mer_eller_mindre"))})
+import api
+
+action = sys.argv[1]
+if action == "daily":
+    pack = api.generate_game_pack(seed_str=f"mer_eller_mindre_{sys.argv[2]}")
+    pack["date"] = sys.argv[2]
+    pack["isDaily"] = True
+    print(json.dumps(pack, ensure_ascii=False))
+elif action == "practice":
+    pack = api.generate_game_pack()
+    pack["isDaily"] = False
+    print(json.dumps(pack, ensure_ascii=False))
+else:
+    print(json.dumps({"ok": True, "game": "mer-eller-mindre"}))
+`;
+      const out = execFileSync(
+        "python3",
+        [
+          "-c",
+          script,
+          isDaily ? "daily" : pathname.includes("status") ? "status" : "practice",
+          date || new Date().toISOString().split("T")[0],
+        ],
+        { encoding: "utf-8" }
+      );
+      return sendJson(res, JSON.parse(out.trim()));
     }
 
-    if (req.method === "POST" && pathname === "/api/submit") {
-      const body = await readJsonBody(req);
-      return sendJson(res, runDbAction("submit", body));
-    }
+    // Static file serving: Check games/ directory first
+    const safeRel = path
+      .normalize(pathname.replace(/^\/+/, ""))
+      .replace(/^(\.\.(\/|\\|$))+/, "");
 
-    if (req.method === "POST" && pathname === "/api/curate") {
-      const body = await readJsonBody(req);
-      const result = runDbAction("curate", body);
-      return sendJson(res, result, result.error ? 400 : 200);
-    }
+    const availableGames = fs
+      .readdirSync(GAMES_DIR, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name);
 
-    if (req.method === "POST" && pathname === "/api/harvest") {
-      return sendJson(res, runDbAction("harvest"));
-    }
+    let fullPath = null;
 
-    // Serve static files from public/
-    let relPath = pathname === "/" ? "/index.html" : pathname;
-    const safePath = path.normalize(relPath).replace(/^(\.\.(\/|\\|$))+/, "");
-    let fullPath = path.join(PUBLIC_DIR, safePath);
+    for (const game of availableGames) {
+      const gameSlug = game.replace(/_/g, "-");
+      const cleanRel = safeRel.replace(/\/+$/, "");
+      const matchesRoute = cleanRel === game || cleanRel === gameSlug;
 
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
-      if (!pathname.endsWith("/")) {
-        res.writeHead(301, { Location: pathname + "/" });
-        return res.end();
+      if (matchesRoute) {
+        if (!pathname.endsWith("/")) {
+          res.writeHead(301, { Location: `/${gameSlug}/` });
+          return res.end();
+        }
+        fullPath = path.join(GAMES_DIR, game, "index.html");
+        break;
       }
-      fullPath = path.join(fullPath, "index.html");
-    } else if (!fs.existsSync(fullPath)) {
-      const dirIndex = path.join(PUBLIC_DIR, safePath, "index.html");
-      if (fs.existsSync(dirIndex)) {
-        res.writeHead(301, { Location: pathname.replace(/\/+$/, "") + "/" });
-        return res.end();
+
+      if (
+        safeRel.startsWith(game + "/") ||
+        safeRel.startsWith(gameSlug + "/") ||
+        safeRel.startsWith(game + "\\") ||
+        safeRel.startsWith(gameSlug + "\\")
+      ) {
+        const prefixLen = (safeRel.startsWith(game) ? game : gameSlug).length + 1;
+        const subRel = safeRel.slice(prefixLen);
+        let candidate = path.join(GAMES_DIR, game, subRel);
+        if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+          candidate = path.join(candidate, "index.html");
+        }
+        if (fs.existsSync(candidate)) {
+          fullPath = candidate;
+          break;
+        }
       }
-      fullPath = path.join(PUBLIC_DIR, "index.html");
     }
 
-    if (!fs.existsSync(fullPath)) {
-      return sendJson(res, { error: "Ikke funnet" }, 404);
+    // If not a game file, resolve from hub/
+    if (!fullPath) {
+      let candidate =
+        !safeRel || safeRel === "."
+          ? path.join(HUB_DIR, "index.html")
+          : path.join(HUB_DIR, safeRel);
+
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+        candidate = path.join(candidate, "index.html");
+      }
+
+      if (fs.existsSync(candidate)) {
+        fullPath = candidate;
+      } else {
+        const hubIndex = path.join(HUB_DIR, "index.html");
+        if (fs.existsSync(hubIndex) && !safeRel.startsWith("api/")) {
+          fullPath = hubIndex;
+        } else {
+          return sendJson(res, { error: "Fil ikke funnet" }, 404);
+        }
+      }
     }
 
     const content = fs.readFileSync(fullPath);
@@ -285,11 +396,15 @@ const server = http.createServer(async (req, res) => {
       "Content-Type": contentType,
       "Content-Length": content.length,
     };
-    if ([".js", ".css", ".html"].includes(ext) || !safePath) {
+    if ([".js", ".css", ".html"].includes(ext)) {
       headers["Cache-Control"] = "no-cache, must-revalidate";
     }
     res.writeHead(200, headers);
-    res.end(content);
+    if (req.method !== "HEAD") {
+      res.end(content);
+    } else {
+      res.end();
+    }
   } catch (err) {
     console.error(err);
     sendJson(res, { error: String(err.message || err) }, 500);
@@ -297,5 +412,9 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`🐈🐟 Kattfisking (Node.js) kjører på http://${HOST}:${PORT}`);
+  console.log(`🎮 Spillhjørnet (Node.js) kjører på http://${HOST}:${PORT}`);
+  console.log(`   • Hub:          http://${HOST}:${PORT}/`);
+  console.log(`   • Kattfisking:  http://${HOST}:${PORT}/kattfisking/`);
+  console.log(`   • Mer/Mindre:   http://${HOST}:${PORT}/mer-eller-mindre/`);
+  console.log(`   • Norgeguesser: http://${HOST}:${PORT}/geoguesser/\n`);
 });
