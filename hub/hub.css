@@ -74,20 +74,22 @@ body {
 }
 
 .brand-icon-wrap {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   background: var(--bg-subtle);
   border: 2px solid var(--border-strong);
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .brand-icon-img {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   image-rendering: pixelated;
+  object-fit: contain;
 }
 
 .brand-title {
@@ -332,22 +334,34 @@ body {
 }
 
 .card-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
+  width: 78px;
+  height: 78px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
   background: var(--bg-subtle);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border-strong);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.game-card:hover .card-icon-box {
+  border-color: var(--accent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .card-icon-box img {
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
   image-rendering: pixelated;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.game-card:hover .card-icon-box img {
+  transform: scale(1.08);
 }
 
 .card-tag {

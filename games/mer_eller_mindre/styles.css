@@ -97,11 +97,12 @@ body {
 }
 
 .header-pixel-icon {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   image-rendering: pixelated;
   flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
 }
 
 .game-title {
@@ -594,6 +595,16 @@ body {
 
 .rules-list strong {
   color: var(--text);
+}
+
+.summary-pixel-icon {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 0.75rem;
+  filter: drop-shadow(0 4px 14px rgba(255, 209, 102, 0.3));
 }
 
 .summary-badge {
