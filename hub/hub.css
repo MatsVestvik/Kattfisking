@@ -39,11 +39,12 @@
 
 body {
   font-family: var(--font-main);
-  background-color: var(--bg-page);
+  background-color: #0b0f19;
   color: var(--text);
   min-height: 100vh;
   line-height: 1.5;
   transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-x: hidden;
 }
 
 .hub-shell {
@@ -53,6 +54,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  position: relative;
+  z-index: 10;
 }
 
 /* Header */
@@ -60,9 +63,14 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 1.25rem;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 2.5rem;
+  padding: 0.9rem 1.4rem;
+  background: rgba(19, 27, 46, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .hub-brand {
@@ -142,12 +150,14 @@ body {
 
 /* Hero / Featured */
 .featured-hero {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-subtle) 100%);
-  border: 2px solid var(--border-strong);
+  background: linear-gradient(135deg, rgba(19, 27, 46, 0.82) 0%, rgba(28, 39, 66, 0.85) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid rgba(255, 209, 102, 0.35);
   border-radius: 16px;
   padding: 2.25rem;
   margin-bottom: 2.5rem;
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--card-shadow), 0 0 30px rgba(255, 209, 102, 0.12);
   position: relative;
   overflow: hidden;
 }
@@ -294,7 +304,9 @@ body {
 }
 
 .game-card {
-  background: var(--bg-card);
+  background: rgba(19, 27, 46, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 2px solid var(--border);
   border-radius: 14px;
   padding: 1.75rem;
@@ -303,15 +315,16 @@ body {
   text-decoration: none;
   color: inherit;
   box-shadow: var(--card-shadow);
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .game-card:hover {
-  transform: translateY(-4px);
-  background: var(--bg-card-hover);
-  border-color: var(--border-strong);
+  transform: translateY(-5px);
+  background: rgba(23, 34, 59, 0.92);
+  border-color: var(--accent);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 209, 102, 0.18);
 }
 
 .game-card.featured-card:hover {
@@ -444,7 +457,9 @@ body {
 
 /* Daily Tracker Card */
 .tracker-box {
-  background: var(--bg-card);
+  background: rgba(19, 27, 46, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 2px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
@@ -453,6 +468,7 @@ body {
   align-items: center;
   gap: 1.5rem;
   margin-bottom: 3rem;
+  box-shadow: var(--card-shadow);
 }
 
 @media (max-width: 680px) {

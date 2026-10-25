@@ -7,8 +7,19 @@
   <meta name="description" content="Trykk på skolen eller studiet du tror har høyest snitt eller flest studenter! 5-delt daglig kunnskapsduell med ekte bilder." />
   <link rel="icon" type="image/png" href="/assets/icons/moreorless.png" />
   <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=4.1" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
 <body>
+  <!-- Dynamic Multilayered Parallax Background (Trondheim / NTNU) -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
   <div class="app-shell">
     <!-- Header -->
     <header class="game-header">
@@ -255,5 +266,6 @@
   </div>
 
   <script src="/mer-eller-mindre/app.js?v=4.0"></script>
+  <script src="/parallax-bg.js?v=1.0"></script>
 </body>
 </html>

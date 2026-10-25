@@ -9,8 +9,19 @@
   <link rel="apple-touch-icon" href="/assets/icons/catfish.png" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/hub.css?v=1.1" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
 <body>
+  <!-- Dynamic Multilayered Parallax Background (Trondheim / NTNU) -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
   <div class="hub-shell">
     <!-- Top Header -->
     <header class="hub-header">
@@ -151,5 +162,6 @@
   </div>
 
   <script src="/hub.js?v=1.0"></script>
+  <script src="/parallax-bg.js?v=1.0"></script>
 </body>
 </html>

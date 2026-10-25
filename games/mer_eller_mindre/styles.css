@@ -54,6 +54,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  position: relative;
+  z-index: 10;
 }
 
 /* Header */
@@ -61,8 +63,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--border);
+  padding: 0.85rem 1.25rem;
+  background: rgba(19, 27, 46, 0.74);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   margin-bottom: 1.5rem;
   gap: 1rem;
   flex-wrap: wrap;
@@ -213,7 +219,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-card);
+  background: rgba(19, 27, 46, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 2px solid var(--border);
   border-radius: 12px;
   padding: 0.85rem 1.5rem;
@@ -372,7 +380,9 @@ body {
 }
 
 .entity-card {
-  background: var(--bg-card);
+  background: rgba(19, 27, 46, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 3px solid var(--border);
   border-radius: 16px;
   display: flex;

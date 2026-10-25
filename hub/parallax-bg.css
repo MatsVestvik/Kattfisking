@@ -1,0 +1,131 @@
+/**
+ * Spillhjørnet – Dynamic Multilayered Parallax Background
+ * 4 Layers:
+ *   Layer 1 (Sky, Sun & Clouds): /background/1.jpeg
+ *   Layer 2 (Fjord & Distant Mountains): /background/2.png
+ *   Layer 3 (NTNU Gløshaugen Hovedbygningen): /background/3.png
+ *   Layer 4 (Campus Lawn, Stairs & Students): /background/4.png
+ */
+
+.dynamic-parallax-bg {
+  position: fixed;
+  top: -50px;
+  left: -50px;
+  right: -50px;
+  bottom: -50px;
+  width: calc(100vw + 100px);
+  height: calc(100vh + 100px);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  background-color: #0b0f19;
+}
+
+.parallax-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: cover;
+  will-change: transform;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  transform: translate3d(0, 0, 0);
+  pointer-events: none;
+}
+
+/* Layer 1: Sky, Sun & Clouds */
+.parallax-layer.layer-1-sky {
+  background-image: url("/background/1.jpeg");
+  z-index: 1;
+  animation: skyGlowPulse 12s ease-in-out infinite alternate;
+}
+
+@keyframes skyGlowPulse {
+  0% {
+    filter: brightness(0.96) saturate(1);
+  }
+  100% {
+    filter: brightness(1.06) saturate(1.08);
+  }
+}
+
+/* Layer 2: Fjord & Distant Hills with Evening Shoreline Lights */
+.parallax-layer.layer-2-fjord {
+  background-image: url("/background/2.png");
+  z-index: 2;
+  animation: fjordLightsShimmer 6s ease-in-out infinite alternate;
+}
+
+@keyframes fjordLightsShimmer {
+  0%, 100% {
+    filter: brightness(1) contrast(1);
+  }
+  50% {
+    filter: brightness(1.12) contrast(1.04) drop-shadow(0 0 8px rgba(255, 209, 102, 0.4));
+  }
+}
+
+/* Layer 3: NTNU Gløshaugen Hovedbygningen */
+.parallax-layer.layer-3-campus {
+  background-image: url("/background/3.png");
+  z-index: 3;
+}
+
+/* Layer 4: Foreground Lawn, Stairs, Lampposts & Students */
+.parallax-layer.layer-4-lawn {
+  background-image: url("/background/4.png");
+  z-index: 4;
+}
+
+/* Drifting Autumn Leaves / Golden Embers Canvas */
+.ambient-sparkles-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Vignette & Ambient Darkness Overlay so content remains 100% readable */
+.parallax-vignette-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 50% 38%, rgba(10, 14, 23, 0.3) 0%, rgba(10, 14, 23, 0.65) 65%, rgba(10, 14, 23, 0.9) 100%),
+    linear-gradient(to bottom, rgba(10, 14, 23, 0.4) 0%, transparent 35%, rgba(10, 14, 23, 0.8) 100%);
+  transition: background 0.3s ease;
+}
+
+[data-theme="light"] .parallax-vignette-overlay {
+  background: 
+    radial-gradient(circle at 50% 38%, rgba(245, 247, 251, 0.35) 0%, rgba(245, 247, 251, 0.72) 65%, rgba(245, 247, 251, 0.94) 100%),
+    linear-gradient(to bottom, rgba(245, 247, 251, 0.45) 0%, transparent 35%, rgba(245, 247, 251, 0.88) 100%);
+}
+
+[data-theme="light"] .parallax-layer {
+  opacity: 0.82;
+  filter: saturate(1.15) brightness(1.05);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .parallax-layer {
+    transition: none !important;
+    animation: none !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+  .ambient-sparkles-canvas {
+    display: none;
+  }
+}

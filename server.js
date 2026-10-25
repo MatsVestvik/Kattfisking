@@ -379,6 +379,8 @@ else:
 
       if (fs.existsSync(candidate)) {
         fullPath = candidate;
+      } else if (safeRel.startsWith("background/") && fs.existsSync(path.join(BASE_DIR, safeRel))) {
+        fullPath = path.join(BASE_DIR, safeRel);
       } else {
         const hubIndex = path.join(HUB_DIR, "index.html");
         if (fs.existsSync(hubIndex) && !safeRel.startsWith("api/")) {
