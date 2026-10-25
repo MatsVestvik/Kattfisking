@@ -501,6 +501,135 @@ DATASETS: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "strykprosent": {
+        "id": "strykprosent",
+        "title": "Strykprosent på universitetet",
+        "subtitle": "Andel stryk på ordinær eksamen",
+        "unit": "% stryk",
+        "icon": "📉",
+        "description": "Hvilket beryktet universitetsfag har høyest strykprosent på eksamen?",
+        "items": [
+            {
+                "title": "Termodynamikk og strømningslære",
+                "org": "NTNU Trondheim (Gløshaugen)",
+                "val": 44.5,
+                "extra": "Kjent som et av Gløshaugens mest beryktede lukefag.",
+                "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Mekanikk 2 (TKT4122)",
+                "org": "NTNU Trondheim",
+                "val": 41.8,
+                "extra": "Klassisk krevende beregningsfag for sivilingeniørstudenter.",
+                "image": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Fysikk (FY1001 Mekanisk fysikk)",
+                "org": "NTNU Trondheim",
+                "val": 39.5,
+                "extra": "Tungt realfagsemne med tradisjonelt høy strykprosent.",
+                "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Matematikk 1 (TMA4100)",
+                "org": "NTNU Trondheim",
+                "val": 38.2,
+                "extra": "Obligatorisk førstesemester-mareritt for over tusen siv.ing-studenter.",
+                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/NTNU_Trondheim_Mainbuilding.jpg/800px-NTNU_Trondheim_Mainbuilding.jpg",
+            },
+            {
+                "title": "Matematikk for økonomer",
+                "org": "Handelshøyskolen BI (Oslo)",
+                "val": 37.0,
+                "extra": "Det faget flest BI-studenter må ta opp igjen på bachelornivå.",
+                "image": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Diskret matematikk (MAT601)",
+                "org": "Universitetet i Bergen (UiB)",
+                "val": 36.4,
+                "extra": "Grunnleggende teorifag for informatikkstudenter på Mat.Nat.",
+                "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Kalkulus (MAT1100)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 34.8,
+                "extra": "Krevende matematikkemne for realfagstudenter på Blindern.",
+                "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Organisk kjemi",
+                "org": "Universitetet i Bergen (UiB)",
+                "val": 32.8,
+                "extra": "Molekylstrukturer og reaksjonsmekanismer feller mange.",
+                "image": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Bedriftsøkonomisk analyse",
+                "org": "OsloMet – storbyuniversitetet",
+                "val": 30.8,
+                "extra": "Regnskap og kalkulasjon volder hodebry for mange nye studenter.",
+                "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Mikroøkonomi (SAM1000)",
+                "org": "Norges handelshøyskole (NHH)",
+                "val": 29.2,
+                "extra": "Beryktet eksamen i konsumentteori og markedslikevekt i Bergen.",
+                "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Statistikk for økonomer",
+                "org": "Handelshøyskolen BI",
+                "val": 28.5,
+                "extra": "Hypotesetesting og regresjonsanalyse på Nydalen.",
+                "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Objektorientert programmering (IN1000)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 26.5,
+                "extra": "Norges største IT-emne i Python ved Institutt for informatikk (IFI).",
+                "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Farmakologi og fysiologi",
+                "org": "UiT Norges arktiske universitet",
+                "val": 25.0,
+                "extra": "Læren om legemidler krever enorm puggeinnsats i Tromsø.",
+                "image": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Finansregnskap og analyse",
+                "org": "Handelshøyskolen BI",
+                "val": 22.8,
+                "extra": "Balanse og resultatregnskap i første semester.",
+                "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Privatrett 1 (JUS1111)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 18.5,
+                "extra": "Avtalerett og erstatningsrett i Karl Johans gate.",
+                "image": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Examen philosophicum (Ex.phil)",
+                "org": "Universitetet i Oslo (UiO)",
+                "val": 14.5,
+                "extra": "Filosofi- og etikkemnet alle universitetsstudenter må gjennom.",
+                "image": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+                "title": "Innføring i sosiologi",
+                "org": "Universitetet i Bergen (UiB)",
+                "val": 10.8,
+                "extra": "Samfunnsvitenskapelig grunnemne med overkommelig strykprosent.",
+                "image": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80",
+            },
+        ],
+    },
 }
 
 
@@ -515,46 +644,66 @@ def _pseudo_random_choice(items: List[Any], rng_state: int) -> Tuple[Any, int]:
     return items[idx], rng_state
 
 
-def generate_game_pack(category_id: Optional[str] = None, seed_str: Optional[str] = None) -> Dict[str, Any]:
-    category_keys = list(DATASETS.keys())
+def generate_25_duel_pack(seed_str: Optional[str] = None) -> Dict[str, Any]:
+    """Generates the full 25-duel master pack across all 5 Norwegian education categories."""
+    cat_keys = ["snitt_studier", "sokertall", "strykprosent", "studenttall", "snitt_vgs"]
 
     if seed_str:
         rng = _deterministic_seed(seed_str)
-        if not category_id or category_id not in DATASETS:
-            cat_key, rng = _pseudo_random_choice(category_keys, rng)
-        else:
-            cat_key = category_id
     else:
         import random
-        cat_key = category_id if category_id in DATASETS else random.choice(category_keys)
-        rng = random.randint(1, 1000000)
+        rng = random.randint(1, 10000000)
 
-    category = DATASETS[cat_key]
-    items_pool = list(category["items"])
+    category_icons = {
+        "snitt_studier": "🎓",
+        "sokertall": "👥",
+        "strykprosent": "📉",
+        "studenttall": "🏛️",
+        "snitt_vgs": "🏫",
+    }
 
-    selected: List[Dict[str, Any]] = []
-    available = list(items_pool)
+    categories_out = []
 
-    for _ in range(6):
-        if not available:
-            break
-        last_val = selected[-1]["val"] if selected else None
-        valid_candidates = [it for it in available if it["val"] != last_val] or available
-        chosen, rng = _pseudo_random_choice(valid_candidates, rng)
-        selected.append(chosen)
-        available.remove(chosen)
+    for cat_key in cat_keys:
+        category = DATASETS[cat_key]
+        items_pool = list(category["items"])
+        available = list(items_pool)
+        selected = []
 
-    return {
-        "category": {
+        # 6 items form 5 continuous duels per category (5 * 5 = 25 duels total)
+        for _ in range(6):
+            if not available:
+                break
+            last_val = selected[-1]["val"] if selected else None
+            valid_candidates = [it for it in available if it["val"] != last_val] or available
+            chosen, rng = _pseudo_random_choice(valid_candidates, rng)
+            selected.append(chosen)
+            available.remove(chosen)
+
+        categories_out.append({
             "id": category["id"],
             "title": category["title"],
             "subtitle": category["subtitle"],
             "unit": category["unit"],
+            "icon": category_icons.get(cat_key, "🎓"),
             "description": category["description"],
-        },
-        "totalRounds": 5,
-        "items": selected,
+            "items": selected,
+        })
+
+    return {
+        "totalDuels": 25,
+        "totalCategories": 5,
+        "duelsPerCategory": 5,
+        "categories": categories_out,
+        # Backward-compatible shortcuts for single-category consumers
+        "category": categories_out[0],
+        "items": categories_out[0]["items"],
+        "totalRounds": 25,
     }
+
+
+def generate_game_pack(category_id: Optional[str] = None, seed_str: Optional[str] = None) -> Dict[str, Any]:
+    return generate_25_duel_pack(seed_str=seed_str)
 
 
 class MerEllerMindreAPI:
@@ -572,6 +721,7 @@ class MerEllerMindreAPI:
                 "game": "mer-eller-mindre",
                 "categories": list(DATASETS.keys()),
                 "totalCategories": len(DATASETS),
+                "totalDuels": 25,
             }
 
         if rel_path in ("/api/daily", "/api/today"):
@@ -581,14 +731,13 @@ class MerEllerMindreAPI:
             except ValueError:
                 req_date = today_str
 
-            pack = generate_game_pack(seed_str=f"mer_eller_mindre_{req_date}")
+            pack = generate_25_duel_pack(seed_str=f"mer_eller_mindre_25_{req_date}")
             pack["date"] = req_date
             pack["isDaily"] = True
             return 200, pack
 
         if rel_path in ("/api/practice", "/api/random"):
-            cat = query.get("category", [""])[0]
-            pack = generate_game_pack(category_id=cat if cat in DATASETS else None)
+            pack = generate_25_duel_pack()
             pack["isDaily"] = False
             return 200, pack
 
