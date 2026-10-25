@@ -75,12 +75,11 @@
       <!-- Duel Arena: Click on the card you think has more! -->
       <div class="duel-container" id="duelContainer">
         <!-- Card Left: Option A -->
-        <div class="entity-card base-card selectable-card" id="cardA" role="button" tabindex="0" aria-label="Velg første alternativ">
+        <div class="entity-card base-card selectable-card" id="cardA" role="button" tabindex="0" aria-label="Velg dette alternativet">
           <div class="card-hero-wrap">
             <img src="" alt="" class="card-hero-img" id="imgA" />
             <div class="card-hero-overlay"></div>
             <div class="card-header-floating">
-              <span class="card-role" id="roleA">ALTERNATIV A</span>
               <span class="card-status-badge hidden" id="statusBadgeA"></span>
             </div>
           </div>
@@ -88,7 +87,6 @@
           <div class="card-body">
             <h2 class="entity-title" id="titleA">Laster…</h2>
             <p class="entity-org" id="orgA">--</p>
-            <p class="entity-extra" id="extraA">--</p>
 
             <div class="value-box known-box" id="boxA">
               <span class="metric-label" id="metricLabelA">Verdi</span>
@@ -96,11 +94,6 @@
                 <span class="metric-number" id="valA">---</span>
                 <span class="metric-unit" id="unitA"></span>
               </div>
-            </div>
-
-            <div class="card-click-prompt" id="clickPromptA">
-              <span class="prompt-icon">👆</span>
-              <span class="prompt-text" id="promptTextA">Trykk her hvis denne har mest</span>
             </div>
           </div>
         </div>
@@ -110,17 +103,15 @@
           <div class="vs-circle">VS</div>
           <div class="vs-text-wrap">
             <span class="vs-heading">Hvem har mest?</span>
-            <span class="vs-subtext">Trykk på kortet</span>
           </div>
         </div>
 
         <!-- Card Right: Option B -->
-        <div class="entity-card challenger-card selectable-card" id="cardB" role="button" tabindex="0" aria-label="Velg andre alternativ">
+        <div class="entity-card challenger-card selectable-card" id="cardB" role="button" tabindex="0" aria-label="Velg dette alternativet">
           <div class="card-hero-wrap">
             <img src="" alt="" class="card-hero-img" id="imgB" />
             <div class="card-hero-overlay"></div>
             <div class="card-header-floating">
-              <span class="card-role challenger-role" id="roleB">ALTERNATIV B</span>
               <span class="card-status-badge hidden" id="statusBadgeB"></span>
             </div>
           </div>
@@ -128,7 +119,6 @@
           <div class="card-body">
             <h2 class="entity-title" id="titleB">Laster…</h2>
             <p class="entity-org" id="orgB">--</p>
-            <p class="entity-extra" id="extraB">--</p>
 
             <div class="value-box challenger-box" id="boxB">
               <span class="metric-label" id="metricLabelB">Gjett verdien</span>
@@ -136,11 +126,6 @@
                 <span class="metric-number hidden-val" id="valB">???</span>
                 <span class="metric-unit" id="unitB"></span>
               </div>
-            </div>
-
-            <div class="card-click-prompt" id="clickPromptB">
-              <span class="prompt-icon">👆</span>
-              <span class="prompt-text" id="promptTextB">Trykk her hvis denne har mest</span>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
  * Mer eller Mindre – Norsk 5-delt kunnskapsduell
  * "Hvem har mest?" - Spilleren trykker direkte på kortet som er høyest!
  * Inkluderer ekte bilder av skoler, studiesteder og universiteter.
- * Automatisk fremgang og gjenbruk av Alternativ B som nytt Alternativ A.
+ * Card B flyter fysisk over til Card A-plassen, og nytt Card B glir inn.
  */
 
 (() => {
@@ -45,28 +45,22 @@
     // Card A
     cardA: document.getElementById("cardA"),
     imgA: document.getElementById("imgA"),
-    roleA: document.getElementById("roleA"),
     titleA: document.getElementById("titleA"),
     orgA: document.getElementById("orgA"),
-    extraA: document.getElementById("extraA"),
     valA: document.getElementById("valA"),
     unitA: document.getElementById("unitA"),
     metricLabelA: document.getElementById("metricLabelA"),
     statusBadgeA: document.getElementById("statusBadgeA"),
-    promptTextA: document.getElementById("promptTextA"),
 
     // Card B
     cardB: document.getElementById("cardB"),
     imgB: document.getElementById("imgB"),
-    roleB: document.getElementById("roleB"),
     titleB: document.getElementById("titleB"),
     orgB: document.getElementById("orgB"),
-    extraB: document.getElementById("extraB"),
     valB: document.getElementById("valB"),
     unitB: document.getElementById("unitB"),
     metricLabelB: document.getElementById("metricLabelB"),
     statusBadgeB: document.getElementById("statusBadgeB"),
-    promptTextB: document.getElementById("promptTextB"),
 
     // Round Feedback
     roundFeedback: document.getElementById("roundFeedback"),
@@ -95,7 +89,7 @@
   }
 
   // Count-up animation for revealing challenger value
-  function animateValue(elem, start, end, durationMs = 400) {
+  function animateValue(elem, start, end, durationMs = 450) {
     const startTime = performance.now();
     const isFloat = !Number.isInteger(end);
 
@@ -155,42 +149,36 @@
           title: "Medisin",
           org: "Universitetet i Oslo (UiO)",
           val: 68.5,
-          extra: "Tradisjonelt Norges vanskeligste studium å komme inn på.",
           image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80"
         },
         {
           title: "Industriell økonomi (Indøk)",
           org: "NTNU Trondheim",
           val: 67.8,
-          extra: "Norges mest krevende sivilingeniørstudium.",
           image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80"
         },
         {
           title: "Psykologi profesjon",
           org: "Universitetet i Oslo (UiO)",
           val: 66.8,
-          extra: "Seksårig profesjonsutdanning med høyt snitt.",
           image: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&auto=format&fit=crop&q=80"
         },
         {
           title: "Rettsvitenskap (juss)",
           org: "Universitetet i Oslo (UiO)",
           val: 63.6,
-          extra: "Det juridiske fakultet ved Karl Johans gate.",
           image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&auto=format&fit=crop&q=80"
         },
         {
           title: "Siviløkonom",
           org: "Norges handelshøyskole (NHH)",
           val: 63.5,
-          extra: "NHHs prestisjetunge femårige masterprogram.",
           image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80"
         },
         {
           title: "Datateknologi (siv.ing)",
           org: "NTNU Trondheim",
           val: 64.1,
-          extra: "Svært populært IT-studium på Gløshaugen.",
           image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80"
         }
       ];
@@ -238,66 +226,43 @@
 
     updateProgressTrack();
 
-    // In a 5-round chain:
-    // Round 0: items[0] vs items[1]
-    // Round 1: items[1] vs items[2] (items[1] is previous Card B, now Card A!)
-    // Round 2: items[2] vs items[3] (items[2] is previous Card B, now Card A!)
-    // Round 3: items[3] vs items[4] (items[3] is previous Card B, now Card A!)
-    // Round 4: items[4] vs items[5] (items[4] is previous Card B, now Card A!)
     const itemA = state.items[state.currentIndex];
     const itemB = state.items[state.currentIndex + 1];
 
     // Reset card classes & badges
-    [el.cardA, el.cardB].forEach(card => {
-      card.className = "entity-card selectable-card";
-    });
+    el.cardA.className = "entity-card base-card selectable-card";
+    el.cardB.className = "entity-card challenger-card selectable-card";
     el.statusBadgeA.className = "card-status-badge hidden";
     el.statusBadgeB.className = "card-status-badge hidden";
 
     // Card A (Known baseline - previous duel's Card B)
-    el.cardA.classList.add("base-card");
-    if (el.roleA) {
-      el.roleA.textContent = state.currentIndex > 0 ? "ALTERNATIV A (FRA FORRIGE)" : "ALTERNATIV A";
-    }
     el.titleA.textContent = itemA.title;
     el.orgA.textContent = itemA.org;
-    el.extraA.textContent = itemA.extra || "";
     el.valA.textContent = formatNumber(itemA.val);
-    el.promptTextA.textContent = `Trykk her hvis ${itemA.title} har mest`;
-
     el.imgA.src = itemA.image || FALLBACK_IMG;
     el.imgA.alt = `${itemA.title} (${itemA.org})`;
     el.imgA.onerror = () => { el.imgA.src = FALLBACK_IMG; };
 
     // Card B (Challenger with hidden value)
-    el.cardB.classList.add("challenger-card");
-    if (el.roleB) {
-      el.roleB.textContent = state.currentIndex > 0 ? "ALTERNATIV B (NY UTFORDRER)" : "ALTERNATIV B";
-    }
     el.titleB.textContent = itemB.title;
     el.orgB.textContent = itemB.org;
-    el.extraB.textContent = itemB.extra || "";
     el.valB.textContent = "???";
     el.valB.className = "metric-number hidden-val";
-    el.promptTextB.textContent = `Trykk her hvis ${itemB.title} har mest`;
-
     el.imgB.src = itemB.image || FALLBACK_IMG;
     el.imgB.alt = `${itemB.title} (${itemB.org})`;
     el.imgB.onerror = () => { el.imgB.src = FALLBACK_IMG; };
 
-    // Visual transfer & slide-in animations
+    // When transitioning into next round, new Card B slides in from right
     if (isTransition) {
-      el.cardA.classList.add("card-transferred");
-      el.cardB.classList.add("card-slide-in");
+      el.cardB.classList.add("card-slide-in-right");
       setTimeout(() => {
-        el.cardA.classList.remove("card-transferred");
-        el.cardB.classList.remove("card-slide-in");
-      }, 450);
+        el.cardB.classList.remove("card-slide-in-right");
+      }, 600);
     }
   }
 
   function selectCard(chosen) {
-    // If already locked and a countdown timer is running, allow skipping immediately!
+    // If already locked and countdown is showing, allow skipping delay immediately!
     if (state.isLocked) {
       if (autoAdvanceTimer) {
         clearTimeout(autoAdvanceTimer);
@@ -332,7 +297,7 @@
 
     // Reveal Card B's value
     el.valB.classList.remove("hidden-val");
-    animateValue(el.valB, 0, itemB.val, 400);
+    animateValue(el.valB, 0, itemB.val, 450);
 
     // Apply visual winner / loser states
     if (actualWinner === "A") {
@@ -373,20 +338,20 @@
       el.autoAdvanceHint.textContent = (state.currentIndex + 1 < 5) ? "Neste duell… ⚡" : "Fullfører… 🏆";
     }
 
-    // Retrigger countdown progress bar animation
+    // Retrigger countdown progress bar animation (1.8s duration)
     if (el.toastProgressBar) {
       el.toastProgressBar.style.animation = "none";
       void el.toastProgressBar.offsetHeight; // force reflow
-      el.toastProgressBar.style.animation = "countdownBar 1.4s linear forwards";
+      el.toastProgressBar.style.animation = "countdownBar 1.8s linear forwards";
     }
 
     el.roundFeedback.classList.remove("hidden");
 
-    // Auto-advance to next duel after 1400ms (or on fast skip)
+    // Generous animation room: 1800ms before auto-advancing (or instantly on click/space)
     autoAdvanceTimer = setTimeout(() => {
       autoAdvanceTimer = null;
       nextRound();
-    }, 1400);
+    }, 1800);
   }
 
   function nextRound() {
@@ -395,10 +360,43 @@
       autoAdvanceTimer = null;
     }
 
-    state.currentIndex++;
-    if (state.currentIndex < 5) {
-      renderStep(true);
+    // If there is another round, animate Card B floating over to Card A's position!
+    if (state.currentIndex + 1 < 5) {
+      el.roundFeedback.classList.add("hidden");
+
+      // Calculate relative displacement from Card B to Card A
+      const rectA = el.cardA.getBoundingClientRect();
+      const rectB = el.cardB.getBoundingClientRect();
+      const deltaX = rectA.left - rectB.left;
+      const deltaY = rectA.top - rectB.top;
+
+      // Card A slides out to the left
+      el.cardA.classList.add("card-slide-out-left");
+
+      // Card B floats across into Card A's spot
+      el.cardB.classList.add("card-floating");
+      el.cardB.classList.remove("winner-card", "loser-card", "chosen-card");
+      el.statusBadgeB.className = "card-status-badge hidden";
+
+      el.cardB.style.transition = "transform 0.65s cubic-bezier(0.25, 1, 0.35, 1)";
+      el.cardB.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+      const vsDivider = document.querySelector(".vs-divider");
+      if (vsDivider) vsDivider.style.opacity = "0.2";
+
+      setTimeout(() => {
+        // Reset Card B styles
+        el.cardB.style.transition = "";
+        el.cardB.style.transform = "";
+        el.cardB.classList.remove("card-floating");
+        el.cardA.classList.remove("card-slide-out-left");
+        if (vsDivider) vsDivider.style.opacity = "1";
+
+        state.currentIndex++;
+        renderStep(true);
+      }, 650);
     } else {
+      state.currentIndex++;
       finishGame();
     }
   }
@@ -519,7 +517,7 @@
   // Global Keyboard shortcuts:
   // "1" or ArrowLeft = Select Card A
   // "2" or ArrowRight = Select Card B
-  // Space or Enter = Next round if feedback is visible or skip timer
+  // Space or Enter = Next round / skip reveal delay
   window.addEventListener("keydown", (e) => {
     if (!el.roundFeedback.classList.contains("hidden")) {
       if (e.key === "Enter" || e.key === " ") {

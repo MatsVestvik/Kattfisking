@@ -44,6 +44,7 @@ body {
   min-height: 100vh;
   line-height: 1.5;
   transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-x: hidden;
 }
 
 .app-shell {
@@ -333,7 +334,7 @@ body {
 
 /* Card Hero Photo Header */
 .card-hero-wrap {
-  height: 160px;
+  height: 210px;
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #18233c 0%, #0d1527 100%);
@@ -354,57 +355,39 @@ body {
 .card-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10, 14, 23, 0.25) 0%, rgba(19, 27, 46, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(10, 14, 23, 0.2) 0%, rgba(19, 27, 46, 0.95) 100%);
 }
 
 [data-theme="light"] .card-hero-overlay {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .card-header-floating {
   position: absolute;
   top: 0.85rem;
-  left: 1rem;
   right: 1rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   z-index: 2;
 }
 
 .card-body {
-  padding: 1.25rem 1.5rem 1.5rem;
+  padding: 1.35rem 1.6rem 1.6rem;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-.card-role {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
-  background: rgba(10, 14, 23, 0.75);
-  backdrop-filter: blur(4px);
-  color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.card-role.challenger-role {
-  background: rgba(255, 209, 102, 0.25);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-}
-
 .card-status-badge {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 900;
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 8px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .card-status-badge.winner {
@@ -422,31 +405,23 @@ body {
 }
 
 .entity-title {
-  font-size: 1.55rem;
+  font-size: 1.65rem;
   font-weight: 900;
   line-height: 1.2;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .entity-org {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--accent);
   font-weight: 700;
-  margin-bottom: 0.75rem;
-}
-
-.entity-extra {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.45;
   margin-bottom: 1.25rem;
-  flex: 1;
 }
 
 .value-box {
   margin-top: auto;
-  padding: 1.15rem;
-  border-radius: 12px;
+  padding: 1.25rem;
+  border-radius: 14px;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   text-align: center;
@@ -494,39 +469,6 @@ body {
   font-weight: 700;
 }
 
-/* Big "Click this" Prompt Banner inside Card */
-.card-click-prompt {
-  background: var(--bg-subtle);
-  border: 2px dashed var(--border-strong);
-  border-radius: 8px;
-  padding: 0.85rem;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.entity-card:hover .card-click-prompt {
-  background: var(--accent);
-  color: #0a0e17;
-  border-color: var(--accent);
-  border-style: solid;
-}
-
-.prompt-icon {
-  font-size: 1.15rem;
-}
-
-.prompt-text {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
 /* VS Center Divider */
 .vs-divider {
   display: flex;
@@ -537,6 +479,7 @@ body {
   z-index: 2;
   text-align: center;
   padding: 1rem 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .vs-circle {
@@ -567,17 +510,29 @@ body {
   color: var(--accent);
 }
 
-.vs-subtext {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
+/* Card Float & Slide Transition Animations:
+   1. Card A slides out to the left
+   2. Card B glides across into Card A's spot
+   3. The new Card B slides in from the right */
+
+.entity-card.card-slide-out-left {
+  transition: transform 0.65s cubic-bezier(0.3, 0, 0.2, 1), opacity 0.45s ease !important;
+  transform: translateX(-120%) scale(0.92) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-/* Card Transition Animations (Card B becomes Card A, new Card B slides in) */
+.entity-card.card-floating {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px var(--card-glow-active) !important;
+  border-color: var(--border-strong) !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+}
+
 @keyframes cardSlideInRight {
   0% {
-    opacity: 0.15;
-    transform: translateX(45px) scale(0.96);
+    opacity: 0;
+    transform: translateX(90px) scale(0.92);
   }
   100% {
     opacity: 1;
@@ -585,21 +540,8 @@ body {
   }
 }
 
-.entity-card.card-slide-in {
-  animation: cardSlideInRight 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@keyframes cardTransferGlow {
-  0% {
-    box-shadow: 0 0 20px var(--card-glow-active);
-  }
-  100% {
-    box-shadow: var(--shadow-lg);
-  }
-}
-
-.entity-card.card-transferred {
-  animation: cardTransferGlow 0.4s ease;
+.entity-card.card-slide-in-right {
+  animation: cardSlideInRight 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 /* Auto-Advancing Result Toast */
@@ -690,7 +632,7 @@ body {
   background: var(--accent);
   width: 100%;
   transform-origin: left;
-  animation: countdownBar 1.4s linear forwards;
+  animation: countdownBar 1.8s linear forwards;
 }
 
 @keyframes countdownBar {
