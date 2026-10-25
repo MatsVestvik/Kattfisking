@@ -65,6 +65,14 @@ body {
   gap: 1rem;
 }
 
+.header-pixel-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
 .icon-btn {
   font-family: var(--font-pixel);
   padding: 0.5rem 0.8rem;

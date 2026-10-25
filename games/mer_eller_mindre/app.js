@@ -2,7 +2,7 @@
  * Mer eller Mindre – Norsk 5-delt kunnskapsduell
  * "Hvem har mest?" - Spilleren trykker direkte på kortet som er høyest!
  * Inkluderer ekte bilder av skoler, studiesteder og universiteter.
- * Card B flyter fysisk over til Card A-plassen, og nytt Card B glir inn.
+ * Silkemyk overgang der Card B glir over til Card A, uten rykking eller stressende bunntekst.
  */
 
 (() => {
@@ -62,13 +62,6 @@
     metricLabelB: document.getElementById("metricLabelB"),
     statusBadgeB: document.getElementById("statusBadgeB"),
 
-    // Round Feedback
-    roundFeedback: document.getElementById("roundFeedback"),
-    feedbackBadge: document.getElementById("feedbackBadge"),
-    feedbackMsg: document.getElementById("feedbackMsg"),
-    autoAdvanceHint: document.getElementById("autoAdvanceHint"),
-    toastProgressBar: document.getElementById("toastProgressBar"),
-
     // Summary Modal
     summaryModal: document.getElementById("summaryModal"),
     summaryModeBadge: document.getElementById("summaryModeBadge"),
@@ -89,7 +82,7 @@
   }
 
   // Count-up animation for revealing challenger value
-  function animateValue(elem, start, end, durationMs = 450) {
+  function animateValue(elem, start, end, durationMs = 400) {
     const startTime = performance.now();
     const isFloat = !Number.isInteger(end);
 
@@ -124,7 +117,6 @@
     el.btnModePractice.classList.toggle("active", mode === "practice");
 
     el.summaryModal.classList.add("hidden");
-    el.roundFeedback.classList.add("hidden");
 
     try {
       const endpoint = mode === "daily"
@@ -185,7 +177,7 @@
     }
 
     renderCategory();
-    renderStep(false);
+    renderStep();
   }
 
   function renderCategory() {
@@ -215,27 +207,35 @@
     el.scoreDisplay.textContent = `${state.score} / 5`;
   }
 
-  function renderStep(isTransition = false) {
+  function renderStep() {
     if (autoAdvanceTimer) {
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
     }
 
     state.isLocked = false;
-    el.roundFeedback.classList.add("hidden");
-
     updateProgressTrack();
 
     const itemA = state.items[state.currentIndex];
     const itemB = state.items[state.currentIndex + 1];
 
-    // Reset card classes & badges
+    // Reset card classes & inline styles
     el.cardA.className = "entity-card base-card selectable-card";
     el.cardB.className = "entity-card challenger-card selectable-card";
     el.statusBadgeA.className = "card-status-badge hidden";
     el.statusBadgeB.className = "card-status-badge hidden";
 
-    // Card A (Known baseline - previous duel's Card B)
+    el.cardA.style.transform = "";
+    el.cardA.style.opacity = "";
+    el.cardA.style.transition = "";
+
+    el.cardB.style.transform = "";
+    el.cardB.style.opacity = "";
+    el.cardB.style.transition = "";
+    el.cardB.style.zIndex = "";
+    el.cardB.style.boxShadow = "";
+
+    // Card A (Known baseline)
     el.titleA.textContent = itemA.title;
     el.orgA.textContent = itemA.org;
     el.valA.textContent = formatNumber(itemA.val);
@@ -251,23 +251,15 @@
     el.imgB.src = itemB.image || FALLBACK_IMG;
     el.imgB.alt = `${itemB.title} (${itemB.org})`;
     el.imgB.onerror = () => { el.imgB.src = FALLBACK_IMG; };
-
-    // When transitioning into next round, new Card B slides in from right
-    if (isTransition) {
-      el.cardB.classList.add("card-slide-in-right");
-      setTimeout(() => {
-        el.cardB.classList.remove("card-slide-in-right");
-      }, 600);
-    }
   }
 
   function selectCard(chosen) {
-    // If already locked and countdown is showing, allow skipping delay immediately!
+    // If locked and waiting to advance, allow skipping delay immediately!
     if (state.isLocked) {
       if (autoAdvanceTimer) {
         clearTimeout(autoAdvanceTimer);
         autoAdvanceTimer = null;
-        nextRound();
+        transitionToNextRound();
       }
       return;
     }
@@ -297,9 +289,9 @@
 
     // Reveal Card B's value
     el.valB.classList.remove("hidden-val");
-    animateValue(el.valB, 0, itemB.val, 450);
+    animateValue(el.valB, 0, itemB.val, 400);
 
-    // Apply visual winner / loser states
+    // Apply visual winner / loser states directly on cards
     if (actualWinner === "A") {
       el.cardA.classList.add("winner-card");
       el.statusBadgeA.className = "card-status-badge winner";
@@ -322,83 +314,114 @@
     const chosenCardElem = chosen === "A" ? el.cardA : el.cardB;
     chosenCardElem.classList.add("chosen-card");
 
-    // Update progress track
+    // Update progress track at the top
     updateProgressTrack();
 
-    // Display result feedback toast
-    el.feedbackBadge.className = `feedback-badge ${won ? "correct" : "wrong"}`;
-    el.feedbackBadge.textContent = won ? "RIKTIG! (+1p)" : "FEIL!";
-
-    const winItem = actualWinner === "A" ? itemA : itemB;
-    const loseItem = actualWinner === "A" ? itemB : itemA;
-
-    el.feedbackMsg.textContent = `${winItem.title} (${formatNumber(winItem.val)} ${state.category.unit}) har mer enn ${loseItem.title} (${formatNumber(loseItem.val)} ${state.category.unit}).`;
-
-    if (el.autoAdvanceHint) {
-      el.autoAdvanceHint.textContent = (state.currentIndex + 1 < 5) ? "Neste duell… ⚡" : "Fullfører… 🏆";
-    }
-
-    // Retrigger countdown progress bar animation (1.8s duration)
-    if (el.toastProgressBar) {
-      el.toastProgressBar.style.animation = "none";
-      void el.toastProgressBar.offsetHeight; // force reflow
-      el.toastProgressBar.style.animation = "countdownBar 1.8s linear forwards";
-    }
-
-    el.roundFeedback.classList.remove("hidden");
-
-    // Generous animation room: 1800ms before auto-advancing (or instantly on click/space)
+    // Calm pause (1.2s) without stressful popups before seamless transition
     autoAdvanceTimer = setTimeout(() => {
       autoAdvanceTimer = null;
-      nextRound();
-    }, 1800);
+      transitionToNextRound();
+    }, 1200);
   }
 
-  function nextRound() {
+  function transitionToNextRound() {
     if (autoAdvanceTimer) {
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
     }
 
-    // If there is another round, animate Card B floating over to Card A's position!
-    if (state.currentIndex + 1 < 5) {
-      el.roundFeedback.classList.add("hidden");
-
-      // Calculate relative displacement from Card B to Card A
-      const rectA = el.cardA.getBoundingClientRect();
-      const rectB = el.cardB.getBoundingClientRect();
-      const deltaX = rectA.left - rectB.left;
-      const deltaY = rectA.top - rectB.top;
-
-      // Card A slides out to the left
-      el.cardA.classList.add("card-slide-out-left");
-
-      // Card B floats across into Card A's spot
-      el.cardB.classList.add("card-floating");
-      el.cardB.classList.remove("winner-card", "loser-card", "chosen-card");
-      el.statusBadgeB.className = "card-status-badge hidden";
-
-      el.cardB.style.transition = "transform 0.65s cubic-bezier(0.25, 1, 0.35, 1)";
-      el.cardB.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-
-      const vsDivider = document.querySelector(".vs-divider");
-      if (vsDivider) vsDivider.style.opacity = "0.2";
-
-      setTimeout(() => {
-        // Reset Card B styles
-        el.cardB.style.transition = "";
-        el.cardB.style.transform = "";
-        el.cardB.classList.remove("card-floating");
-        el.cardA.classList.remove("card-slide-out-left");
-        if (vsDivider) vsDivider.style.opacity = "1";
-
-        state.currentIndex++;
-        renderStep(true);
-      }, 650);
-    } else {
+    // If game is complete (5 duels done), open summary modal
+    if (state.currentIndex + 1 >= 5) {
       state.currentIndex++;
       finishGame();
+      return;
     }
+
+    // Calculate exact displacement vector between Card B and Card A
+    const rectA = el.cardA.getBoundingClientRect();
+    const rectB = el.cardB.getBoundingClientRect();
+    const deltaX = rectA.left - rectB.left;
+    const deltaY = rectA.top - rectB.top;
+
+    // Reset status badges before sliding
+    el.cardB.classList.remove("winner-card", "loser-card", "chosen-card");
+    el.statusBadgeA.className = "card-status-badge hidden";
+    el.statusBadgeB.className = "card-status-badge hidden";
+
+    // 1. Smooth slide-out for Card A
+    el.cardA.style.transition = "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease";
+    el.cardA.style.transform = "translateX(-110%) scale(0.94)";
+    el.cardA.style.opacity = "0";
+
+    // 2. Smooth physical glide for Card B directly into Card A's exact position
+    el.cardB.style.zIndex = "25";
+    el.cardB.style.boxShadow = "0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px var(--card-glow-active)";
+    el.cardB.style.transition = "transform 0.55s cubic-bezier(0.25, 1, 0.35, 1), box-shadow 0.55s ease";
+    el.cardB.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+    const vsDivider = document.querySelector(".vs-divider");
+    if (vsDivider) vsDivider.style.opacity = "0.2";
+
+    // 3. At the exact moment Card B arrives in Card A's spot (550ms):
+    setTimeout(() => {
+      state.currentIndex++;
+      const nextItemA = state.items[state.currentIndex]; // previous Card B
+      const nextItemB = state.items[state.currentIndex + 1]; // brand new challenger
+
+      // Instantly freeze transitions on both cards to eliminate any jitter or overshoot
+      el.cardA.style.transition = "none";
+      el.cardB.style.transition = "none";
+
+      // Card A immediately assumes the arrived item's content right at (0, 0)
+      el.titleA.textContent = nextItemA.title;
+      el.orgA.textContent = nextItemA.org;
+      el.valA.textContent = formatNumber(nextItemA.val);
+      el.imgA.src = nextItemA.image || FALLBACK_IMG;
+      el.imgA.alt = `${nextItemA.title} (${nextItemA.org})`;
+      el.cardA.className = "entity-card base-card selectable-card";
+      el.statusBadgeA.className = "card-status-badge hidden";
+      el.cardA.style.transform = "none";
+      el.cardA.style.opacity = "1";
+
+      // Card B resets its styles and receives the new challenger
+      el.cardB.style.zIndex = "";
+      el.cardB.style.boxShadow = "";
+      el.cardB.className = "entity-card challenger-card selectable-card";
+      el.statusBadgeB.className = "card-status-badge hidden";
+
+      el.titleB.textContent = nextItemB.title;
+      el.orgB.textContent = nextItemB.org;
+      el.valB.textContent = "???";
+      el.valB.className = "metric-number hidden-val";
+      el.imgB.src = nextItemB.image || FALLBACK_IMG;
+      el.imgB.alt = `${nextItemB.title} (${nextItemB.org})`;
+
+      // Position new Card B off-screen to the right
+      el.cardB.style.transform = "translateX(75px)";
+      el.cardB.style.opacity = "0";
+
+      if (vsDivider) vsDivider.style.opacity = "1";
+      updateProgressTrack();
+
+      // Trigger reflow so browser commits the start position
+      void el.cardB.offsetHeight;
+
+      // Animate new Card B sliding in from the right
+      el.cardB.style.transition = "transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease";
+      el.cardB.style.transform = "none";
+      el.cardB.style.opacity = "1";
+
+      // Finish transition and unlock
+      setTimeout(() => {
+        el.cardA.style.transition = "";
+        el.cardB.style.transition = "";
+        el.cardA.style.transform = "";
+        el.cardB.style.transform = "";
+        el.cardA.style.opacity = "";
+        el.cardB.style.opacity = "";
+        state.isLocked = false;
+      }, 420);
+    }, 550);
   }
 
   function finishGame() {
@@ -406,8 +429,6 @@
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
     }
-
-    el.roundFeedback.classList.add("hidden");
 
     if (state.mode === "daily") {
       const dailyData = {
@@ -492,15 +513,6 @@
     }
   });
 
-  // Clicking on feedback toast or cards while locked skips the timer immediately
-  el.roundFeedback.addEventListener("click", () => {
-    if (autoAdvanceTimer) {
-      clearTimeout(autoAdvanceTimer);
-      autoAdvanceTimer = null;
-      nextRound();
-    }
-  });
-
   el.btnCopyResult.addEventListener("click", copyResult);
 
   el.btnModeDaily.addEventListener("click", () => loadGame("daily"));
@@ -517,16 +529,14 @@
   // Global Keyboard shortcuts:
   // "1" or ArrowLeft = Select Card A
   // "2" or ArrowRight = Select Card B
-  // Space or Enter = Next round / skip reveal delay
+  // Space or Enter = Skip delay / advance immediately
   window.addEventListener("keydown", (e) => {
-    if (!el.roundFeedback.classList.contains("hidden")) {
+    if (autoAdvanceTimer) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        if (autoAdvanceTimer) {
-          clearTimeout(autoAdvanceTimer);
-          autoAdvanceTimer = null;
-        }
-        nextRound();
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+        transitionToNextRound();
       }
       return;
     }
