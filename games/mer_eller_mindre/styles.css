@@ -3,7 +3,7 @@
   --font-mono: "SF Mono", Monaco, "Courier New", Courier, monospace;
   --bg-page: #0a0e17;
   --bg-card: #131b2e;
-  --bg-card-hover: #17223b;
+  --bg-card-hover: #19243d;
   --bg-subtle: #1c2742;
   --border: #233150;
   --border-strong: #3b5080;
@@ -12,17 +12,16 @@
   --accent: #ffd166;
   --success: #06d6a0;
   --danger: #ef476f;
-  --higher-color: #06d6a0;
-  --lower-color: #ef476f;
-  --higher-glow: rgba(6, 214, 160, 0.4);
-  --lower-glow: rgba(239, 71, 111, 0.4);
+  --card-glow-active: rgba(255, 209, 102, 0.25);
+  --winner-glow: rgba(6, 214, 160, 0.4);
+  --loser-glow: rgba(239, 71, 111, 0.2);
   --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.45);
 }
 
 [data-theme="light"] {
   --bg-page: #f5f7fb;
   --bg-card: #ffffff;
-  --bg-card-hover: #f9fbfe;
+  --bg-card-hover: #f3f7fc;
   --bg-subtle: #e9eef6;
   --border: #d0d9e8;
   --border-strong: #a6b7d2;
@@ -262,19 +261,19 @@ body {
 }
 
 .cat-desc {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+  font-weight: 700;
 }
 
-/* Duel Arena */
+/* Duel Arena: Interactive Cards */
 .duel-container {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   gap: 1.5rem;
   align-items: stretch;
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 @media (max-width: 768px) {
@@ -286,23 +285,51 @@ body {
 
 .entity-card {
   background: var(--bg-card);
-  border: 2px solid var(--border);
-  border-radius: 14px;
+  border: 3px solid var(--border);
+  border-radius: 16px;
   padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
   position: relative;
   box-shadow: var(--shadow-lg);
-  transition: transform 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
-.entity-card.base-card {
-  border-color: var(--border-strong);
+.entity-card.selectable-card:hover {
+  transform: translateY(-6px) scale(1.015);
+  border-color: var(--accent);
+  background: var(--bg-card-hover);
+  box-shadow: 0 16px 40px var(--card-glow-active);
 }
 
-.entity-card.challenger-card {
-  border-color: var(--border-strong);
-  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+.entity-card.selectable-card:active {
+  transform: scale(0.98);
+}
+
+.entity-card.chosen-card {
+  border-color: var(--accent) !important;
+}
+
+.entity-card.winner-card {
+  border-color: var(--success) !important;
+  box-shadow: 0 0 25px var(--winner-glow) !important;
+  background: linear-gradient(180deg, var(--bg-card) 0%, rgba(6, 214, 160, 0.08) 100%);
+}
+
+.entity-card.loser-card {
+  border-color: var(--danger) !important;
+  opacity: 0.75;
+}
+
+.entity-card.locked {
+  cursor: default;
+}
+
+.entity-card.locked:hover {
+  transform: none;
+  box-shadow: var(--shadow-lg);
 }
 
 .card-header {
@@ -313,10 +340,10 @@ body {
 }
 
 .card-role {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 6px;
   background: var(--bg-subtle);
   color: var(--text-muted);
@@ -328,19 +355,39 @@ body {
   border: 1px solid var(--accent);
 }
 
-.card-icon {
-  font-size: 1.5rem;
+.card-status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.card-status-badge.winner {
+  background: var(--success);
+  color: #0a0e17;
+}
+
+.card-status-badge.loser {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.card-status-badge.hidden {
+  display: none;
 }
 
 .entity-title {
-  font-size: 1.55rem;
+  font-size: 1.6rem;
   font-weight: 900;
   line-height: 1.2;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .entity-org {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--accent);
   font-weight: 700;
   margin-bottom: 0.75rem;
@@ -349,7 +396,7 @@ body {
 .entity-extra {
   font-size: 0.85rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.45;
   margin-bottom: 1.5rem;
   flex: 1;
 }
@@ -357,10 +404,11 @@ body {
 .value-box {
   margin-top: auto;
   padding: 1.25rem;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   text-align: center;
+  margin-bottom: 1.25rem;
 }
 
 .metric-label {
@@ -381,7 +429,7 @@ body {
 
 .metric-number {
   font-family: var(--font-mono);
-  font-size: 2.6rem;
+  font-size: 2.7rem;
   font-weight: 900;
   color: var(--accent);
   letter-spacing: -0.02em;
@@ -404,7 +452,40 @@ body {
   font-weight: 700;
 }
 
-/* VS Controls */
+/* Big "Click this" Prompt Banner inside Card */
+.card-click-prompt {
+  background: var(--bg-subtle);
+  border: 2px dashed var(--border-strong);
+  border-radius: 8px;
+  padding: 0.85rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.entity-card:hover .card-click-prompt {
+  background: var(--accent);
+  color: #0a0e17;
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.prompt-icon {
+  font-size: 1.15rem;
+}
+
+.prompt-text {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* VS Center Divider */
 .vs-divider {
   display: flex;
   flex-direction: column;
@@ -412,96 +493,46 @@ body {
   justify-content: center;
   gap: 0.85rem;
   z-index: 2;
+  text-align: center;
+  padding: 1rem 0;
 }
 
 .vs-circle {
-  width: 48px;
-  height: 48px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   background: var(--bg-card);
-  border: 2px solid var(--border-strong);
+  border: 3px solid var(--border-strong);
   color: var(--text);
+  font-family: var(--font-mono);
   font-weight: 900;
-  font-size: 0.85rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-.vs-prompt {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-align: center;
-  max-width: 140px;
-}
-
-.guess-controls {
+.vs-text-wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
-  min-width: 180px;
+  gap: 0.2rem;
 }
 
-@media (max-width: 768px) {
-  .guess-controls {
-    flex-direction: row;
-    width: 100%;
-  }
-}
-
-.guess-btn {
-  font-family: var(--font-mono);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem 1.25rem;
+.vs-heading {
   font-size: 0.95rem;
   font-weight: 800;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  width: 100%;
+  color: var(--accent);
 }
 
-.btn-higher {
-  background: rgba(6, 214, 160, 0.15);
-  color: var(--higher-color);
-  border-color: var(--higher-color);
-}
-
-.btn-higher:hover:not(:disabled) {
-  background: var(--higher-color);
-  color: #0a0e17;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px var(--higher-glow);
-}
-
-.btn-lower {
-  background: rgba(239, 71, 111, 0.15);
-  color: var(--lower-color);
-  border-color: var(--lower-color);
-}
-
-.btn-lower:hover:not(:disabled) {
-  background: var(--lower-color);
-  color: #ffffff;
-  transform: translateY(2px);
-  box-shadow: 0 4px 16px var(--lower-glow);
-}
-
-.guess-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.vs-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 /* Feedback Overlay */
 .round-feedback {
-  margin-top: 1rem;
   background: var(--bg-card);
   border: 2px solid var(--border-strong);
   border-radius: 12px;
@@ -557,10 +588,10 @@ body {
   background: var(--accent);
   color: #0a0e17;
   border: none;
-  padding: 0.65rem 1.25rem;
+  padding: 0.75rem 1.4rem;
   font-size: 0.95rem;
   font-weight: 800;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: transform 0.15s ease;
 }

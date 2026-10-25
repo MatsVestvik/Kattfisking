@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mer eller Mindre – Norsk Skole- og Kunnskapsduell</title>
-  <meta name="description" content="Gjett om neste skole eller linje har høyere eller lavere snitt, flere eller færre studenter! 5-delt daglig dagsspill inspirert av lessgames More or Less." />
+  <title>Mer eller Mindre – Hvem har mest? (Norsk Skoleduell)</title>
+  <meta name="description" content="Trykk på skolen eller studiet du tror har høyest snitt eller flest studenter! 5-delt daglig kunnskapsduell." />
   <link rel="icon" type="image/png" href="/assets/catfish.png?v=2" />
-  <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=2.0" />
+  <link rel="stylesheet" href="/mer-eller-mindre/styles.css?v=3.0" />
 </head>
 <body>
   <div class="app-shell">
@@ -16,13 +16,13 @@
         <a href="/" class="icon-btn text-btn-link" title="Tilbake til Spillhjørnet">‹ SPILL</a>
         <div class="game-branding">
           <h1 class="game-title">Mer eller Mindre</h1>
-          <span class="game-subtitle">Skoler, snitt og studenter</span>
+          <span class="game-subtitle">Hvem har mest? Trykk på alternativet</span>
         </div>
       </div>
 
       <nav class="mode-nav" aria-label="Spillmodus">
         <button type="button" class="mode-btn active" id="btnModeDaily">
-          Dagens (5-delt)
+          Dagens (5 dueller)
         </button>
         <button type="button" class="mode-btn" id="btnModePractice">
           Frispill
@@ -69,73 +69,76 @@
       <!-- Category info banner -->
       <div class="category-banner" id="categoryBanner">
         <span class="cat-badge" id="catBadge">Laster tema…</span>
-        <p class="cat-desc" id="catDesc">Laster spørsmål fra serveren…</p>
+        <p class="cat-desc" id="catDesc">Trykk på alternativet du tror har høyest tall!</p>
       </div>
 
-      <!-- Duel Arena -->
+      <!-- Duel Arena: Click on the card you think has more! -->
       <div class="duel-container" id="duelContainer">
-        <!-- Card Left: Current baseline -->
-        <article class="entity-card base-card" id="cardA">
+        <!-- Card Left: Option A -->
+        <div class="entity-card base-card selectable-card" id="cardA" role="button" tabindex="0" aria-label="Velg første alternativ">
           <div class="card-header">
-            <span class="card-role">GJELDENDE</span>
-            <span class="card-icon" id="iconA">🎓</span>
+            <span class="card-role" id="roleA">ALTERNATIV A</span>
+            <span class="card-status-badge hidden" id="statusBadgeA"></span>
           </div>
           <h2 class="entity-title" id="titleA">Laster…</h2>
           <p class="entity-org" id="orgA">--</p>
           <p class="entity-extra" id="extraA">--</p>
 
-          <div class="value-box known-box">
+          <div class="value-box known-box" id="boxA">
             <span class="metric-label" id="metricLabelA">Verdi</span>
             <div class="metric-row">
               <span class="metric-number" id="valA">---</span>
               <span class="metric-unit" id="unitA"></span>
             </div>
           </div>
-        </article>
 
-        <!-- Center Divider & Buttons -->
-        <div class="vs-divider">
-          <div class="vs-circle">VS</div>
-          <p class="vs-prompt">Har utfordreren mer eller mindre?</p>
-          <div class="guess-controls" id="controlsWrap">
-            <button type="button" class="guess-btn btn-higher" id="btnHigher">
-              <span class="btn-arrow">▲</span>
-              <span class="btn-text">MER / HØYERE</span>
-            </button>
-            <button type="button" class="guess-btn btn-lower" id="btnLower">
-              <span class="btn-arrow">▼</span>
-              <span class="btn-text">MINDRE / LAVERE</span>
-            </button>
+          <div class="card-click-prompt" id="clickPromptA">
+            <span class="prompt-icon">👆</span>
+            <span class="prompt-text" id="promptTextA">Trykk her hvis denne har mest</span>
           </div>
         </div>
 
-        <!-- Card Right: Challenger -->
-        <article class="entity-card challenger-card" id="cardB">
+        <!-- Center Divider -->
+        <div class="vs-divider">
+          <div class="vs-circle">VS</div>
+          <div class="vs-text-wrap">
+            <span class="vs-heading">Hvem har mest?</span>
+            <span class="vs-subtext">Trykk på kortet</span>
+          </div>
+        </div>
+
+        <!-- Card Right: Option B -->
+        <div class="entity-card challenger-card selectable-card" id="cardB" role="button" tabindex="0" aria-label="Velg andre alternativ">
           <div class="card-header">
-            <span class="card-role challenger-role">UTFORDRER</span>
-            <span class="card-icon" id="iconB">🏫</span>
+            <span class="card-role challenger-role" id="roleB">ALTERNATIV B</span>
+            <span class="card-status-badge hidden" id="statusBadgeB"></span>
           </div>
           <h2 class="entity-title" id="titleB">Laster…</h2>
           <p class="entity-org" id="orgB">--</p>
           <p class="entity-extra" id="extraB">--</p>
 
           <div class="value-box challenger-box" id="boxB">
-            <span class="metric-label" id="metricLabelB">Gjett verdien</span>
+            <span class="metric-label" id="metricLabelB">Verdi</span>
             <div class="metric-row">
               <span class="metric-number hidden-val" id="valB">???</span>
               <span class="metric-unit" id="unitB"></span>
             </div>
           </div>
-        </article>
+
+          <div class="card-click-prompt" id="clickPromptB">
+            <span class="prompt-icon">👆</span>
+            <span class="prompt-text" id="promptTextB">Trykk her hvis denne har mest</span>
+          </div>
+        </div>
       </div>
 
       <!-- Feedback Banner Overlay -->
       <div class="round-feedback hidden" id="roundFeedback">
         <div class="feedback-inner" id="feedbackInner">
           <div class="feedback-badge" id="feedbackBadge">RIKTIG!</div>
-          <p class="feedback-msg" id="feedbackMsg">Indøk NTNU er lavere enn Medisin UiO.</p>
+          <p class="feedback-msg" id="feedbackMsg">OsloMet har flere studenter enn Høyskolen Kristiania.</p>
           <button type="button" class="next-action-btn" id="btnNextRound">
-            Neste oppgave →
+            Neste duell →
           </button>
         </div>
       </div>
@@ -193,19 +196,19 @@
         <div class="rules-body">
           <ul class="rules-list">
             <li>
-              <strong>5-delt utfordring:</strong> Spillet består av 5 dueller etter hverandre (6 skoler/studier totalt).
+              <strong>Trykk på den du tror har mest:</strong> I hver duell ser du to skoler eller studier. Trykk direkte på kortet du tror har det høyeste tallet!
             </li>
             <li>
-              <strong>Høyere eller lavere?</strong> Du ser verdien til det første studiet eller skolen. Gjett om utfordreren har <em>høyere</em> eller <em>lavere</em> snitt, studenttall eller søkertall!
+              <strong>5 dueller:</strong> Spillet har 5 runder. Klarer du full pott (5 / 5 riktige)?
             </li>
             <li>
-              <strong>Kjeden fortsetter:</strong> Utfordreren blir den nye basislinjen for neste runde!
+              <strong>Kjeden ruller videre:</strong> Utfordreren i hver runde blir med videre til neste duell.
             </li>
             <li>
-              <strong>Ekte tall:</strong> Dataene er hentet fra Samordna opptak, Database for statistikk om høgre utdanning (DBH) og fylkenes inntakskontorer.
+              <strong>Ekte tall:</strong> Offisielle tall fra Samordna opptak, Database for statistikk om høgre utdanning (DBH) og fylkene.
             </li>
             <li>
-              <strong>Del resultatet:</strong> Når du har fullført alle 5 rundene, får du et shareable resultat med farge-emojis (🟩 / 🟥) akkurat som i Wordle og lessgames!
+              <strong>Del resultatet:</strong> Del ditt daglige resultat (🟩 / 🟥) med venner og kjente!
             </li>
           </ul>
         </div>
@@ -221,6 +224,6 @@
     </footer>
   </div>
 
-  <script src="/mer-eller-mindre/app.js?v=2.0"></script>
+  <script src="/mer-eller-mindre/app.js?v=3.0"></script>
 </body>
 </html>

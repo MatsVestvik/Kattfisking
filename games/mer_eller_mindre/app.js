@@ -1,7 +1,6 @@
 /**
  * Mer eller Mindre – Norsk 5-delt kunnskapsduell
- * Inspirert av lessgames More or Less.
- * Skoler, inntakssnitt, studenttall og søkertall.
+ * "Hvem har mest?" - Spilleren trykker direkte på kortet som er høyest!
  */
 
 (() => {
@@ -19,7 +18,7 @@
     items: [],
     currentIndex: 0, // 0 to 4 (5 comparisons total)
     score: 0,
-    results: [], // Array of { a, b, guessIsHigher, won }
+    results: [], // Array of { a, b, chosen, winner, won }
     isLocked: false,
   };
 
@@ -38,24 +37,26 @@
     catDesc: document.getElementById("catDesc"),
 
     // Card A
+    cardA: document.getElementById("cardA"),
     titleA: document.getElementById("titleA"),
     orgA: document.getElementById("orgA"),
     extraA: document.getElementById("extraA"),
     valA: document.getElementById("valA"),
     unitA: document.getElementById("unitA"),
     metricLabelA: document.getElementById("metricLabelA"),
+    statusBadgeA: document.getElementById("statusBadgeA"),
+    promptTextA: document.getElementById("promptTextA"),
 
     // Card B
+    cardB: document.getElementById("cardB"),
     titleB: document.getElementById("titleB"),
     orgB: document.getElementById("orgB"),
     extraB: document.getElementById("extraB"),
     valB: document.getElementById("valB"),
     unitB: document.getElementById("unitB"),
     metricLabelB: document.getElementById("metricLabelB"),
-
-    // Controls
-    btnHigher: document.getElementById("btnHigher"),
-    btnLower: document.getElementById("btnLower"),
+    statusBadgeB: document.getElementById("statusBadgeB"),
+    promptTextB: document.getElementById("promptTextB"),
 
     // Round Feedback
     roundFeedback: document.getElementById("roundFeedback"),
@@ -82,15 +83,14 @@
     return Number(num).toLocaleString("no-NO", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   }
 
-  // Animate count-up of a revealed number
-  function animateValue(elem, start, end, durationMs = 600) {
+  // Count-up animation for revealing challenger value
+  function animateValue(elem, start, end, durationMs = 500) {
     const startTime = performance.now();
     const isFloat = !Number.isInteger(end);
 
     function update(currentTime) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / durationMs, 1);
-      // Ease-out
       const ease = 1 - Math.pow(1 - progress, 3);
       const current = start + (end - start) * ease;
       elem.textContent = formatNumber(isFloat ? current : Math.round(current));
@@ -116,7 +116,6 @@
     el.summaryModal.classList.add("hidden");
     el.roundFeedback.classList.add("hidden");
 
-    // Fetch from API
     try {
       const endpoint = mode === "daily"
         ? `/api/mer-eller-mindre/daily?date=${state.todayStr}`
@@ -129,7 +128,6 @@
       state.items = data.items;
     } catch (err) {
       console.warn("Bruker reserveliste for Mer eller Mindre:", err);
-      // Fallback data
       state.category = {
         title: "Karaktergrenser på studier",
         subtitle: "Ordinær kvote ved Samordna opptak",
@@ -186,52 +184,84 @@
     const itemA = state.items[state.currentIndex];
     const itemB = state.items[state.currentIndex + 1];
 
-    // Card A (Known)
+    // Reset card classes & badges
+    [el.cardA, el.cardB].forEach(card => {
+      card.className = "entity-card selectable-card";
+    });
+    el.statusBadgeA.className = "card-status-badge hidden";
+    el.statusBadgeB.className = "card-status-badge hidden";
+
+    // Card A (Known baseline)
+    el.cardA.classList.add("base-card");
     el.titleA.textContent = itemA.title;
     el.orgA.textContent = itemA.org;
     el.extraA.textContent = itemA.extra || "";
     el.valA.textContent = formatNumber(itemA.val);
+    el.promptTextA.textContent = `Trykk her hvis ${itemA.title} har mest`;
 
-    // Card B (Challenger)
+    // Card B (Challenger with hidden value)
+    el.cardB.classList.add("challenger-card");
     el.titleB.textContent = itemB.title;
     el.orgB.textContent = itemB.org;
     el.extraB.textContent = itemB.extra || "";
     el.valB.textContent = "???";
     el.valB.className = "metric-number hidden-val";
-
-    // Enable Buttons
-    el.btnHigher.disabled = false;
-    el.btnLower.disabled = false;
+    el.promptTextB.textContent = `Trykk her hvis ${itemB.title} har mest`;
   }
 
-  function handleGuess(isHigherGuess) {
+  function selectCard(chosen) {
     if (state.isLocked) return;
     state.isLocked = true;
-
-    el.btnHigher.disabled = true;
-    el.btnLower.disabled = true;
 
     const itemA = state.items[state.currentIndex];
     const itemB = state.items[state.currentIndex + 1];
 
-    const isActuallyHigher = itemB.val >= itemA.val;
-    const won = isHigherGuess === isActuallyHigher;
+    // Determine actual winner
+    const actualWinner = itemA.val >= itemB.val ? "A" : "B";
+    const won = chosen === actualWinner;
 
     if (won) state.score++;
 
     state.results.push({
       itemA,
       itemB,
-      isHigherGuess,
-      isActuallyHigher,
+      chosen,
+      actualWinner,
       won,
     });
 
-    // Reveal challenger value with counting animation
-    el.valB.classList.remove("hidden-val");
-    animateValue(el.valB, 0, itemB.val, 500);
+    // Lock cards
+    el.cardA.classList.add("locked");
+    el.cardB.classList.add("locked");
 
-    // Update progress dot immediately
+    // Reveal Card B's value
+    el.valB.classList.remove("hidden-val");
+    animateValue(el.valB, 0, itemB.val, 450);
+
+    // Apply visual winner / loser states
+    if (actualWinner === "A") {
+      el.cardA.classList.add("winner-card");
+      el.statusBadgeA.className = "card-status-badge winner";
+      el.statusBadgeA.textContent = "🏆 HØYEST";
+
+      el.cardB.classList.add("loser-card");
+      el.statusBadgeB.className = "card-status-badge loser";
+      el.statusBadgeB.textContent = "LAVERE";
+    } else {
+      el.cardB.classList.add("winner-card");
+      el.statusBadgeB.className = "card-status-badge winner";
+      el.statusBadgeB.textContent = "🏆 HØYEST";
+
+      el.cardA.classList.add("loser-card");
+      el.statusBadgeA.className = "card-status-badge loser";
+      el.statusBadgeA.textContent = "LAVERE";
+    }
+
+    // Highlight user's choice
+    const chosenCardElem = chosen === "A" ? el.cardA : el.cardB;
+    chosenCardElem.classList.add("chosen-card");
+
+    // Update progress track
     updateProgressTrack();
 
     // Show feedback banner after short count-up
@@ -239,17 +269,19 @@
       el.feedbackBadge.className = `feedback-badge ${won ? "correct" : "wrong"}`;
       el.feedbackBadge.textContent = won ? "RIKTIG! (+1p)" : "FEIL!";
 
-      const compText = itemB.val > itemA.val ? "høyere enn" : itemB.val < itemA.val ? "lavere enn" : "helt lik";
-      el.feedbackMsg.textContent = `${itemB.title} (${formatNumber(itemB.val)} ${state.category.unit}) er ${compText} ${itemA.title} (${formatNumber(itemA.val)} ${state.category.unit}).`;
+      const winItem = actualWinner === "A" ? itemA : itemB;
+      const loseItem = actualWinner === "A" ? itemB : itemA;
+
+      el.feedbackMsg.textContent = `${winItem.title} (${formatNumber(winItem.val)} ${state.category.unit}) har mer enn ${loseItem.title} (${formatNumber(loseItem.val)} ${state.category.unit}).`;
 
       if (state.currentIndex + 1 < 5) {
-        el.btnNextRound.textContent = `Neste oppgave (${state.currentIndex + 2}/5) →`;
+        el.btnNextRound.textContent = `Neste duell (${state.currentIndex + 2}/5) →`;
       } else {
         el.btnNextRound.textContent = "Se sluttresultat 🎉";
       }
 
       el.roundFeedback.classList.remove("hidden");
-    }, 550);
+    }, 500);
   }
 
   function nextRound() {
@@ -264,7 +296,6 @@
   function finishGame() {
     el.roundFeedback.classList.add("hidden");
 
-    // Save Daily completion to localStorage for Hub sync
     if (state.mode === "daily") {
       const dailyData = {
         score: state.score,
@@ -275,7 +306,6 @@
       localStorage.setItem(DAILY_PREFIX + state.todayStr, JSON.stringify(dailyData));
     }
 
-    // High score
     const curHs = parseInt(localStorage.getItem(HIGHSCORE_KEY) || "0", 10);
     if (state.score > curHs) {
       localStorage.setItem(HIGHSCORE_KEY, String(state.score));
@@ -291,19 +321,19 @@
     else praise = "Tøffe dueller i dag! Prøv igjen i frispill! 💪";
     el.scorePraise.textContent = praise;
 
-    // Emoji Grid
     const emojiLine = state.results.map(r => (r.won ? "🟩" : "🟥")).join(" ");
     el.emojiGrid.textContent = emojiLine;
 
-    // Review list
     el.reviewList.innerHTML = "";
     state.results.forEach((r, idx) => {
+      const chosenItem = r.chosen === "A" ? r.itemA : r.itemB;
+      const winItem = r.actualWinner === "A" ? r.itemA : r.itemB;
       const li = document.createElement("li");
       li.className = `review-item ${r.won ? "correct" : "wrong"}`;
       li.innerHTML = `
         <div>
-          <div class="review-names">${idx + 1}. ${r.itemB.title} (${r.itemB.org})</div>
-          <div class="review-vals">${formatNumber(r.itemB.val)} vs ${formatNumber(r.itemA.val)} ${state.category.unit} • Du gjettet: ${r.isHigherGuess ? "Mer ▲" : "Mindre ▼"}</div>
+          <div class="review-names">${idx + 1}. ${r.itemA.title} vs ${r.itemB.title}</div>
+          <div class="review-vals">Du valgte: <strong>${chosenItem.title}</strong> • Fasit: <strong>${winItem.title}</strong> (${formatNumber(winItem.val)} ${state.category.unit})</div>
         </div>
         <div class="review-mark">${r.won ? "✅" : "❌"}</div>
       `;
@@ -328,9 +358,24 @@
     });
   }
 
-  // Event Listeners
-  el.btnHigher.addEventListener("click", () => handleGuess(true));
-  el.btnLower.addEventListener("click", () => handleGuess(false));
+  // Click card event listeners
+  el.cardA.addEventListener("click", () => selectCard("A"));
+  el.cardB.addEventListener("click", () => selectCard("B"));
+
+  // Keyboard accessibility on cards
+  el.cardA.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectCard("A");
+    }
+  });
+  el.cardB.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectCard("B");
+    }
+  });
+
   el.btnNextRound.addEventListener("click", nextRound);
   el.btnCopyResult.addEventListener("click", copyResult);
 
@@ -345,17 +390,23 @@
     if (e.target === el.helpModal) el.helpModal.classList.add("hidden");
   });
 
-  // Keyboard navigation: ArrowUp = Higher, ArrowDown = Lower, Space/Enter = Next
+  // Global Keyboard shortcuts:
+  // "1" or ArrowLeft = Select Card A
+  // "2" or ArrowRight = Select Card B
+  // Space or Enter when feedback open = Next round
   window.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp") {
-      if (!el.btnHigher.disabled) handleGuess(true);
-    } else if (e.key === "ArrowDown") {
-      if (!el.btnLower.disabled) handleGuess(false);
-    } else if (e.key === "Enter" || e.key === " ") {
-      if (!el.roundFeedback.classList.contains("hidden")) {
+    if (!el.roundFeedback.classList.contains("hidden")) {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         nextRound();
       }
+      return;
+    }
+
+    if (e.key === "1" || e.key === "ArrowLeft") {
+      selectCard("A");
+    } else if (e.key === "2" || e.key === "ArrowRight") {
+      selectCard("B");
     }
   });
 
