@@ -37,6 +37,10 @@
   padding: 0;
 }
 
+.hidden {
+  display: none !important;
+}
+
 body {
   font-family: var(--font-main);
   background-color: #0b0f19;
@@ -553,80 +557,36 @@ body {
   transform: translateX(4px);
 }
 
-/* Daily Tracker Card */
-.tracker-box {
-  background: rgba(19, 27, 46, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: 1.75rem;
-  margin-bottom: 0;
-  box-shadow: var(--card-shadow);
-}
-
-@media (max-width: 680px) {
-  .tracker-box {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.tracker-title {
-  font-size: 1.1rem;
+/* Daily Played Indicator Badges & States */
+.card-tag.tag-played {
+  background: rgba(6, 214, 160, 0.16);
+  color: #06d6a0;
+  border: 1px solid rgba(6, 214, 160, 0.45);
   font-weight: 800;
-  margin-bottom: 0.2rem;
-}
-
-.tracker-subtitle {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.tracker-items {
-  display: flex;
-  gap: 1rem;
-}
-
-.tracker-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
+  gap: 0.35rem;
+  box-shadow: 0 0 12px rgba(6, 214, 160, 0.2);
+}
+
+.card-tag.tag-played .played-check {
+  font-weight: 900;
   font-size: 0.85rem;
+}
+
+.game-card.daily-played {
+  border-color: rgba(6, 214, 160, 0.45) !important;
+  background: linear-gradient(180deg, rgba(6, 214, 160, 0.06) 0%, rgba(19, 27, 46, 0.85) 100%) !important;
+}
+
+.game-card.daily-played:hover {
+  border-color: #06d6a0 !important;
+  box-shadow: 0 14px 34px rgba(6, 214, 160, 0.22) !important;
+}
+
+.card-status.completed {
+  color: #06d6a0 !important;
   font-weight: 700;
-}
-
-.tracker-badge.done {
-  border-color: var(--accent-green);
-  color: var(--accent-green);
-}
-
-.tracker-badge.tracker-disabled {
-  opacity: 0.55;
-  border-style: dashed;
-  cursor: not-allowed;
-}
-
-.tracker-badge.tracker-party-link {
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.tracker-badge.tracker-party-link:hover {
-  border-color: #fb8500;
-  color: #fb8500;
-  transform: translateY(-2px);
-  background: rgba(251, 133, 0, 0.12);
 }
 
 /* Footer */

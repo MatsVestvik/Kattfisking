@@ -76,7 +76,12 @@
             <div class="card-icon-box">
               <img src="/assets/icons/catfish.png" alt="Kattfisk" />
             </div>
-            <span class="card-tag tag-daily">Daglig</span>
+            <div class="card-tags-group">
+              <span class="card-tag tag-daily">Daglig</span>
+              <span class="card-tag tag-played hidden" id="kattfiskingPlayedBadge">
+                <span class="played-check">✓</span> Spilt: <strong id="kattfiskingScoreBadge">0/5</strong>
+              </span>
+            </div>
           </div>
           <h3 class="card-title">Kattfisking</h3>
           <p class="card-subtitle">Wikipedia-kategorijakt</p>
@@ -85,7 +90,7 @@
           </p>
           <div class="card-footer">
             <span class="card-status" id="kattfiskingStatus">5 artikler per dag</span>
-            <span class="card-btn">Spill nå →</span>
+            <span class="card-btn" id="kattfiskingBtn">Spill nå →</span>
           </div>
         </a>
 
@@ -95,7 +100,12 @@
             <div class="card-icon-box">
               <img src="/assets/icons/moreorless.png" alt="Mer eller Mindre ikon" />
             </div>
-            <span class="card-tag tag-daily">25 dueller daglig</span>
+            <div class="card-tags-group">
+              <span class="card-tag tag-daily">25 dueller daglig</span>
+              <span class="card-tag tag-played hidden" id="merMindrePlayedBadge">
+                <span class="played-check">✓</span> Spilt: <strong id="merMindreScoreBadge">0/25</strong>
+              </span>
+            </div>
           </div>
           <h3 class="card-title">Mer eller Mindre</h3>
           <p class="card-subtitle">Karakterer, søkere & strykprosent</p>
@@ -104,7 +114,7 @@
           </p>
           <div class="card-footer">
             <span class="card-status" id="merMindreStatus">25 dueller per dag</span>
-            <span class="card-btn">Spill nå →</span>
+            <span class="card-btn" id="merMindreBtn">Spill nå →</span>
           </div>
         </a>
 
@@ -124,25 +134,6 @@
           <div class="card-footer">
             <span class="card-status">Under utvikling</span>
             <span class="card-btn card-btn-disabled">Kommer snart 🔒</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dagens oversikt (kun daglige spill) -->
-      <div class="tracker-box" aria-labelledby="trackerHeading">
-        <div>
-          <h3 class="tracker-title" id="trackerHeading">Dagens oversikt</h3>
-          <p class="tracker-subtitle">Følg dagens progresjon for de daglige spillene</p>
-        </div>
-        <div class="tracker-items">
-          <div class="tracker-badge" id="trackerKattfisking">
-            <span>○</span> Kattfisking
-          </div>
-          <div class="tracker-badge" id="trackerMerMindre">
-            <span>○</span> Mer eller Mindre
-          </div>
-          <div class="tracker-badge tracker-disabled" id="trackerGeoguesser">
-            <span>🔒</span> NTNU guesser (snart)
           </div>
         </div>
       </div>

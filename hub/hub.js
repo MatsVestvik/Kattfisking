@@ -26,25 +26,35 @@
   const dd = String(today.getDate()).padStart(2, "0");
   const todayIso = `${yyyy}-${mm}-${dd}`;
 
-  // Check Kattfisking completion
+  // 1. Check Kattfisking completion & score indicator
+  const cardKattfisking = document.getElementById("cardKattfisking");
   const kattfiskingStatus = document.getElementById("kattfiskingStatus");
-  const trackerKattfisking = document.getElementById("trackerKattfisking");
+  const kattfiskingBtn = document.getElementById("kattfiskingBtn");
+  const kattfiskingPlayedBadge = document.getElementById("kattfiskingPlayedBadge");
+  const kattfiskingScoreBadge = document.getElementById("kattfiskingScoreBadge");
 
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + todayIso);
     if (raw) {
       const data = JSON.parse(raw);
-      if (data && data.submittedToServer) {
+      const isFinished = Boolean(
+        data && (data.submittedToServer || (Array.isArray(data.progress) && data.progress.length > 0 && data.progress.every(p => p.status !== "pending")))
+      );
+      if (isFinished) {
         const solved = (data.progress || []).filter(p => p.status === "solved" || p.status === "half").length;
         const total = (data.progress || []).length || 5;
-        const text = `Fullført i dag (${solved}/${total} ✓)`;
+
+        if (cardKattfisking) cardKattfisking.classList.add("daily-played");
+        if (kattfiskingPlayedBadge) {
+          kattfiskingPlayedBadge.classList.remove("hidden");
+          if (kattfiskingScoreBadge) kattfiskingScoreBadge.textContent = `${solved}/${total}`;
+        }
         if (kattfiskingStatus) {
-          kattfiskingStatus.textContent = text;
+          kattfiskingStatus.textContent = `✓ Spilt i dag (${solved}/${total} riktige)`;
           kattfiskingStatus.classList.add("completed");
         }
-        if (trackerKattfisking) {
-          trackerKattfisking.classList.add("done");
-          trackerKattfisking.innerHTML = `<span>✓</span> Kattfisking (${solved}/${total})`;
+        if (kattfiskingBtn) {
+          kattfiskingBtn.textContent = "Se resultat →";
         }
       }
     }
@@ -52,23 +62,32 @@
     console.warn("Could not check local storage for kattfisking progress", e);
   }
 
-  // Check Mer eller Mindre Completion and Status (supports both 25-duel and legacy keys)
+  // 2. Check Mer eller Mindre Completion and Status
+  const cardMerMindre = document.getElementById("cardMerMindre");
   const merMindreStatus = document.getElementById("merMindreStatus");
-  const trackerMerMindre = document.getElementById("trackerMerMindre");
+  const merMindreBtn = document.getElementById("merMindreBtn");
+  const merMindrePlayedBadge = document.getElementById("merMindrePlayedBadge");
+  const merMindreScoreBadge = document.getElementById("merMindreScoreBadge");
+
   try {
     const rawMM25 = localStorage.getItem("mer_eller_mindre_25_daily_" + todayIso) || localStorage.getItem("mer_eller_mindre_daily_" + todayIso);
     if (rawMM25) {
       const dataMM = JSON.parse(rawMM25);
       if (dataMM && typeof dataMM.score === "number") {
         const maxScore = dataMM.total || 25;
-        const textMM = `Fullført i dag (${dataMM.score}/${maxScore} ✓)`;
+        const score = dataMM.score;
+
+        if (cardMerMindre) cardMerMindre.classList.add("daily-played");
+        if (merMindrePlayedBadge) {
+          merMindrePlayedBadge.classList.remove("hidden");
+          if (merMindreScoreBadge) merMindreScoreBadge.textContent = `${score}/${maxScore}`;
+        }
         if (merMindreStatus) {
-          merMindreStatus.textContent = textMM;
+          merMindreStatus.textContent = `✓ Spilt i dag (${score}/${maxScore} poeng)`;
           merMindreStatus.classList.add("completed");
         }
-        if (trackerMerMindre) {
-          trackerMerMindre.classList.add("done");
-          trackerMerMindre.innerHTML = `<span>✓</span> Mer eller Mindre (${dataMM.score}/${maxScore})`;
+        if (merMindreBtn) {
+          merMindreBtn.textContent = "Se resultat →";
         }
       }
     } else {
