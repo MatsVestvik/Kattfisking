@@ -44,7 +44,7 @@
       <button type="button" class="category-pill active" data-category="all" id="tabCatAll">
         <span class="pill-icon">✨</span>
         <span class="pill-label">Alle spill</span>
-        <span class="pill-count">4</span>
+        <span class="pill-count">7</span>
       </button>
       <button type="button" class="category-pill" data-category="daily" id="tabCatDaily">
         <span class="pill-icon">📅</span>
@@ -54,7 +54,7 @@
       <button type="button" class="category-pill" data-category="party" id="tabCatParty">
         <span class="pill-icon">💣</span>
         <span class="pill-label">Partyspill</span>
-        <span class="pill-count">1</span>
+        <span class="pill-count">4</span>
       </button>
     </nav>
 
@@ -133,31 +133,112 @@
       <div class="section-header">
         <div>
           <h2 class="section-title" id="partyGamesHeading">💣 Partyspill</h2>
-          <p class="section-subtitle">Sosiale spill for vorspiel, pauser eller vennegjengen</p>
+          <p class="section-subtitle">Lobby-baserte selskapsspill der alle bruker sin egen telefon</p>
         </div>
-        <span class="section-counter">1 aktivt spill • 2–8 spillere & solo</span>
+        <span class="section-counter">1 aktivt • 3 under utvikling</span>
+      </div>
+
+      <!-- Featured Party Lounge Banner -->
+      <div class="party-lobby-hub-banner">
+        <div class="pl-banner-left">
+          <span class="pl-banner-emoji">🎉</span>
+          <div>
+            <span class="pl-banner-tag">Lobby & Multi-enhet</span>
+            <h3 class="pl-banner-title">NTNU Party Lounge</h3>
+            <p class="pl-banner-desc">
+              Opprett et felles rom på storskjermen eller mobilen. Alle venner kan koble til med romkoden på sin egen enhet, og verten kan flytte alle sømløst mellom spillene!
+            </p>
+          </div>
+        </div>
+        <a href="/party/" class="pl-banner-btn">Åpne Party Lounge 🚀</a>
       </div>
 
       <div class="games-grid">
-        <!-- Game: Ordbombe -->
+        <!-- Game 1: Ordbombe -->
         <a href="/ordbombe/" class="game-card card-orange" id="cardOrdbombe" data-category="party">
           <div class="card-top">
             <div class="card-icon-box">
               <img src="/assets/icons/ordbombe.png" alt="Ordbombe ikon" />
             </div>
             <div class="card-tags-group">
-              <span class="card-tag tag-party">Partyspill</span>
-              <span class="card-tag tag-multiplayer">2–8 spillere / Solo</span>
+              <span class="card-tag tag-party">Aktivt</span>
+              <span class="card-tag tag-multiplayer">2–16 spillere</span>
             </div>
           </div>
           <h3 class="card-title">Ordbombe</h3>
           <p class="card-subtitle">Norsk Word Bomb med tikkende lunte</p>
           <p class="card-desc">
-            Finn et gyldig norsk ord som inneholder stavelsen før bomben eksploderer! Send bomben videre i partymodus eller utfordre deg selv mot klokka i solo arkademodus. 495 000+ ord i ordboken.
+            Finn et gyldig norsk ord som inneholder stavelsen før bomben eksploderer på din mobil! Spill sammen i lobby eller solo mot klokka. 495 000+ ord i ordboken.
           </p>
           <div class="card-footer">
-            <span class="card-status" id="ordbombeStatus">Partymodus & Solo</span>
+            <span class="card-status" id="ordbombeStatus">Lobby & Solo</span>
             <span class="card-btn">Spill nå →</span>
+          </div>
+        </a>
+
+        <!-- Game 2: Hvem i Rommet? (Placeholder) -->
+        <a href="/hvem-i-rommet/" class="game-card card-purple" id="cardHvemIRommet" data-category="party">
+          <div class="card-top">
+            <div class="card-icon-box" style="border-color: #8338ec;">
+              <img src="/assets/icons/hvem_i_rommet.png" alt="Hvem i Rommet ikon" />
+            </div>
+            <div class="card-tags-group">
+              <span class="card-tag tag-disabled">Kommer snart</span>
+              <span class="card-tag tag-multiplayer">3–16 spillere</span>
+            </div>
+          </div>
+          <h3 class="card-title">Hvem i Rommet?</h3>
+          <p class="card-subtitle">Avstemningsspill for vennegjengen</p>
+          <p class="card-desc">
+            Hvem passer best til påstanden? Alle stemmer anonymt på egen mobil i sanntid. Se hvem i gjengen som pekes ut når stemmene avsløres!
+          </p>
+          <div class="card-footer">
+            <span class="card-status">Under utvikling</span>
+            <span class="card-btn" style="color: #b580ff;">Forhåndsvisning →</span>
+          </div>
+        </a>
+
+        <!-- Game 3: Tegn & Gjett (Placeholder) -->
+        <a href="/tegn-og-gjett/" class="game-card card-cyan" id="cardTegnOgGjett" data-category="party">
+          <div class="card-top">
+            <div class="card-icon-box" style="border-color: #00b4d8;">
+              <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett ikon" />
+            </div>
+            <div class="card-tags-group">
+              <span class="card-tag tag-disabled">Kommer snart</span>
+              <span class="card-tag tag-multiplayer">2–16 spillere</span>
+            </div>
+          </div>
+          <h3 class="card-title">Tegn & Gjett</h3>
+          <p class="card-subtitle">Lynrask mobil-tegning & chat</p>
+          <p class="card-desc">
+            Én spiller tegner det hemmelige ordet på mobilskjermen sin. Resten av vennegjengen gjetter i lynrask sanntidschat på egne enheter!
+          </p>
+          <div class="card-footer">
+            <span class="card-status">Under utvikling</span>
+            <span class="card-btn" style="color: #00b4d8;">Forhåndsvisning →</span>
+          </div>
+        </a>
+
+        <!-- Game 4: Vors-Dilemma (Placeholder) -->
+        <a href="/vors-dilemma/" class="game-card card-pink" id="cardVorsDilemma" data-category="party">
+          <div class="card-top">
+            <div class="card-icon-box" style="border-color: #ef476f;">
+              <img src="/assets/icons/vors_dilemma.png" alt="Vors-Dilemma ikon" />
+            </div>
+            <div class="card-tags-group">
+              <span class="card-tag tag-disabled">Kommer snart</span>
+              <span class="card-tag tag-multiplayer">2–20 spillere</span>
+            </div>
+          </div>
+          <h3 class="card-title">Vors-Dilemma</h3>
+          <p class="card-subtitle">Ville du heller? Studentutgaven</p>
+          <p class="card-desc">
+            Hver runde byr på to hysteriske og umulige valg. Alle må velge side på mobilen før fordelingen og diskusjonene eksploderer på storskjermen!
+          </p>
+          <div class="card-footer">
+            <span class="card-status">Under utvikling</span>
+            <span class="card-btn" style="color: #ff758f;">Forhåndsvisning →</span>
           </div>
         </a>
       </div>

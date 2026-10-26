@@ -17,6 +17,7 @@ from games.kattfisking import KattfiskingAPI
 from games.mer_eller_mindre import MerEllerMindreAPI
 from games.geoguesser import GeoguesserAPI
 from games.ordbombe import OrdbombeAPI
+from games.party import PartyAPI
 
 PORT = int(os.environ.get("PORT", "3000"))
 HOST = os.environ.get("HOST", "0.0.0.0")
@@ -92,7 +93,13 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                 if res:
                     return self._send_json(res[1], status=res[0])
 
-            # 5. Static files
+            # 5. Check Party API
+            if path.startswith("/api/party/"):
+                res = PartyAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 6. Static files
             self.serve_static(path, head_only=head_only)
 
         except Exception as exc:
@@ -131,6 +138,12 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
             # 4. Check Ordbombe API
             if path.startswith("/api/ordbombe/"):
                 res = OrdbombeAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 5. Check Party API
+            if path.startswith("/api/party/"):
+                res = PartyAPI.handle_post(path, body)
                 if res:
                     return self._send_json(res[1], status=res[0])
 
@@ -250,6 +263,7 @@ def main() -> None:
 
     print(f"🎮 NTNU Games kjører på http://{HOST}:{PORT}")
     print(f"   • Hub:          http://{HOST}:{PORT}/")
+    print(f"   • Party Lobby:  http://{HOST}:{PORT}/party/ (Rom & multi-enhet)")
     print(f"   • Kattfisking:  http://{HOST}:{PORT}/kattfisking/")
     print(f"   • Mer/Mindre:   http://{HOST}:{PORT}/mer-eller-mindre/")
     print(f"   • Ordbombe:     http://{HOST}:{PORT}/ordbombe/ (Partyspill)")

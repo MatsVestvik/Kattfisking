@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Party Lounge – NTNU Games Rom & Flerspiller</title>
+  <meta name="description" content="Opprett et party-rom på NTNU Games, la alle venner bli med på mobilen, og spill partyspill sammen!" />
+  <link rel="icon" type="image/png" href="/assets/icons/ntnu_games.png?v=2.0" />
+  <link rel="stylesheet" href="/party/styles.css?v=1.0" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
+</head>
+<body>
+  <!-- Dynamic Multilayered Background -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
+  <div class="party-shell">
+    <!-- Header -->
+    <header class="party-header">
+      <div class="header-brand">
+        <a href="/" class="back-link" title="Tilbake til Hub">‹ Hub</a>
+        <div class="brand-info">
+          <h1 class="brand-title">🎉 Party Lounge</h1>
+          <span class="brand-badge">Lobby & Multi-enhet</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="conn-status" id="connStatus">
+          <span class="status-dot"></span> <span id="connStatusText">Klar</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- VIEW 1: JOIN / CREATE CARD -->
+    <main class="party-card" id="viewAuth">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tabJoin">Bli med i rom</button>
+        <button type="button" class="auth-tab" id="tabCreate">Opprett nytt rom</button>
+      </div>
+
+      <!-- Tab Content: JOIN -->
+      <section class="auth-content" id="contentJoin">
+        <h2 class="auth-heading">Koble til vennegjengen</h2>
+        <p class="auth-sub">Tast inn den 4-bokstavers koden fra storskjermen.</p>
+
+        <form id="formJoin" class="auth-form">
+          <div class="form-group">
+            <label for="inputJoinCode">Romkode (4 bokstaver)</label>
+            <input type="text" id="inputJoinCode" class="input-code" maxlength="6" placeholder="FEST" autocomplete="off" required />
+          </div>
+
+          <div class="form-group">
+            <label for="inputJoinName">Ditt kallenavn</label>
+            <input type="text" id="inputJoinName" class="input-text" maxlength="16" placeholder="F.eks. Henrik" required />
+          </div>
+
+          <div class="form-group">
+            <label>Velg din avatar</label>
+            <div class="avatar-picker" id="avatarPickerJoin">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <button type="submit" class="party-btn primary-btn" id="btnSubmitJoin">
+            Bli med i festen 🚀
+          </button>
+        </form>
+      </section>
+
+      <!-- Tab Content: CREATE -->
+      <section class="auth-content hidden" id="contentCreate">
+        <h2 class="auth-heading">Opprett et Party-rom</h2>
+        <p class="auth-sub">Bruk denne skjermen som storskjerm / vert, og la alle delta med mobilen!</p>
+
+        <form id="formCreate" class="auth-form">
+          <div class="form-group">
+            <label for="inputCreateName">Vertens navn</label>
+            <input type="text" id="inputCreateName" class="input-text" maxlength="16" placeholder="F.eks. Mats (Vert)" required />
+          </div>
+
+          <div class="form-group">
+            <label>Velg vert-avatar</label>
+            <div class="avatar-picker" id="avatarPickerCreate">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <button type="submit" class="party-btn primary-btn" id="btnSubmitCreate">
+            Opprett rom 🎉
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <!-- VIEW 2: ACTIVE ROOM LOBBY -->
+    <main class="party-card hidden" id="viewLobby">
+      <!-- Room Code Banner -->
+      <div class="room-banner">
+        <div class="room-code-group">
+          <span class="room-label">ROMKODE:</span>
+          <div class="room-code-display" id="roomCodeDisplay">----</div>
+          <button type="button" class="copy-btn" id="btnCopyLink" title="Kopier invitasjonslenke">
+            📋 Kopier lenke
+          </button>
+        </div>
+        <div class="room-instructions">
+          Gå til <strong id="domainHostDisplay">ntnugames.no/party</strong> på mobilen og tast inn koden!
+        </div>
+      </div>
+
+      <!-- Players Area -->
+      <section class="lobby-section">
+        <div class="section-title-row">
+          <h3 class="section-title">
+            👥 Tilkoblede spillere (<span id="playersCountNum">1</span>)
+          </h3>
+          <span class="section-hint" id="hostHint">Du er vert 👑</span>
+        </div>
+        <div class="players-grid" id="playersGrid">
+          <!-- Rendered live -->
+        </div>
+      </section>
+
+      <!-- Games Catalog (Host selects game) -->
+      <section class="lobby-section" id="sectionGameSelector">
+        <div class="section-title-row">
+          <h3 class="section-title">🎮 Velg partyspill</h3>
+          <span class="section-hint">Verten velger spill for hele rommet</span>
+        </div>
+
+        <div class="lobby-games-list" id="lobbyGamesList">
+          <!-- Game 1: Ordbombe -->
+          <div class="lobby-game-card active-playable" id="gameCardOrdbombe">
+            <div class="lg-card-left">
+              <img src="/assets/icons/ordbombe.png" alt="Ordbombe" class="lg-card-icon" />
+              <div>
+                <div class="lg-card-title-row">
+                  <h4 class="lg-card-title">Ordbombe</h4>
+                  <span class="lg-card-badge badge-ready">Klar til spill</span>
+                </div>
+                <p class="lg-card-desc">
+                  Tast inn et gyldig norsk ord som inneholder stavelsen før bomben eksploderer på din mobil!
+                </p>
+                <div class="lg-card-meta">
+                  <span>👥 2–16 spillere</span> • <span>⏱️ 6–12s runder</span> • <span>🇳🇴 495 000+ ord</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg-card-right">
+              <!-- Settings dropdowns -->
+              <div class="lg-settings-inline">
+                <label>
+                  <span>Tid:</span>
+                  <select id="selectTimerParty" class="lg-select">
+                    <option value="9">Normal (9s)</option>
+                    <option value="12">Rolig (12s)</option>
+                    <option value="6">Kaos (6s)</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Nivå:</span>
+                  <select id="selectDiffParty" class="lg-select">
+                    <option value="medium">Middels</option>
+                    <option value="easy">Lett</option>
+                    <option value="hard">Vanskelig</option>
+                  </select>
+                </label>
+              </div>
+
+              <button type="button" class="party-btn start-game-btn" id="btnStartOrdbombe">
+                Start Ordbombe 💣
+              </button>
+            </div>
+          </div>
+
+          <!-- Game 2: Hvem i Rommet (Placeholder) -->
+          <div class="lobby-game-card disabled-playable">
+            <div class="lg-card-left">
+              <img src="/assets/icons/hvem_i_rommet.png" alt="Hvem i Rommet" class="lg-card-icon" />
+              <div>
+                <div class="lg-card-title-row">
+                  <h4 class="lg-card-title">Hvem i Rommet?</h4>
+                  <span class="lg-card-badge badge-soon">Kommer snart</span>
+                </div>
+                <p class="lg-card-desc">
+                  Stem anonymt på mobilen hvem i rommet som passer best til hysteriske påstander!
+                </p>
+                <div class="lg-card-meta">
+                  <span>👥 3–16 spillere</span> • <span>🗳️ Hemmelig avstemning</span>
+                </div>
+              </div>
+            </div>
+            <div class="lg-card-right">
+              <a href="/hvem-i-rommet/" class="secondary-btn" target="_blank">Se forhåndsvisning →</a>
+            </div>
+          </div>
+
+          <!-- Game 3: Tegn & Gjett (Placeholder) -->
+          <div class="lobby-game-card disabled-playable">
+            <div class="lg-card-left">
+              <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett" class="lg-card-icon" />
+              <div>
+                <div class="lg-card-title-row">
+                  <h4 class="lg-card-title">Tegn & Gjett</h4>
+                  <span class="lg-card-badge badge-soon">Kommer snart</span>
+                </div>
+                <p class="lg-card-desc">
+                  Én tegner på mobilen i sanntid, resten gjetter i lynrask chat på egen skjerm!
+                </p>
+                <div class="lg-card-meta">
+                  <span>👥 2–16 spillere</span> • <span>🎨 Mobil-doodle</span>
+                </div>
+              </div>
+            </div>
+            <div class="lg-card-right">
+              <a href="/tegn-og-gjett/" class="secondary-btn" target="_blank">Se forhåndsvisning →</a>
+            </div>
+          </div>
+
+          <!-- Game 4: Vors-Dilemma (Placeholder) -->
+          <div class="lobby-game-card disabled-playable">
+            <div class="lg-card-left">
+              <img src="/assets/icons/vors_dilemma.png" alt="Vors-Dilemma" class="lg-card-icon" />
+              <div>
+                <div class="lg-card-title-row">
+                  <h4 class="lg-card-title">Vors-Dilemma</h4>
+                  <span class="lg-card-badge badge-soon">Kommer snart</span>
+                </div>
+                <p class="lg-card-desc">
+                  Umulige og hysteriske dilemmaer. Alle må ta et valg på mobilen og forsvare det!
+                </p>
+                <div class="lg-card-meta">
+                  <span>👥 2–20 spillere</span> • <span>⚡ Avstemning</span>
+                </div>
+              </div>
+            </div>
+            <div class="lg-card-right">
+              <a href="/vors-dilemma/" class="secondary-btn" target="_blank">Se forhåndsvisning →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Player Waiting Box (if not host) -->
+      <div class="player-waiting-box hidden" id="playerWaitingBox">
+        <div class="spinner-pulse"></div>
+        <h4>Du er koblet til!</h4>
+        <p>Venter på at romverten skal velge et spill på storskjermen...</p>
+        <div class="cheer-buttons">
+          <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Send en hilsen til skjermen:</span>
+          <button type="button" class="cheer-btn" data-emoji="🎉">🎉</button>
+          <button type="button" class="cheer-btn" data-emoji="🍻">🍻</button>
+          <button type="button" class="cheer-btn" data-emoji="💣">💣</button>
+          <button type="button" class="cheer-btn" data-emoji="🔥">🔥</button>
+          <button type="button" class="cheer-btn" data-emoji="👑">👑</button>
+        </div>
+      </div>
+
+      <!-- Leave Room Button -->
+      <div class="lobby-footer">
+        <button type="button" class="leave-btn" id="btnLeaveRoom">
+          ‹ Forlat rommet
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/party/app.js?v=1.0"></script>
+  <script src="/parallax-bg.js?v=1.0"></script>
+</body>
+</html>

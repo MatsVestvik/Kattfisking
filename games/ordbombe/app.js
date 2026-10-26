@@ -285,11 +285,21 @@
     soloWordsCount: 0,
     soloLongestWord: "",
     soloName: "Spiller 1",
+
+    // Room Multiplayer Mode
+    isRoomMode: false,
+    roomCode: null,
+    playerId: null,
+    isHost: false,
+    roomVersion: 0,
+    lastHandledEventTimestamp: 0,
   };
 
   // DOM Elements
   const el = {
     appShell: document.getElementById("appShell"),
+    headerBackLink: document.getElementById("headerBackLink"),
+    headerRoomBadge: document.getElementById("headerRoomBadge"),
     btnSoundToggle: document.getElementById("btnSoundToggle"),
     soundIcon: document.getElementById("soundIcon"),
     btnHelp: document.getElementById("btnHelp"),
@@ -322,12 +332,13 @@
     soloScoreDisplay: document.getElementById("soloScoreDisplay"),
     arenaScoreNum: document.getElementById("arenaScoreNum"),
     arenaStreakBadge: document.getElementById("arenaStreakBadge"),
-    partyPlayersStrip: document.getElementById("partyPlayersStrip"),
 
-    bombStageWrap: document.getElementById("bombStageWrap"),
+    circularArenaWrapper: document.getElementById("circularArenaWrapper"),
+    arenaPointerArrow: document.getElementById("arenaPointerArrow"),
+    circlePlayersContainer: document.getElementById("circlePlayersContainer"),
+    bombCenterHub: document.getElementById("bombCenterHub"),
+    bombGraphic: document.getElementById("bombGraphic"),
     bombSparksCanvas: document.getElementById("bombSparksCanvas"),
-    timerBarFill: document.getElementById("timerBarFill"),
-    timerDigits: document.getElementById("timerDigits"),
     promptLetters: document.getElementById("promptLetters"),
 
     wordForm: document.getElementById("wordForm"),
@@ -352,6 +363,7 @@
     endWordsCount: document.getElementById("endWordsCount"),
     btnPlayAgain: document.getElementById("btnPlayAgain"),
     btnChangeSettings: document.getElementById("btnChangeSettings"),
+    btnBackToLobby: document.getElementById("btnBackToLobby"),
   };
 
   const sparks = new SparksParticleSystem(el.bombSparksCanvas);
@@ -453,20 +465,112 @@
     }
   }
 
-  // Render party player pills
-  function renderPartyPills() {
-    el.partyPlayersStrip.innerHTML = "";
-    state.players.forEach((p, idx) => {
-      const pill = document.createElement("div");
-      pill.className = `party-player-pill ${idx === state.activePlayerIndex ? "is-turn" : ""} ${p.eliminated ? "is-eliminated" : ""}`;
-      const heartsStr = "❤️".repeat(p.lives) + "🖤".repeat(Math.max(0, 3 - p.lives));
-      pill.innerHTML = `
-        <span>${p.eliminated ? "💀" : "👤"}</span>
-        <strong>${p.name}</strong>
-        <span class="pill-hearts">${heartsStr}</span>
+  // --- CIRCULAR ARENA & ARROW POINTER SYSTEM ---
+  const DEFAULT_AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐸", "🐙", "🦄", "🐶", "🐱"];
+  let currentArrowAngle = 0;
+
+  function setArrowAngle(targetDeg) {
+    if (!el.arenaPointerArrow) return;
+
+    // Calculate shortest angular difference so rotation never loops awkwardly backward
+    const currentNorm = ((currentArrowAngle % 360) + 360) % 360;
+    const targetNorm = ((targetDeg % 360) + 360) % 360;
+    let diff = targetNorm - currentNorm;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+
+    currentArrowAngle += diff;
+
+    // Responsive offset from arena center to the outer perimeter of center bomb hub
+    const arenaWidth = el.circularArenaWrapper ? el.circularArenaWrapper.clientWidth : 420;
+    const offsetPx = Math.round(arenaWidth * 0.22);
+
+    el.arenaPointerArrow.style.transform = `rotate(${currentArrowAngle}deg) translateY(-${offsetPx}px) translate(-50%, -100%)`;
+  }
+
+  // Recalculate pointer arrow position on window resize
+  window.addEventListener("resize", () => {
+    if (el.arenaPointerArrow && !el.gameArena.classList.contains("hidden")) {
+      const arenaWidth = el.circularArenaWrapper ? el.circularArenaWrapper.clientWidth : 420;
+      const offsetPx = Math.round(arenaWidth * 0.22);
+      el.arenaPointerArrow.style.transform = `rotate(${currentArrowAngle}deg) translateY(-${offsetPx}px) translate(-50%, -100%)`;
+    }
+  });
+
+  // Render players placed evenly in a circle around the bomb hub
+  function renderCircularPlayers(playersList, activeIndexOrId) {
+    if (!el.circlePlayersContainer) return;
+    el.circlePlayersContainer.innerHTML = "";
+
+    const list = playersList || (state.mode === "party" ? state.players : [
+      { name: state.soloName, lives: state.players[0]?.lives ?? 3, eliminated: false, avatar: "👤" }
+    ]);
+
+    const total = list.length;
+    if (total === 0) return;
+
+    // 42% radius puts player nodes comfortably along the outer circular ring (84% diameter)
+    const radiusPct = total === 1 ? 0 : 42;
+
+    list.forEach((p, idx) => {
+      const isActive = typeof activeIndexOrId === "number"
+        ? idx === activeIndexOrId
+        : (p.id ? p.id === activeIndexOrId : idx === state.activePlayerIndex);
+
+      // Angle: 0 degrees is 12 o'clock (top)
+      const angleDeg = total === 1 ? 0 : (idx / total) * 360;
+      const angleRad = (angleDeg - 90) * (Math.PI / 180);
+
+      // In Solo mode, single player is pinned at top center (50%, 8%)
+      const leftPct = total === 1 ? 50 : 50 + radiusPct * Math.cos(angleRad);
+      const topPct = total === 1 ? 8 : 50 + radiusPct * Math.sin(angleRad);
+
+      const node = document.createElement("div");
+      node.className = `circle-player-node ${isActive ? "is-active-turn" : ""} ${p.eliminated ? "is-eliminated" : ""}`;
+      node.style.left = `${leftPct.toFixed(2)}%`;
+      node.style.top = `${topPct.toFixed(2)}%`;
+      node.dataset.index = idx;
+      if (p.id) node.dataset.id = p.id;
+
+      const avatar = p.avatar || (p.eliminated ? "💀" : DEFAULT_AVATARS[idx % DEFAULT_AVATARS.length]);
+      const lives = Math.max(0, p.lives ?? 3);
+      const heartsStr = "❤️".repeat(lives) + "🖤".repeat(Math.max(0, 3 - lives));
+
+      node.innerHTML = `
+        <div class="cp-avatar-wrap">
+          <span class="cp-avatar-emoji">${avatar}</span>
+          ${isActive && !p.eliminated ? '<span class="cp-bomb-indicator" title="Har bomben!">💣</span>' : ""}
+        </div>
+        <div class="cp-info">
+          <span class="cp-name" title="${p.name}">${p.name}</span>
+          <span class="cp-hearts" aria-label="${lives} liv">${heartsStr}</span>
+        </div>
       `;
-      el.partyPlayersStrip.appendChild(pill);
+
+      el.circlePlayersContainer.appendChild(node);
     });
+  }
+
+  // Smoothly rotate the central pointer arrow toward the active player
+  function rotateArrowToActive(playersList, activeIndexOrId) {
+    if (!el.arenaPointerArrow) return;
+    const list = playersList || (state.mode === "party" ? state.players : [state.players[0]]);
+    const total = list.length;
+    if (total <= 1) {
+      setArrowAngle(0);
+      return;
+    }
+
+    let activeIdx = 0;
+    if (typeof activeIndexOrId === "number") {
+      activeIdx = activeIndexOrId;
+    } else {
+      activeIdx = list.findIndex(p => p.id === activeIndexOrId);
+      if (activeIdx === -1) activeIdx = 0;
+    }
+
+    const targetDeg = (activeIdx / total) * 360;
+    setArrowAngle(targetDeg);
   }
 
   // Start new round
@@ -487,11 +591,10 @@
           lives: 3,
           eliminated: false,
           wordsCount: 0,
+          avatar: DEFAULT_AVATARS[idx % DEFAULT_AVATARS.length],
         });
       });
       state.activePlayerIndex = 0;
-
-      el.partyPlayersStrip.classList.remove("hidden");
       el.soloScoreDisplay.classList.add("hidden");
     } else {
       // Solo mode
@@ -509,10 +612,10 @@
         lives: 3,
         eliminated: false,
         wordsCount: 0,
+        avatar: "👤",
       }];
       state.activePlayerIndex = 0;
 
-      el.partyPlayersStrip.classList.add("hidden");
       el.soloScoreDisplay.classList.remove("hidden");
       el.arenaScoreNum.textContent = "0";
       el.arenaStreakBadge.textContent = "x1";
@@ -541,7 +644,8 @@
 
     state.isExploding = false;
     el.appShell.classList.remove("exploded");
-    el.bombStageWrap.classList.remove("urgent");
+    el.bombGraphic.classList.remove("ticking-panic");
+    if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
 
     // In solo mode, duration tightens as streak grows
     if (state.mode === "solo") {
@@ -553,13 +657,18 @@
     const curPlayer = state.players[state.activePlayerIndex];
     if (state.mode === "party") {
       el.turnPlayerName.textContent = curPlayer.name;
-      el.turnOverline.textContent = "Din tur – send bomben:";
+      el.turnOverline.textContent = "Pil peker på:";
+      el.turnAvatar.textContent = curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length];
       renderHearts(el.activeHeartsBox, curPlayer.lives);
-      renderPartyPills();
+      renderCircularPlayers();
+      rotateArrowToActive();
     } else {
       el.turnPlayerName.textContent = state.soloName;
       el.turnOverline.textContent = "Solomodus:";
+      el.turnAvatar.textContent = "👤";
       renderHearts(el.activeHeartsBox, curPlayer.lives);
+      renderCircularPlayers();
+      rotateArrowToActive();
     }
 
     updateTimerDisplay();
@@ -582,14 +691,10 @@
       const currentSecondInt = Math.ceil(state.timerRemaining);
       if (currentSecondInt !== lastSecondInt && state.timerRemaining > 0) {
         lastSecondInt = currentSecondInt;
-        sfx.tick(state.timerRemaining <= 3.0);
+        sfx.tick(state.timerRemaining <= 3.2);
       }
 
       updateTimerDisplay();
-
-      if (state.timerRemaining <= 3.0) {
-        el.bombStageWrap.classList.add("urgent");
-      }
 
       if (state.timerRemaining <= 0) {
         clearInterval(state.timerInterval);
@@ -600,9 +705,16 @@
   }
 
   function updateTimerDisplay() {
-    const pct = Math.max(0, Math.min(100, (state.timerRemaining / state.turnDuration) * 100));
-    el.timerBarFill.style.width = `${pct}%`;
-    el.timerDigits.textContent = `${state.timerRemaining.toFixed(1)}s`;
+    // NO visible countdown numbers or progress bars!
+    // The player relies entirely on ticking audio cues and bomb panic shaking.
+    const isPanic = state.timerRemaining <= 3.2 && state.timerRemaining > 0;
+    if (isPanic) {
+      el.bombGraphic.classList.add("ticking-panic");
+      if (el.arenaPointerArrow) el.arenaPointerArrow.classList.add("ticking-panic");
+    } else {
+      el.bombGraphic.classList.remove("ticking-panic");
+      if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
+    }
   }
 
   // Trigger bomb explosion
@@ -622,7 +734,7 @@
 
     if (state.mode === "party") {
       renderHearts(el.activeHeartsBox, curPlayer.lives);
-      renderPartyPills();
+      renderCircularPlayers();
 
       showFeedback(`💥 BOOM! Tiden gikk ut for ${curPlayer.name}! (-1 ❤️)`, "error");
 
@@ -709,6 +821,35 @@
       el.wordInput.classList.add("shake");
       showFeedback(`Ordet må inneholde «${state.currentPrompt}»!`, "error");
       setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+      return;
+    }
+
+    if (state.isRoomMode) {
+      try {
+        const resp = await fetch("/api/party/ordbombe/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            playerId: state.playerId,
+            action: "submit_word",
+            word: rawWord,
+          }),
+        });
+        const res = await resp.json();
+        if (res.ok && res.valid) {
+          sfx.success();
+          showFeedback(`✓ Godkjent: «${rawWord}»!`, "ok");
+          el.wordInput.value = "";
+        } else {
+          sfx.error();
+          el.wordInput.classList.add("shake");
+          showFeedback(res.reason || res.error || "Ugyldig ord", "error");
+          setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+        }
+      } catch (err) {
+        showFeedback("Nettverksfeil", "error");
+      }
       return;
     }
 
@@ -903,7 +1044,28 @@
   el.btnStartGame.addEventListener("click", startGame);
   el.wordForm.addEventListener("submit", submitWord);
 
-  el.btnPlayAgain.addEventListener("click", () => {
+  el.btnPlayAgain.addEventListener("click", async () => {
+    if (state.isRoomMode && state.isHost) {
+      const hostToken = state.hostToken || sessionStorage.getItem("party_host_token");
+      if (hostToken) {
+        try {
+          await fetch("/api/party/ordbombe/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              roomCode: state.roomCode,
+              hostToken: hostToken,
+              action: "restart",
+              settings: {
+                difficulty: "medium",
+                turnDuration: 9.0,
+              },
+            }),
+          });
+        } catch (e) {}
+      }
+      return;
+    }
     startGame();
   });
 
@@ -940,5 +1102,228 @@
       }
     }
   });
+
+  // --- MULTI-DEVICE ROOM SYNC ---
+  async function pollRoomState() {
+    if (!state.isRoomMode || !state.roomCode) return;
+
+    try {
+      const url = `/api/party/state?code=${encodeURIComponent(state.roomCode)}&playerId=${encodeURIComponent(state.playerId || "")}&v=${state.roomVersion}`;
+      const resp = await fetch(url);
+
+      if (resp.status === 404) {
+        alert("Party-rommet er avsluttet.");
+        window.location.href = "/party/";
+        return;
+      }
+
+      const data = await resp.json();
+      if (data.ok) {
+        state.roomVersion = data.version;
+        state.isHost = data.isHost;
+
+        // If game was closed or returned to lobby
+        if (!data.currentGame) {
+          window.location.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
+          return;
+        }
+
+        syncRoomGameState(data);
+      }
+    } catch (err) {
+      console.warn("Room poll error:", err);
+    }
+
+    setTimeout(pollRoomState, 450);
+  }
+
+  function syncRoomGameState(data) {
+    const gs = data.gameState;
+    if (!gs) return;
+
+    // Ensure arena is visible
+    el.setupCard.classList.add("hidden");
+    el.gameArena.classList.remove("hidden");
+
+    state.currentPrompt = (gs.prompt || "").toUpperCase();
+    el.promptLetters.textContent = state.currentPrompt;
+
+    const remaining = Math.max(0, gs.time_remaining || 0);
+
+    // Audio ticking & bomb vibration - NO visible timer digits or progress bar
+    const isPanic = (gs.status === "playing" && remaining > 0 && remaining <= 3.2);
+    if (gs.status === "playing" && remaining > 0) {
+      sfx.tick(isPanic);
+    }
+    if (isPanic) {
+      el.bombGraphic.classList.add("ticking-panic");
+      if (el.arenaPointerArrow) el.arenaPointerArrow.classList.add("ticking-panic");
+    } else {
+      el.bombGraphic.classList.remove("ticking-panic");
+      if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
+    }
+
+    // Active player and turn checking
+    const isMyTurn = gs.active_player_id === state.playerId;
+    const activePlayer = data.players.find(p => p.id === gs.active_player_id);
+
+    el.turnPlayerName.textContent = activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller");
+    el.turnAvatar.textContent = activePlayer ? (activePlayer.avatar || "👤") : "👤";
+
+    // Render Circular Arena and point arrow
+    renderCircularPlayers(data.players || [], gs.active_player_id);
+    rotateArrowToActive(data.players || [], gs.active_player_id);
+
+    if (isMyTurn) {
+      el.turnOverline.textContent = "💣 DET ER DIN TUR!";
+      el.wordInput.disabled = (gs.status !== "playing");
+      el.wordInput.placeholder = `Skriv et ord med ${state.currentPrompt}...`;
+      el.btnSubmitWord.disabled = (gs.status !== "playing");
+      el.appShell.classList.add("my-turn-active");
+      if (gs.status === "playing" && document.activeElement !== el.wordInput) {
+        el.wordInput.focus();
+      }
+    } else {
+      el.turnOverline.textContent = `${gs.active_player_name || 'En annen spiller'} har bomben:`;
+      el.wordInput.disabled = true;
+      el.wordInput.placeholder = `Venter på at ${gs.active_player_name || 'spilleren'} skal svare...`;
+      el.btnSubmitWord.disabled = true;
+      el.appShell.classList.remove("my-turn-active");
+    }
+
+    // Update my lives
+    const me = data.me || data.players.find(p => p.id === state.playerId);
+    if (me) {
+      renderHearts(el.activeHeartsBox, me.lives);
+    }
+
+    // Check last event for explosions or sound
+    if (gs.last_event && gs.last_event.timestamp > state.lastHandledEventTimestamp) {
+      state.lastHandledEventTimestamp = gs.last_event.timestamp;
+      if (gs.last_event.type === "explosion") {
+        sfx.explosion();
+        el.bombGraphic.classList.add("exploding");
+        sparks.explode();
+        setTimeout(() => el.bombGraphic.classList.remove("exploding"), 1200);
+      } else if (gs.last_event.type === "word_accepted") {
+        sfx.pass();
+      }
+    }
+
+    // Used words list
+    const used = gs.used_words || [];
+    el.usedWordsCount.textContent = String(used.length);
+    el.usedWordsList.innerHTML = "";
+    used.slice(-10).reverse().forEach(w => {
+      const tag = document.createElement("span");
+      tag.className = "used-word-tag";
+      tag.textContent = w;
+      el.usedWordsList.appendChild(tag);
+    });
+
+    // Game over state
+    if (gs.status === "game_over") {
+      showRoomGameOver(data);
+    } else {
+      el.gameOverCard.classList.add("hidden");
+    }
+  }
+
+  function showRoomGameOver(data) {
+    const gs = data.gameState;
+    const winner = gs.winner;
+
+    el.gameArena.classList.add("hidden");
+    el.gameOverCard.classList.remove("hidden");
+
+    el.victoryIconWrap.textContent = "👑";
+    el.gameOverBadge.textContent = "RUNDEN ER OVER";
+    el.gameOverTitle.textContent = winner ? `${winner.name} vant Ordbombe!` : "Ingen overlevende!";
+    el.gameOverSubtitle.textContent = "Fantastisk innsats i party-rommet!";
+
+    el.partyStandingsBox.classList.remove("hidden");
+    el.soloSummaryBox.classList.add("hidden");
+
+    el.partyStandingsList.innerHTML = "";
+    (data.players || []).forEach(p => {
+      const row = document.createElement("div");
+      row.className = `standings-row ${p.id === (winner ? winner.id : '') ? 'is-winner' : ''}`;
+      row.innerHTML = `
+        <div class="standing-player">
+          <span class="standing-avatar">${p.avatar || '👤'}</span>
+          <strong>${p.name}</strong>
+        </div>
+        <div class="standing-badge">
+          ${p.eliminated ? 'Utslått' : '🏆 Overlevde!'} (${p.wordsCount} ord)
+        </div>
+      `;
+      el.partyStandingsList.appendChild(row);
+    });
+
+    if (el.btnBackToLobby) {
+      el.btnBackToLobby.classList.remove("hidden");
+    }
+
+    if (state.isHost) {
+      el.btnPlayAgain.classList.remove("hidden");
+      el.btnPlayAgain.textContent = "Spill en ny runde ↺ (Vert)";
+    } else {
+      el.btnPlayAgain.classList.add("hidden");
+    }
+    el.btnChangeSettings.classList.add("hidden");
+  }
+
+  function initRoomModeIfPresent() {
+    const params = new URLSearchParams(window.location.search);
+    const roomCode = (params.get("room") || "").trim().toUpperCase();
+    const playerId = (params.get("player") || sessionStorage.getItem("party_player_id") || "").trim();
+
+    if (roomCode) {
+      state.isRoomMode = true;
+      state.roomCode = roomCode;
+      state.playerId = playerId;
+      state.hostToken = sessionStorage.getItem("party_host_token");
+      state.isHost = !!state.hostToken;
+
+      if (el.headerBackLink) {
+        el.headerBackLink.href = `/party/?code=${encodeURIComponent(roomCode)}`;
+        el.headerBackLink.textContent = "‹ Party Lounge";
+      }
+      if (el.headerRoomBadge) {
+        el.headerRoomBadge.textContent = `💣 Rom: ${roomCode}`;
+      }
+
+      // Hide local setup, show arena
+      el.setupCard.classList.add("hidden");
+      el.gameArena.classList.remove("hidden");
+
+      pollRoomState();
+    }
+  }
+
+  // Back to lobby button action
+  if (el.btnBackToLobby) {
+    el.btnBackToLobby.addEventListener("click", async () => {
+      if (state.isRoomMode && state.roomCode) {
+        const hostToken = state.hostToken || sessionStorage.getItem("party_host_token");
+        if (hostToken) {
+          try {
+            await fetch("/api/party/ordbombe/action", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                roomCode: state.roomCode,
+                hostToken: hostToken,
+                action: "to_lobby",
+              }),
+            });
+          } catch (e) {}
+        }
+        window.location.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
+      }
+    });
+  }
+
+  initRoomModeIfPresent();
 
 })();

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hvem i Rommet? – Norsk Partyspill | NTNU Games</title>
+  <meta name="description" content="Hvem i Rommet? er et hysterisk avstemningsspill for vennegjengen. Stem anonymt på mobilen og se hvem som får flest stemmer!" />
+  <link rel="icon" type="image/png" href="/assets/icons/hvem_i_rommet.png" />
+  <link rel="stylesheet" href="/hub.css?v=2.0" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
+  <style>
+    .placeholder-card {
+      background: rgba(19, 27, 46, 0.85);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+      max-width: 720px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+    .placeholder-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      border: 2px solid #8338ec;
+      box-shadow: 0 0 24px rgba(131, 56, 236, 0.4);
+      margin: 0 auto 1.5rem;
+      display: block;
+      image-rendering: pixelated;
+    }
+    .badge-soon {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(131, 56, 236, 0.18);
+      color: #b580ff;
+      border: 1px solid #8338ec;
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .sample-box {
+      background: rgba(28, 39, 66, 0.8);
+      border: 1px dashed var(--border-strong);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin: 1.75rem 0;
+      text-align: left;
+    }
+    .sample-title {
+      font-size: 0.85rem;
+      color: #ffd166;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .sample-quote {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      font-style: italic;
+    }
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+    .primary-btn {
+      background: linear-gradient(135deg, #fb8500, #ff5400);
+      color: #fff;
+      padding: 0.85rem 1.6rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 6px 18px rgba(251, 133, 0, 0.35);
+      transition: transform 0.15s ease;
+    }
+    .primary-btn:hover {
+      transform: translateY(-2px);
+    }
+    .secondary-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 0.85rem 1.6rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
+  <div class="hub-shell">
+    <header class="hub-header">
+      <a href="/" class="hub-brand">
+        <div class="brand-icon-wrap">
+          <img src="/assets/icons/ntnu_games.png?v=2.0" alt="NTNU Games logo" class="brand-icon-img" />
+        </div>
+        <div>
+          <h1 class="brand-title">NTNU Games</h1>
+          <p class="brand-subtitle">Partyspill</p>
+        </div>
+      </a>
+      <div class="hub-header-right">
+        <a href="/party/" class="primary-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">🎉 Partylounge</a>
+      </div>
+    </header>
+
+    <div class="placeholder-card">
+      <img src="/assets/icons/hvem_i_rommet.png" alt="Hvem i Rommet ikon" class="placeholder-icon" />
+      <span class="badge-soon">Kommer snart • Under utvikling</span>
+      <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem;">Hvem i Rommet?</h2>
+      <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.5;">
+        Klassisk pekegjettelek tilpasset mobilen! Hver runde dukker det opp en påstand. Alle i rommet stemmer anonymt på sin egen enhet på hvem i gjengen påstanden passer best til. Deretter avsløres stemmene i sanntid!
+      </p>
+
+      <div class="sample-box">
+        <div class="sample-title">Eksempel på påstand</div>
+        <div class="sample-quote" id="samplePrompt">«Hvem stryker mest sannsynlig i et emne dette semesteret?»</div>
+        <button type="button" id="btnNextPrompt" style="margin-top: 0.75rem; background: transparent; border: 1px solid var(--border-strong); color: var(--accent); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">🎲 Vis en annen påstand</button>
+      </div>
+
+      <div class="btn-group">
+        <a href="/party/" class="primary-btn">🎉 Åpne Party Lounge</a>
+        <a href="/ordbombe/" class="secondary-btn">💣 Spill Ordbombe nå</a>
+        <a href="/" class="secondary-btn">‹ Tilbake til Hub</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/parallax-bg.js?v=1.0"></script>
+  <script>
+    const prompts = [
+      "«Hvem stryker mest sannsynlig i et emne dette semesteret?»",
+      "«Hvem ender alltid opp på nachspiel til kl. 07 om morgenen?»",
+      "«Hvem bruker mest penger på kaffe og kantinemat per uke?»",
+      "«Hvem svarer aldri på meldinger i fellesgruppa før 3 dager senere?»",
+      "«Hvem har høyest sannsynlighet for å bli arrestert på byen?»",
+      "«Hvem overlever lengst i en zombie-apokalypse på Gløshaugen?»"
+    ];
+    let idx = 0;
+    document.getElementById("btnNextPrompt").addEventListener("click", () => {
+      idx = (idx + 1) % prompts.length;
+      document.getElementById("samplePrompt").textContent = prompts[idx];
+    });
+  </script>
+</body>
+</html>

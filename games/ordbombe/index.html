@@ -25,12 +25,12 @@
     <!-- Header -->
     <header class="game-header">
       <div class="header-left">
-        <a href="/" class="back-link" title="Tilbake til NTNU Games">‹ Hub</a>
+        <a href="/" class="back-link" id="headerBackLink" title="Tilbake til Hub">‹ Hub</a>
         <div class="game-brand">
           <img src="/assets/icons/ordbombe.png" alt="Ordbombe" class="game-icon-mini" />
           <div class="game-brand-text">
             <h1 class="game-title">Ordbombe</h1>
-            <span class="game-category-badge">💣 Partyspill</span>
+            <span class="game-category-badge" id="headerRoomBadge">💣 Partyspill</span>
           </div>
         </div>
       </div>
@@ -52,10 +52,22 @@
           <p class="setup-subtitle">Lynraskt norsk ordspill inspirert av <em>Word Bomb</em>. Tast inn et gyldig norsk ord som inneholder bokstavene før lunta brenner ut!</p>
         </div>
 
+        <!-- Multi-device Party Room banner -->
+        <div class="lobby-banner-cta" id="lobbyBannerCta">
+          <div class="lobby-cta-content">
+            <span class="lobby-cta-icon">📱</span>
+            <div>
+              <strong>Vil alle spille på hver sin mobil?</strong>
+              <p>Opprett et Party-rom i loungen! Da kan alle koble til med mobilen og bytte mellom spill.</p>
+            </div>
+          </div>
+          <a href="/party/" class="lobby-cta-btn">Åpne Party Lounge 🎉</a>
+        </div>
+
         <!-- Mode selector tabs -->
         <div class="mode-tabs">
           <button type="button" class="mode-tab-btn active" id="tabPartyMode">
-            🎉 Partymodus <span class="tab-sub">(2–8 spillere)</span>
+            🎉 Partymodus <span class="tab-sub">(Én enhet)</span>
           </button>
           <button type="button" class="mode-tab-btn" id="tabSoloMode">
             ⚡ Solomodus <span class="tab-sub">(Overlev mot klokka)</span>
@@ -141,13 +153,12 @@
 
       <!-- 2. GAMEPLAY ARENA (Active Bomb Stage) -->
       <section class="card game-arena hidden" id="gameArena" aria-live="polite">
-        <!-- Party / Solo Status Bar -->
+        <!-- Arena Top Status Bar -->
         <div class="arena-top-bar">
-          <!-- Turn Indicator -->
           <div class="active-turn-card" id="activeTurnCard">
             <span class="turn-avatar" id="turnAvatar">👤</span>
             <div>
-              <span class="turn-overline" id="turnOverline">Tur:</span>
+              <span class="turn-overline" id="turnOverline">Pil peker på:</span>
               <h3 class="turn-player-name" id="turnPlayerName">Spiller 1</h3>
             </div>
           </div>
@@ -167,34 +178,48 @@
           </div>
         </div>
 
-        <!-- Multi-player chips bar in party mode -->
-        <div class="party-players-strip" id="partyPlayersStrip">
-          <!-- Populated with player status pills -->
-        </div>
+        <!-- CIRCULAR ARENA STAGE: Players arranged in a circle with arrow pointing to active player -->
+        <div class="circular-arena-wrapper" id="circularArenaWrapper">
+          <!-- Background table ring -->
+          <div class="circle-table-ring" id="circleTableRing"></div>
 
-        <!-- Central Bomb & Burning Fuse Stage -->
-        <div class="bomb-stage-wrap" id="bombStageWrap">
-          <!-- Canvas for burning ember sparks -->
-          <canvas class="bomb-sparks-canvas" id="bombSparksCanvas" width="400" height="340"></canvas>
-
-          <!-- SVG Pixel Bomb Illustration -->
-          <div class="bomb-graphic" id="bombGraphic">
-            <div class="fuse-glow" id="fuseGlow"></div>
-            <img src="/assets/icons/ordbombe.png" alt="Tikkende bombe" class="bomb-pixel-art" id="bombImg" />
-          </div>
-
-          <!-- Timer Clock Gauge -->
-          <div class="timer-dial-box" id="timerDialBox">
-            <div class="timer-bar-track">
-              <div class="timer-bar-fill" id="timerBarFill" style="width: 100%;"></div>
+          <!-- Rotating Arrow Pointer originating from center -->
+          <div class="arena-center-pointer-wrap" id="arenaCenterPointerWrap">
+            <div class="arena-pointer-arrow" id="arenaPointerArrow">
+              <svg class="pointer-svg" viewBox="0 0 36 82" width="34" height="74" aria-hidden="true">
+                <defs>
+                  <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stop-color="#fb8500" stop-opacity="0.1" />
+                    <stop offset="35%" stop-color="#fb8500" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#ffd166" stop-opacity="1" />
+                  </linearGradient>
+                  <filter id="arrowGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#fb8500" />
+                  </filter>
+                </defs>
+                <path d="M 18 0 L 34 26 L 23 26 L 23 80 L 13 80 L 13 26 L 2 26 Z" fill="url(#arrowGrad)" filter="url(#arrowGlow)" />
+              </svg>
             </div>
-            <div class="timer-digits" id="timerDigits">9.0s</div>
           </div>
 
-          <!-- Syllable Letter Prompt Box -->
-          <div class="prompt-box" id="promptBox">
-            <span class="prompt-caption">Ordet må inneholde:</span>
-            <div class="prompt-letters" id="promptLetters">BIL</div>
+          <!-- Center Bomb & Letters Hub (NO VISIBLE TIMER) -->
+          <div class="bomb-center-hub" id="bombCenterHub">
+            <canvas class="bomb-sparks-canvas" id="bombSparksCanvas" width="280" height="280"></canvas>
+            <div class="bomb-graphic" id="bombGraphic">
+              <div class="fuse-glow" id="fuseGlow"></div>
+              <img src="/assets/icons/ordbombe.png" alt="Tikkende bombe" class="bomb-pixel-art" id="bombImg" />
+            </div>
+
+            <!-- Syllable Prompt in Center of Bomb -->
+            <div class="prompt-box" id="promptBox">
+              <span class="prompt-caption">Inneholder:</span>
+              <div class="prompt-letters" id="promptLetters">BIL</div>
+            </div>
+          </div>
+
+          <!-- Circular Players Container (populated in circle around center) -->
+          <div class="circle-players-container" id="circlePlayersContainer">
+            <!-- Player nodes injected here dynamically -->
           </div>
         </div>
 
@@ -260,6 +285,9 @@
 
         <!-- Bottom Action Buttons -->
         <div class="game-over-actions">
+          <button type="button" class="action-btn-primary hidden" id="btnBackToLobby">
+            ‹ Tilbake til Party Lounge
+          </button>
           <button type="button" class="action-btn-primary" id="btnPlayAgain">
             Spill en ny runde ↺
           </button>

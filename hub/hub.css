@@ -304,6 +304,109 @@ body {
   color: #fb8500;
 }
 
+.game-card.card-purple:hover {
+  border-color: #8338ec;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(131, 56, 236, 0.28);
+}
+.game-card.card-purple:hover .card-icon-box {
+  border-color: #8338ec;
+  box-shadow: 0 6px 20px rgba(131, 56, 236, 0.35);
+}
+
+.game-card.card-cyan:hover {
+  border-color: #00b4d8;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 180, 216, 0.28);
+}
+.game-card.card-cyan:hover .card-icon-box {
+  border-color: #00b4d8;
+  box-shadow: 0 6px 20px rgba(0, 180, 216, 0.35);
+}
+
+.game-card.card-pink:hover {
+  border-color: #ef476f;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(239, 71, 111, 0.28);
+}
+.game-card.card-pink:hover .card-icon-box {
+  border-color: #ef476f;
+  box-shadow: 0 6px 20px rgba(239, 71, 111, 0.35);
+}
+
+/* Party Lobby Hub Banner */
+.party-lobby-hub-banner {
+  background: linear-gradient(135deg, rgba(251, 133, 0, 0.14), rgba(131, 56, 236, 0.16));
+  border: 2px solid var(--accent-orange);
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 8px 24px rgba(251, 133, 0, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@media (max-width: 720px) {
+  .party-lobby-hub-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.pl-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.pl-banner-emoji {
+  font-size: 2.75rem;
+  flex-shrink: 0;
+}
+
+.pl-banner-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-orange);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.pl-banner-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.pl-banner-desc {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.pl-banner-btn {
+  background: linear-gradient(135deg, #fb8500, #ff5400);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.4rem;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(251, 133, 0, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.pl-banner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(251, 133, 0, 0.45);
+}
+
 .card-top {
   display: flex;
   justify-content: space-between;
