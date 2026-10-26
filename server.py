@@ -39,13 +39,16 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
             super().log_message(fmt, *args)
 
     def _send_json(self, data: Any, status: int = 200) -> None:
-        body = json.dumps(data, ensure_ascii=False).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def _read_json_body(self) -> Dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
@@ -93,8 +96,8 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                 if res:
                     return self._send_json(res[1], status=res[0])
 
-            # 5. Check Party API
-            if path.startswith("/api/party/"):
+            # 5. Check Party & Tegn og Gjett API
+            if path.startswith("/api/party/") or path.startswith("/api/tegn-og-gjett/"):
                 res = PartyAPI.handle_get(path, query)
                 if res:
                     return self._send_json(res[1], status=res[0])
@@ -141,8 +144,8 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                 if res:
                     return self._send_json(res[1], status=res[0])
 
-            # 5. Check Party API
-            if path.startswith("/api/party/"):
+            # 5. Check Party & Tegn og Gjett API
+            if path.startswith("/api/party/") or path.startswith("/api/tegn-og-gjett/"):
                 res = PartyAPI.handle_post(path, body)
                 if res:
                     return self._send_json(res[1], status=res[0])

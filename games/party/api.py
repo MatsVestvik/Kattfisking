@@ -13,6 +13,7 @@ import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 from games.ordbombe.api import check_word, get_prompts_cache
+from games.tegn_og_gjett.words import get_random_word_triplet, is_close_guess
 
 # In-memory party rooms storage
 _rooms: Dict[str, "PartyRoom"] = {}
@@ -32,7 +33,7 @@ class PartyRoom:
         self.host_token = host_token
         self.created_at = time.time()
         self.last_active = time.time()
-        self.current_game: Optional[str] = None  # None (lobby), "ordbombe", "hvem_i_rommet", etc.
+        self.current_game: Optional[str] = None  # None (lobby), "ordbombe", "tegn_og_gjett", etc.
         self.game_state: Dict[str, Any] = {}
         self.players: Dict[str, Dict[str, Any]] = {}
         self.version = 1
@@ -67,6 +68,8 @@ class PartyRoom:
             # Tick active game if running
             if self.current_game == "ordbombe":
                 self._tick_ordbombe()
+            elif self.current_game == "tegn_og_gjett":
+                self._tick_tegn_og_gjett()
 
             players_list = []
             for p in self.players.values():
@@ -85,6 +88,11 @@ class PartyRoom:
 
             client_player = self.players.get(client_player_id or "")
 
+            if self.current_game == "tegn_og_gjett":
+                effective_game_state = self._get_tegn_og_gjett_public_state(client_player_id)
+            else:
+                effective_game_state = self.game_state
+
             return {
                 "ok": True,
                 "roomCode": self.code,
@@ -94,7 +102,7 @@ class PartyRoom:
                 "playerCount": len(players_list),
                 "isHost": bool(client_player and client_player.get("is_host")),
                 "me": client_player,
-                "gameState": self.game_state,
+                "gameState": effective_game_state,
                 "serverTime": time.time(),
             }
 
@@ -319,6 +327,488 @@ class PartyRoom:
                 }
                 self.bump()
 
+    # --- TEGN & GJETT ENGINE (skribbl.io style) ---
+
+    def start_tegn_og_gjett(self, settings: Dict[str, Any]) -> None:
+        with self.lock:
+            self.current_game = "tegn_og_gjett"
+            draw_time = int(settings.get("drawTime") or 80)
+            rounds = int(settings.get("rounds") or 3)
+
+            active_ids = list(self.players.keys())
+            if not active_ids:
+                return
+
+            random.shuffle(active_ids)
+            for p in self.players.values():
+                p["score"] = 0
+                p["lives"] = 3
+                p["eliminated"] = False
+
+            triplet = get_random_word_triplet()
+            now = time.time()
+            first_drawer_id = active_ids[0]
+            first_drawer_name = self.players[first_drawer_id]["name"]
+
+            self.game_state = {
+                "status": "playing",
+                "total_rounds": rounds,
+                "current_round": 1,
+                "turn_order": active_ids,
+                "turn_idx": 0,
+                "active_drawer_id": first_drawer_id,
+                "active_drawer_name": first_drawer_name,
+                "turn_state": "choosing",  # "choosing", "drawing", "round_recap", "game_over"
+                "draw_time": draw_time,
+                "time_remaining": 15.0,
+                "choice_deadline": now + 15.0,
+                "word_choices": triplet,
+                "secret_word": "",
+                "category": "",
+                "revealed_indices": [],
+                "draw_actions": [],
+                "next_action_id": 1,
+                "guessed_player_ids": [],
+                "turn_start_time": now,
+                "chat_messages": [
+                    {
+                        "id": 1,
+                        "type": "system",
+                        "sender": "System",
+                        "text": f"🎨 Velkommen til Tegn & Gjett! Runde 1 av {rounds}. {first_drawer_name} velger et ord…",
+                        "timestamp": now,
+                    }
+                ],
+                "next_msg_id": 2,
+                "winner": None,
+                "podium": [],
+            }
+            self.bump()
+
+    def _get_tegn_og_gjett_public_state(self, client_player_id: Optional[str]) -> Dict[str, Any]:
+        gs = dict(self.game_state)
+        active_drawer_id = gs.get("active_drawer_id")
+        turn_state = gs.get("turn_state", "choosing")
+        secret_word = gs.get("secret_word") or ""
+        revealed = set(gs.get("revealed_indices") or [])
+        guessed_ids = set(gs.get("guessed_player_ids") or [])
+
+        is_drawer = bool(client_player_id and client_player_id == active_drawer_id)
+        has_guessed = bool(client_player_id and client_player_id in guessed_ids)
+        is_revealed_phase = turn_state in ("round_recap", "game_over")
+
+        # Word masking security
+        if is_drawer or has_guessed or is_revealed_phase:
+            word_for_client = secret_word
+            masked_word = None
+        else:
+            word_for_client = None
+            masked_chars = []
+            for idx, ch in enumerate(secret_word):
+                if ch == " ":
+                    masked_chars.append("  ")
+                elif ch == "-":
+                    masked_chars.append("-")
+                elif idx in revealed:
+                    masked_chars.append(ch.upper())
+                else:
+                    masked_chars.append("_")
+            masked_word = " ".join(masked_chars)
+
+        if is_drawer and turn_state == "choosing":
+            choices = gs.get("word_choices", [])
+        else:
+            choices = []
+
+        gs["word"] = word_for_client
+        gs["masked_word"] = masked_word
+        gs["word_choices"] = choices
+        gs["is_drawer"] = is_drawer
+        gs["has_guessed"] = has_guessed
+        if "secret_word" in gs and not (is_drawer or has_guessed or is_revealed_phase):
+            del gs["secret_word"]
+
+        # Only send last 50 chat messages to keep payload light
+        if "chat_messages" in gs:
+            gs["chat_messages"] = gs["chat_messages"][-50:]
+
+        return gs
+
+    def _start_drawing_turn(self, word: str, category: str) -> None:
+        now = time.time()
+        gs = self.game_state
+        gs["turn_state"] = "drawing"
+        gs["secret_word"] = word
+        gs["category"] = category
+        gs["turn_start_time"] = now
+        gs["time_remaining"] = float(gs.get("draw_time", 80))
+        gs["revealed_indices"] = []
+        gs["guessed_player_ids"] = []
+        gs["draw_actions"] = []
+        gs["next_action_id"] = 1
+
+        drawer_name = gs.get("active_drawer_name", "Tegneren")
+        msg_id = gs.get("next_msg_id", 1)
+        letter_count = len(word.replace(" ", "").replace("-", ""))
+        gs["chat_messages"].append({
+            "id": msg_id,
+            "type": "system",
+            "sender": "System",
+            "text": f"🎨 {drawer_name} har valgt et ord ({letter_count} bokstaver, {category})! Begynn å gjette!",
+            "timestamp": now,
+        })
+        gs["next_msg_id"] = msg_id + 1
+        self.bump()
+
+    def _end_drawing_turn(self, reason: str = "time_up") -> None:
+        now = time.time()
+        gs = self.game_state
+        gs["turn_state"] = "round_recap"
+        gs["recap_until"] = now + 4.5
+
+        word = gs.get("secret_word", "").upper()
+        guessed_count = len(gs.get("guessed_player_ids", []))
+        msg_id = gs.get("next_msg_id", 1)
+
+        if reason == "all_guessed":
+            text = f"🌟 Fantastisk! Alle gjettet ordet: «{word}»!"
+        else:
+            text = f"⏰ Tiden er ute! Ordet var «{word}». {guessed_count} spiller(e) gjettet riktig."
+
+        gs["chat_messages"].append({
+            "id": msg_id,
+            "type": "system_highlight",
+            "sender": "System",
+            "text": text,
+            "timestamp": now,
+        })
+        gs["next_msg_id"] = msg_id + 1
+        self.bump()
+
+    def _advance_turn(self) -> None:
+        now = time.time()
+        gs = self.game_state
+        turn_order = gs.get("turn_order", [])
+        if not turn_order:
+            turn_order = list(self.players.keys())
+            gs["turn_order"] = turn_order
+
+        curr_turn_idx = gs.get("turn_idx", 0)
+        next_turn_idx = curr_turn_idx + 1
+        total_rounds = gs.get("total_rounds", 3)
+        curr_round = gs.get("current_round", 1)
+
+        if next_turn_idx >= len(turn_order):
+            curr_round += 1
+            next_turn_idx = 0
+            if curr_round > total_rounds:
+                self._end_tegn_og_gjett_game()
+                return
+            gs["current_round"] = curr_round
+
+        next_drawer_id = turn_order[next_turn_idx]
+        if next_drawer_id not in self.players and self.players:
+            next_drawer_id = next(iter(self.players))
+
+        drawer_name = self.players.get(next_drawer_id, {}).get("name", "Ukjent")
+        triplet = get_random_word_triplet()
+
+        gs["turn_idx"] = next_turn_idx
+        gs["active_drawer_id"] = next_drawer_id
+        gs["active_drawer_name"] = drawer_name
+        gs["turn_state"] = "choosing"
+        gs["time_remaining"] = 15.0
+        gs["choice_deadline"] = now + 15.0
+        gs["word_choices"] = triplet
+        gs["secret_word"] = ""
+        gs["category"] = ""
+        gs["revealed_indices"] = []
+        gs["guessed_player_ids"] = []
+        gs["draw_actions"] = []
+        gs["next_action_id"] = 1
+
+        msg_id = gs.get("next_msg_id", 1)
+        gs["chat_messages"].append({
+            "id": msg_id,
+            "type": "system",
+            "sender": "System",
+            "text": f"🔔 Runde {curr_round} av {total_rounds}: {drawer_name} velger et ord…",
+            "timestamp": now,
+        })
+        gs["next_msg_id"] = msg_id + 1
+        self.bump()
+
+    def _end_tegn_og_gjett_game(self) -> None:
+        now = time.time()
+        gs = self.game_state
+        gs["status"] = "game_over"
+        gs["turn_state"] = "game_over"
+
+        sorted_players = sorted(
+            self.players.values(),
+            key=lambda p: p.get("score", 0),
+            reverse=True
+        )
+
+        podium = []
+        for rank, p in enumerate(sorted_players[:3], start=1):
+            podium.append({
+                "rank": rank,
+                "id": p["id"],
+                "name": p["name"],
+                "avatar": p["avatar"],
+                "score": p["score"],
+                "color": p["color"],
+            })
+
+        gs["podium"] = podium
+        winner = sorted_players[0] if sorted_players else None
+        gs["winner"] = winner
+
+        msg_id = gs.get("next_msg_id", 1)
+        winner_name = winner["name"] if winner else "Vinner"
+        winner_score = winner["score"] if winner else 0
+        gs["chat_messages"].append({
+            "id": msg_id,
+            "type": "winner",
+            "sender": "System",
+            "text": f"🏆 Spillet er over! Gratulerer til {winner_name} som vant med {winner_score} poeng!",
+            "timestamp": now,
+        })
+        gs["next_msg_id"] = msg_id + 1
+        self.bump()
+
+    def _tick_tegn_og_gjett(self) -> None:
+        gs = self.game_state
+        if gs.get("status") != "playing":
+            return
+
+        now = time.time()
+        turn_state = gs.get("turn_state")
+
+        if turn_state == "choosing":
+            deadline = gs.get("choice_deadline", now)
+            remaining = max(0.0, deadline - now)
+            gs["time_remaining"] = round(remaining, 1)
+            if remaining <= 0:
+                choices = gs.get("word_choices") or [{"word": "sol", "category": "Natur"}]
+                chosen = choices[0]
+                self._start_drawing_turn(chosen["word"], chosen.get("category", "Ting"))
+
+        elif turn_state == "drawing":
+            turn_start = gs.get("turn_start_time", now)
+            duration = gs.get("draw_time", 80)
+            elapsed = now - turn_start
+            remaining = max(0.0, duration - elapsed)
+            gs["time_remaining"] = round(remaining, 1)
+
+            word = gs.get("secret_word", "")
+            # Hint 1 at 50% elapsed
+            if elapsed >= duration * 0.50 and len(word) >= 4:
+                revealed = gs.setdefault("revealed_indices", [])
+                if not revealed:
+                    valid_idx = [i for i, c in enumerate(word) if c not in (" ", "-")]
+                    if valid_idx:
+                        revealed.append(random.choice(valid_idx))
+                        self.bump()
+
+            # Hint 2 at 75% elapsed
+            if elapsed >= duration * 0.75 and len(word) >= 6:
+                revealed = gs.setdefault("revealed_indices", [])
+                valid_idx = [i for i, c in enumerate(word) if c not in (" ", "-") and i not in revealed]
+                if len(revealed) == 1 and valid_idx:
+                    revealed.append(random.choice(valid_idx))
+                    self.bump()
+
+            # Time is up
+            if remaining <= 0:
+                self._end_drawing_turn(reason="time_up")
+
+        elif turn_state == "round_recap":
+            recap_until = gs.get("recap_until", 0)
+            if now >= recap_until:
+                self._advance_turn()
+
+    def handle_tegn_og_gjett_action(self, player_id: str, body: Dict[str, Any]) -> Tuple[int, Dict[str, Any]]:
+        with self.lock:
+            if self.current_game != "tegn_og_gjett":
+                return 400, {"ok": False, "error": "Tegn & Gjett er ikke aktivt"}
+
+            action = str(body.get("action") or "").strip()
+            gs = self.game_state
+            player = self.players.get(player_id)
+            if not player:
+                return 403, {"ok": False, "error": "Spiller ikke funnet i rommet"}
+
+            if action == "choose_word":
+                if gs.get("turn_state") != "choosing":
+                    return 400, {"ok": False, "error": "Ikke i ordvalg-fase"}
+                if gs.get("active_drawer_id") != player_id:
+                    return 403, {"ok": False, "error": "Bare den aktive tegneren kan velge ord"}
+
+                chosen_word = str(body.get("word") or "").strip().lower()
+                valid_words = [w["word"].lower() for w in gs.get("word_choices", [])]
+                category = "Ting"
+                for w in gs.get("word_choices", []):
+                    if w["word"].lower() == chosen_word:
+                        category = w.get("category", "Ting")
+                        break
+
+                if chosen_word not in valid_words and valid_words:
+                    chosen_word = valid_words[0]
+
+                self._start_drawing_turn(chosen_word, category)
+                return 200, {"ok": True, "word": chosen_word}
+
+            elif action == "draw":
+                if gs.get("turn_state") != "drawing":
+                    return 400, {"ok": False, "error": "Tegning er ikke aktiv"}
+                if gs.get("active_drawer_id") != player_id:
+                    return 403, {"ok": False, "error": "Bare den aktive tegneren kan tegne"}
+
+                new_actions = body.get("actions") or []
+                if not isinstance(new_actions, list):
+                    return 400, {"ok": False, "error": "actions må være en liste"}
+
+                draw_actions = gs.setdefault("draw_actions", [])
+                next_id = gs.get("next_action_id", 1)
+
+                for act in new_actions[:150]:
+                    if isinstance(act, dict):
+                        act_copy = dict(act)
+                        act_copy["id"] = next_id
+                        next_id += 1
+                        draw_actions.append(act_copy)
+
+                gs["next_action_id"] = next_id
+                self.touch()
+                return 200, {"ok": True, "lastActionId": next_id - 1}
+
+            elif action == "clear_canvas":
+                if gs.get("turn_state") != "drawing":
+                    return 400, {"ok": False, "error": "Tegning er ikke aktiv"}
+                if gs.get("active_drawer_id") != player_id:
+                    return 403, {"ok": False, "error": "Bare den aktive tegneren kan tømme lerretet"}
+
+                draw_actions = gs.setdefault("draw_actions", [])
+                next_id = gs.get("next_action_id", 1)
+                draw_actions.append({"id": next_id, "type": "clear", "color": "#ffffff"})
+                gs["next_action_id"] = next_id + 1
+                self.touch()
+                return 200, {"ok": True, "lastActionId": next_id}
+
+            elif action == "guess":
+                if gs.get("turn_state") != "drawing":
+                    return 400, {"ok": False, "error": "Runden er ikke aktiv nå"}
+                if gs.get("active_drawer_id") == player_id:
+                    return 400, {"ok": False, "error": "Tegneren kan ikke gjette"}
+
+                guessed_ids = gs.setdefault("guessed_player_ids", [])
+                if player_id in guessed_ids:
+                    return 400, {"ok": False, "error": "Du har allerede gjettet ordet!"}
+
+                text = str(body.get("text") or "").strip()
+                if not text:
+                    return 400, {"ok": False, "error": "Tom gjetning"}
+
+                secret_word = gs.get("secret_word", "").lower()
+                clean_guess = text.lower()
+                now = time.time()
+                msg_id = gs.get("next_msg_id", 1)
+
+                if clean_guess == secret_word:
+                    turn_start = gs.get("turn_start_time", now)
+                    duration = gs.get("draw_time", 80)
+                    elapsed = now - turn_start
+                    frac = max(0.0, min(1.0, 1.0 - (elapsed / duration)))
+                    points = int(100 + frac * 300)
+                    if len(guessed_ids) == 0:
+                        points += 50
+
+                    player["score"] = player.get("score", 0) + points
+
+                    drawer_id = gs.get("active_drawer_id")
+                    drawer = self.players.get(drawer_id or "")
+                    if drawer:
+                        drawer["score"] = drawer.get("score", 0) + 75
+
+                    guessed_ids.append(player_id)
+
+                    gs["chat_messages"].append({
+                        "id": msg_id,
+                        "type": "correct",
+                        "sender": player["name"],
+                        "text": f"gjettet ordet! (+{points}p)",
+                        "points": points,
+                        "timestamp": now,
+                    })
+                    gs["next_msg_id"] = msg_id + 1
+
+                    turn_order = gs.get("turn_order", [])
+                    other_count = max(1, len(turn_order) - 1)
+                    if len(guessed_ids) >= other_count:
+                        self._end_drawing_turn(reason="all_guessed")
+                    else:
+                        self.bump()
+
+                    return 200, {
+                        "ok": True,
+                        "correct": True,
+                        "points": points,
+                        "word": secret_word,
+                    }
+                else:
+                    is_close = is_close_guess(clean_guess, secret_word)
+                    if is_close:
+                        return 200, {
+                            "ok": True,
+                            "correct": False,
+                            "close": True,
+                            "guess": text,
+                        }
+                    else:
+                        gs["chat_messages"].append({
+                            "id": msg_id,
+                            "type": "guess",
+                            "sender": player["name"],
+                            "text": text,
+                            "timestamp": now,
+                        })
+                        gs["next_msg_id"] = msg_id + 1
+                        self.bump()
+                        return 200, {
+                            "ok": True,
+                            "correct": False,
+                            "close": False,
+                        }
+
+            elif action == "restart":
+                host_token = str(body.get("hostToken") or "").strip()
+                if self.host_token != host_token:
+                    return 403, {"ok": False, "error": "Kun verten kan starte spillet på nytt"}
+                self.start_tegn_og_gjett(body.get("settings") or {})
+                return 200, {"ok": True}
+
+            elif action == "to_lobby":
+                host_token = str(body.get("hostToken") or "").strip()
+                if self.host_token != host_token:
+                    return 403, {"ok": False, "error": "Kun verten kan gå tilbake til lobby"}
+                self.current_game = None
+                self.game_state = {}
+                self.bump()
+                return 200, {"ok": True}
+
+            return 400, {"ok": False, "error": f"Ukjent handling «{action}»"}
+
+    def get_draw_actions_since(self, since_id: int) -> List[Dict[str, Any]]:
+        with self.lock:
+            if self.current_game != "tegn_og_gjett":
+                return []
+            actions = self.game_state.get("draw_actions", [])
+            if since_id <= 0:
+                return actions
+            return [a for a in actions if a.get("id", 0) > since_id]
+
 
 class PartyAPI:
     @staticmethod
@@ -346,14 +836,40 @@ class PartyAPI:
                 room.touch()
 
             # If polling and client already has current version, short wait (up to 1.5s)
-            if client_v >= 0 and client_v == room.version and room.current_game != "ordbombe":
+            if client_v >= 0 and client_v == room.version and room.current_game not in ("ordbombe", "tegn_og_gjett"):
                 time.sleep(0.4)
 
             state = room.get_public_state(player_id)
             return 200, state
 
+        if rel_path == "/api/tegn-og-gjett/draw-sync":
+            code = (query.get("code", [""])[0] or "").strip().upper()
+            try:
+                since_id = int(query.get("since", [0])[0] or 0)
+            except (ValueError, TypeError):
+                since_id = 0
+
+            with _rooms_lock:
+                room = _rooms.get(code)
+
+            if not room:
+                return 404, {"ok": False, "error": "Rommet finnes ikke"}
+
+            actions = room.get_draw_actions_since(since_id)
+            return 200, {
+                "ok": True,
+                "actions": actions,
+                "lastActionId": room.game_state.get("next_action_id", 1) - 1,
+            }
+
+        if rel_path in ("/api/tegn-og-gjett/random-word", "/api/tegn-og-gjett/words"):
+            return 200, {
+                "ok": True,
+                "words": get_random_word_triplet(),
+            }
+
         if rel_path == "/api/list-games":
-            # List of party games available or coming soon
+            # List of active party games
             return 200, {
                 "ok": True,
                 "games": [
@@ -363,29 +879,18 @@ class PartyAPI:
                         "subtitle": "Norsk Word Bomb med tikkende lunte",
                         "desc": "Tast inn et ord med stavelsen før bomben eksploderer på mobilen din!",
                         "status": "ready",
-                        "badge": "Klar til å spilles!",
+                        "badge": "Klar til å spilles! 💣",
                         "players": "2–16 spillere",
                         "icon": "/assets/icons/ordbombe.png",
                         "route": "/ordbombe/",
                     },
                     {
-                        "id": "hvem_i_rommet",
-                        "title": "Hvem i Rommet?",
-                        "subtitle": "Avstemningsspill for vennegjengen",
-                        "desc": "Hvem passer best til påstanden? Alle stemmer anonymt på telefonen, før resultatene avsløres!",
-                        "status": "placeholder",
-                        "badge": "Kommer snart",
-                        "players": "3–16 spillere",
-                        "icon": "/assets/icons/hvem_i_rommet.png",
-                        "route": "/hvem-i-rommet/",
-                    },
-                    {
                         "id": "tegn_og_gjett",
                         "title": "Tegn & Gjett",
-                        "subtitle": "Lynrask tegning og gjetting på mobil",
-                        "desc": "En tegner hemmelig ord på mobilen, resten gjetter i lynrask sanntidschat!",
-                        "status": "placeholder",
-                        "badge": "Kommer snart",
+                        "subtitle": "Klassisk tegne- og gjettespill (skribbl-stil)",
+                        "desc": "Én tegner et hemmelig ord på mobilen, resten gjetter i lynrask sanntidschat!",
+                        "status": "ready",
+                        "badge": "Klar til å spilles! 🎨",
                         "players": "2–16 spillere",
                         "icon": "/assets/icons/tegn_og_gjett.png",
                         "route": "/tegn-og-gjett/",
@@ -498,6 +1003,8 @@ class PartyAPI:
 
                 if game_id == "ordbombe":
                     room.start_ordbombe(settings)
+                elif game_id == "tegn_og_gjett":
+                    room.start_tegn_og_gjett(settings)
                 elif game_id is None:
                     # Return to lobby
                     room.current_game = None
@@ -542,6 +1049,18 @@ class PartyAPI:
                 return 200, {"ok": True}
 
             return 400, {"ok": False, "error": f"Ukjent handling «{action}»"}
+
+        if rel_path == "/api/tegn-og-gjett/action":
+            code = str(body.get("roomCode") or "").strip().upper()
+            player_id = str(body.get("playerId") or "").strip()
+
+            with _rooms_lock:
+                room = _rooms.get(code)
+
+            if not room:
+                return 404, {"ok": False, "error": "Rommet finnes ikke"}
+
+            return room.handle_tegn_og_gjett_action(player_id, body)
 
         if rel_path == "/api/leave":
             code = str(body.get("roomCode") or "").strip().upper()

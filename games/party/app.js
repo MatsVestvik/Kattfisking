@@ -49,6 +49,9 @@
     btnStartOrdbombe: document.getElementById("btnStartOrdbombe"),
     selectTimerParty: document.getElementById("selectTimerParty"),
     selectDiffParty: document.getElementById("selectDiffParty"),
+    btnStartTegnOgGjett: document.getElementById("btnStartTegnOgGjett"),
+    selectTimerDraw: document.getElementById("selectTimerDraw"),
+    selectRoundsDraw: document.getElementById("selectRoundsDraw"),
     btnLeaveRoom: document.getElementById("btnLeaveRoom"),
     connStatusText: document.getElementById("connStatusText"),
   };
@@ -277,6 +280,13 @@
             window.location.href = target;
             return;
           }
+
+          if (data.currentGame === "tegn_og_gjett") {
+            // Redirect to Tegn & Gjett in room mode!
+            const target = `/tegn-og-gjett/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
+            window.location.href = target;
+            return;
+          }
         }
       } catch (err) {
         console.warn("Poll connection hiccup:", err);
@@ -365,6 +375,51 @@
       el.btnStartOrdbombe.textContent = "Start Ordbombe 💣";
     }
   });
+
+  // Host launches Tegn & Gjett
+  if (el.btnStartTegnOgGjett) {
+    el.btnStartTegnOgGjett.addEventListener("click", async () => {
+      if (!state.isHost || !state.hostToken) return;
+
+      el.btnStartTegnOgGjett.disabled = true;
+      el.btnStartTegnOgGjett.textContent = "Starter spill…";
+
+      const drawTime = parseInt(el.selectTimerDraw?.value || "80", 10);
+      const rounds = parseInt(el.selectRoundsDraw?.value || "3", 10);
+
+      try {
+        const resp = await fetch("/api/party/select-game", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            hostToken: state.hostToken,
+            gameId: "tegn_og_gjett",
+            settings: {
+              drawTime: drawTime,
+              rounds: rounds,
+            },
+          }),
+        });
+
+        const data = await resp.json();
+        if (!data.ok) {
+          alert(data.error || "Kunne ikke starte Tegn & Gjett.");
+          el.btnStartTegnOgGjett.disabled = false;
+          el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett 🎨";
+          return;
+        }
+
+        // Transition self immediately
+        window.location.href = `/tegn-og-gjett/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
+      } catch (err) {
+        console.error(err);
+        alert("Feil ved start av spill.");
+        el.btnStartTegnOgGjett.disabled = false;
+        el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett 🎨";
+      }
+    });
+  }
 
   // Copy invitation link
   el.btnCopyLink.addEventListener("click", async () => {

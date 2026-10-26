@@ -2,102 +2,20 @@
 <html lang="no" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tegn & Gjett – Norsk Partyspill | NTNU Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tegn & Gjett – Norsk Skribbl | NTNU Games</title>
+  <meta name="description" content="Klassisk skribbl-moro på mobilen! Én tegner hemmelig ord på mobilen, resten gjetter i lynrask sanntidschat." />
+  
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" href="/assets/icons/tegn_og_gjett.png" />
   <link rel="apple-touch-icon" href="/assets/icons/tegn_og_gjett.png" />
-  <link rel="stylesheet" href="/hub.css?v=2.0" />
+  
+  <link rel="stylesheet" href="/hub.css?v=2.1" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
-  <style>
-    .placeholder-card {
-      background: rgba(19, 27, 46, 0.85);
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      padding: 2.5rem;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 12px 36px rgba(0,0,0,0.4);
-      max-width: 720px;
-      margin: 2rem auto;
-      text-align: center;
-    }
-    .placeholder-icon {
-      width: 120px;
-      height: 120px;
-      border-radius: 20px;
-      border: 2px solid #00b4d8;
-      box-shadow: 0 0 24px rgba(0, 180, 216, 0.4);
-      margin: 0 auto 1.5rem;
-      display: block;
-      image-rendering: pixelated;
-    }
-    .badge-soon {
-      display: inline-block;
-      padding: 0.35rem 0.85rem;
-      border-radius: 999px;
-      background: rgba(0, 180, 216, 0.18);
-      color: #00b4d8;
-      border: 1px solid #00b4d8;
-      font-size: 0.85rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 1rem;
-    }
-    .mini-canvas-box {
-      background: #0f1523;
-      border: 2px solid var(--border-strong);
-      border-radius: 12px;
-      padding: 1rem;
-      margin: 1.75rem auto;
-      max-width: 360px;
-    }
-    #teaserCanvas {
-      background: #ffffff;
-      border-radius: 8px;
-      cursor: crosshair;
-      touch-action: none;
-      display: block;
-      margin: 0 auto;
-    }
-    .btn-group {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 2rem;
-    }
-    .primary-btn {
-      background: linear-gradient(135deg, #fb8500, #ff5400);
-      color: #fff;
-      padding: 0.85rem 1.6rem;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 6px 18px rgba(251, 133, 0, 0.35);
-      transition: transform 0.15s ease;
-    }
-    .primary-btn:hover {
-      transform: translateY(-2px);
-    }
-    .secondary-btn {
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-strong);
-      color: var(--text);
-      padding: 0.85rem 1.6rem;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-  </style>
+  <link rel="stylesheet" href="/tegn-og-gjett/styles.css?v=1.0" />
 </head>
 <body>
+  <!-- Ambient Parallax Landscape -->
   <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
     <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
     <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
@@ -107,75 +25,190 @@
     <div class="parallax-vignette-overlay"></div>
   </div>
 
-  <div class="hub-shell">
-    <header class="hub-header">
-      <a href="/" class="hub-brand">
-        <div class="brand-icon-wrap">
-          <img src="/assets/icons/ntnu_games.png?v=2.0" alt="NTNU Games logo" class="brand-icon-img" />
+  <div class="game-shell">
+    <!-- Game Header Bar -->
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/party/" class="brand-btn" id="btnBack">
+          ‹ <span id="backBtnText">Lounge</span>
+        </a>
+        <div class="brand-badge">
+          <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett" class="brand-icon" />
+          <span class="brand-title">Tegn & Gjett</span>
         </div>
-        <div>
-          <h1 class="brand-title">NTNU Games</h1>
-          <p class="brand-subtitle">Partyspill</p>
+        <span class="round-pill" id="roundIndicator">Runde 1 av 3</span>
+      </div>
+
+      <div class="header-center">
+        <div class="word-label" id="wordStatusLabel">Hemmelig ord</div>
+        <div class="word-display-box" id="wordDisplayBox">
+          <span class="masked-word-text" id="maskedWordText">_ _ _ _ _</span>
+          <span class="word-length-hint" id="wordLengthHint">(5 bokstaver)</span>
         </div>
-      </a>
-      <div class="hub-header-right">
-        <a href="/party/" class="primary-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">🎉 Partylounge</a>
+      </div>
+
+      <div class="header-right">
+        <div class="timer-bubble" id="timerBubble" title="Tid igjen">
+          <span id="timerText">80</span>
+        </div>
+        <button type="button" class="icon-control-btn" id="btnSoundToggle" title="Lyd av/på">
+          🔊
+        </button>
       </div>
     </header>
 
-    <div class="placeholder-card">
-      <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett ikon" class="placeholder-icon" />
-      <span class="badge-soon">Kommer snart • Under utvikling</span>
-      <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem;">Tegn & Gjett</h2>
-      <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.5;">
-        Klassisk skribbl-konkurranse på mobilen! Én spiller trekker et hemmelig ord og tegner det på sin mobilskjerm i sanntid. Resten av vennegjengen gjetter på telefonene sine så fort de bare klarer.
-      </p>
+    <!-- Main Game Workspace -->
+    <main class="game-main-grid">
+      <!-- Left Panel: Players Scoreboard -->
+      <aside class="game-panel panel-leaderboard">
+        <div class="panel-header-title">
+          <span>Spillere</span>
+          <span id="playersCountBadge">1</span>
+        </div>
+        <div class="players-list" id="playersList">
+          <!-- Dynamic player rows -->
+        </div>
+      </aside>
 
-      <div class="mini-canvas-box">
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 700;">Prøvetegning (Doodle her):</div>
-        <canvas id="teaserCanvas" width="300" height="180"></canvas>
-        <button type="button" id="btnClearCanvas" style="margin-top: 0.5rem; background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 0.25rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Tøm lerret</button>
+      <!-- Center Panel: Drawing Canvas & Tools -->
+      <section class="game-panel panel-canvas-container">
+        <!-- Solo practice controls (shown when not in room) -->
+        <div class="solo-mode-bar hidden" id="soloModeBar">
+          <div class="solo-word-prompt">
+            💡 Øvingsord: <span id="soloWordTarget">Katt</span>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button type="button" class="tool-action-btn" id="btnSoloNewWord">🎲 Nytt ord</button>
+            <button type="button" class="tool-action-btn" id="btnSoloDownload">💾 Lagre bilde</button>
+            <a href="/party/" class="tool-action-btn" style="background: rgba(251, 133, 0, 0.25); border-color: #fb8500; color: #fb8500;">🎉 Flerspiller</a>
+          </div>
+        </div>
+
+        <!-- Canvas Viewport -->
+        <div class="canvas-viewport-wrap" id="canvasViewportWrap">
+          <canvas id="paintCanvas" width="800" height="500"></canvas>
+
+          <!-- Status Notice Overlay (e.g. Turn pause or choosing word) -->
+          <div class="canvas-notice-overlay" id="canvasNoticeOverlay">
+            <div class="notice-icon" id="noticeIcon">🎨</div>
+            <h2 class="notice-title" id="noticeTitle">Gjør deg klar!</h2>
+            <p class="notice-subtitle" id="noticeSubtitle">Venter på at tegneren skal velge ord…</p>
+          </div>
+        </div>
+
+        <!-- Drawing Toolbar (Only enabled for active drawer or solo mode) -->
+        <div class="drawing-toolbar" id="drawingToolbar">
+          <!-- Colors -->
+          <div class="tool-group">
+            <div class="colors-palette" id="colorsPalette">
+              <!-- Swatches injected via JS -->
+            </div>
+          </div>
+
+          <!-- Brush Sizes -->
+          <div class="tool-group" id="brushSizesGroup">
+            <button type="button" class="size-btn active" data-size="3" title="Tynn linje">
+              <span class="brush-dot" style="width: 4px; height: 4px;"></span>
+            </button>
+            <button type="button" class="size-btn" data-size="7" title="Middels linje">
+              <span class="brush-dot" style="width: 8px; height: 8px;"></span>
+            </button>
+            <button type="button" class="size-btn" data-size="14" title="Tykk linje">
+              <span class="brush-dot" style="width: 14px; height: 14px;"></span>
+            </button>
+            <button type="button" class="size-btn" data-size="28" title="Ekstra tykk">
+              <span class="brush-dot" style="width: 22px; height: 22px;"></span>
+            </button>
+          </div>
+
+          <!-- Tools -->
+          <div class="tool-group">
+            <button type="button" class="tool-action-btn active" id="btnToolPencil" title="Blyant / Tusj">
+              ✏️ <span class="btn-text-responsive">Tusj</span>
+            </button>
+            <button type="button" class="tool-action-btn" id="btnToolEraser" title="Viskelær">
+              🧹 <span class="btn-text-responsive">Visk</span>
+            </button>
+            <button type="button" class="tool-action-btn" id="btnToolFill" title="Fyll lerret med farge">
+              🪣 <span class="btn-text-responsive">Fyll</span>
+            </button>
+            <button type="button" class="tool-action-btn" id="btnToolUndo" title="Angre siste strek">
+              ↩️ <span class="btn-text-responsive">Angre</span>
+            </button>
+            <button type="button" class="tool-action-btn btn-danger" id="btnToolClear" title="Tøm hele lerretet">
+              🗑️ <span class="btn-text-responsive">Tøm</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Live Chat & Guess Stream -->
+      <aside class="game-panel panel-chat">
+        <div class="panel-header-title">
+          <span>Gjetninger & Chat</span>
+          <span id="chatConnDot" style="color: #10b981;">●</span>
+        </div>
+        <div class="chat-messages-container" id="chatMessagesContainer">
+          <!-- Dynamic chat bubbles -->
+        </div>
+
+        <form class="chat-form" id="chatForm">
+          <input
+            type="text"
+            class="chat-input"
+            id="chatInput"
+            placeholder="Gjett ordet her…"
+            autocomplete="off"
+            maxlength="40"
+          />
+          <button type="submit" class="chat-send-btn" id="btnSendGuess">
+            Send
+          </button>
+        </form>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Modal: Word Selection (Visible to drawer during 'choosing') -->
+  <div class="modal-overlay" id="modalWordChoice">
+    <div class="modal-card">
+      <div style="font-size: 2.5rem; margin-bottom: 0.35rem;">🎨</div>
+      <h2 class="modal-title">Velg et ord å tegne!</h2>
+      <p class="modal-subtitle">Gjør et valg før tiden renner ut:</p>
+      
+      <div class="word-choices-grid" id="wordChoicesGrid">
+        <!-- Injected dynamically -->
+      </div>
+      
+      <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 700;">
+        Tid igjen til automatisk valg: <span id="choiceTimerText" style="color: #fb8500; font-size: 1.1rem; font-weight: 900;">15</span>s
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Game Over Podium -->
+  <div class="modal-overlay" id="modalGameOver">
+    <div class="modal-card" style="max-width: 600px;">
+      <div style="font-size: 3rem; margin-bottom: 0.2rem;">🏆</div>
+      <h2 class="modal-title">Spillet er ferdig!</h2>
+      <p class="modal-subtitle" id="gameOverSubtitle">Her er seierspallen etter alle rundene:</p>
+
+      <div class="podium-container" id="podiumContainer">
+        <!-- Podium elements injected via JS -->
       </div>
 
-      <div class="btn-group">
-        <a href="/party/" class="primary-btn">🎉 Åpne Party Lounge</a>
-        <a href="/ordbombe/" class="secondary-btn">💣 Spill Ordbombe nå</a>
-        <a href="/" class="secondary-btn">‹ Tilbake til Hub</a>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" id="btnPlayAgain">
+          🔄 Spill igjen
+        </button>
+        <a href="/party/" class="btn-secondary" id="btnReturnLobby">
+          ‹ Tilbake til Lounge
+        </a>
       </div>
     </div>
   </div>
 
   <script src="/parallax-bg.js?v=1.0"></script>
-  <script>
-    const canvas = document.getElementById("teaserCanvas");
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
-
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#fb8500";
-
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: clientX - rect.left, y: clientY - rect.top };
-    }
-
-    function start(e) { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
-    function move(e) { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
-    function stop() { drawing = false; }
-
-    canvas.addEventListener("mousedown", start);
-    canvas.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", stop);
-    canvas.addEventListener("touchstart", start, { passive: true });
-    canvas.addEventListener("touchmove", move, { passive: true });
-    window.addEventListener("touchend", stop);
-
-    document.getElementById("btnClearCanvas").addEventListener("click", () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    });
-  </script>
+  <script src="/tegn-og-gjett/app.js?v=1.0"></script>
 </body>
 </html>

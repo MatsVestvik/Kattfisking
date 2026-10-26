@@ -181,47 +181,48 @@
             </div>
           </div>
 
-          <!-- Game 2: Hvem i Rommet (Placeholder) -->
-          <div class="lobby-game-card disabled-playable">
-            <div class="lg-card-left">
-              <img src="/assets/icons/hvem_i_rommet.png" alt="Hvem i Rommet" class="lg-card-icon" />
-              <div>
-                <div class="lg-card-title-row">
-                  <h4 class="lg-card-title">Hvem i Rommet?</h4>
-                  <span class="lg-card-badge badge-soon">Kommer snart</span>
-                </div>
-                <p class="lg-card-desc">
-                  Stem anonymt på mobilen hvem i rommet som passer best til hysteriske påstander!
-                </p>
-                <div class="lg-card-meta">
-                  <span>👥 3–16 spillere</span> • <span>🗳️ Hemmelig avstemning</span>
-                </div>
-              </div>
-            </div>
-            <div class="lg-card-right">
-              <button type="button" class="party-btn secondary-btn disabled-btn" disabled aria-disabled="true">Kommer snart 🔒</button>
-            </div>
-          </div>
-
-          <!-- Game 3: Tegn & Gjett (Placeholder) -->
-          <div class="lobby-game-card disabled-playable">
+          <!-- Game 2: Tegn & Gjett (Aktivt flerspillerspill) -->
+          <div class="lobby-game-card active-playable" id="gameCardTegnOgGjett">
             <div class="lg-card-left">
               <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett" class="lg-card-icon" />
               <div>
                 <div class="lg-card-title-row">
                   <h4 class="lg-card-title">Tegn & Gjett</h4>
-                  <span class="lg-card-badge badge-soon">Kommer snart</span>
+                  <span class="lg-card-badge badge-ready">Klar til spill</span>
                 </div>
                 <p class="lg-card-desc">
-                  Én tegner på mobilen i sanntid, resten gjetter i lynrask chat på egen skjerm!
+                  Én tegner det hemmelige ordet i sanntid, resten gjetter i lynrask chat på egen mobil!
                 </p>
                 <div class="lg-card-meta">
-                  <span>👥 2–16 spillere</span> • <span>🎨 Mobil-doodle</span>
+                  <span>👥 2–16 spillere</span> • <span>🎨 Live tegning</span> • <span>⏱️ 60–90s runder</span>
                 </div>
               </div>
             </div>
+
             <div class="lg-card-right">
-              <button type="button" class="party-btn secondary-btn disabled-btn" disabled aria-disabled="true">Kommer snart 🔒</button>
+              <!-- Settings dropdowns -->
+              <div class="lg-settings-inline">
+                <label>
+                  <span>Tid:</span>
+                  <select id="selectTimerDraw" class="lg-select">
+                    <option value="60">60 sekunder</option>
+                    <option value="75" selected>75 sekunder</option>
+                    <option value="90">90 sekunder</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Runder:</span>
+                  <select id="selectRoundsDraw" class="lg-select">
+                    <option value="2">2 runder</option>
+                    <option value="3" selected>3 runder</option>
+                    <option value="4">4 runder</option>
+                  </select>
+                </label>
+              </div>
+
+              <button type="button" class="party-btn start-game-btn" id="btnStartTegnOgGjett" style="background: linear-gradient(135deg, #00b4d8, #0077b6);">
+                Start Tegn & Gjett 🎨
+              </button>
             </div>
           </div>
         </div>
