@@ -83,17 +83,12 @@
 
   // Check Ordbombe Highscore & Party Status
   const ordbombeStatus = document.getElementById("ordbombeStatus");
-  const trackerOrdbombe = document.getElementById("trackerOrdbombe");
   try {
     const obHs = localStorage.getItem("ordbombe_highscore");
     if (obHs && parseInt(obHs, 10) > 0) {
       const score = parseInt(obHs, 10);
       if (ordbombeStatus) {
         ordbombeStatus.textContent = `Beste solo: ${score} ord 🔥`;
-      }
-      if (trackerOrdbombe) {
-        trackerOrdbombe.innerHTML = `<span>💣</span> Ordbombe (${score} ord)`;
-        trackerOrdbombe.classList.add("done");
       }
     }
   } catch (e) {

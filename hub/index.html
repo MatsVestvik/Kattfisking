@@ -45,7 +45,7 @@
       <button type="button" class="category-pill active" data-category="all" id="tabCatAll">
         <span class="pill-icon">✨</span>
         <span class="pill-label">Alle spill</span>
-        <span class="pill-count">7</span>
+        <span class="pill-count">6</span>
       </button>
       <button type="button" class="category-pill" data-category="daily" id="tabCatDaily">
         <span class="pill-icon">📅</span>
@@ -55,7 +55,7 @@
       <button type="button" class="category-pill" data-category="party" id="tabCatParty">
         <span class="pill-icon">💣</span>
         <span class="pill-label">Partyspill</span>
-        <span class="pill-count">4</span>
+        <span class="pill-count">3</span>
       </button>
     </nav>
 
@@ -127,6 +127,25 @@
           </div>
         </div>
       </div>
+
+      <!-- Dagens oversikt (kun daglige spill) -->
+      <div class="tracker-box" aria-labelledby="trackerHeading">
+        <div>
+          <h3 class="tracker-title" id="trackerHeading">Dagens oversikt</h3>
+          <p class="tracker-subtitle">Følg dagens progresjon for de daglige spillene</p>
+        </div>
+        <div class="tracker-items">
+          <div class="tracker-badge" id="trackerKattfisking">
+            <span>○</span> Kattfisking
+          </div>
+          <div class="tracker-badge" id="trackerMerMindre">
+            <span>○</span> Mer eller Mindre
+          </div>
+          <div class="tracker-badge tracker-disabled" id="trackerGeoguesser">
+            <span>🔒</span> NTNU guesser (snart)
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Category Section 2: Partyspill -->
@@ -136,7 +155,7 @@
           <h2 class="section-title" id="partyGamesHeading">💣 Partyspill</h2>
           <p class="section-subtitle">Lobby-baserte selskapsspill der alle bruker sin egen telefon</p>
         </div>
-        <span class="section-counter">1 aktivt • 3 under utvikling</span>
+        <span class="section-counter">1 aktivt • 2 under utvikling</span>
       </div>
 
       <!-- Featured Party Lounge Banner -->
@@ -219,50 +238,6 @@
             <span class="card-status">Under utvikling</span>
             <span class="card-btn card-btn-disabled">Kommer snart 🔒</span>
           </div>
-        </div>
-
-        <!-- Game 4: Vors-Dilemma (Under utvikling / Deaktivert) -->
-        <div class="game-card card-pink disabled-card" id="cardVorsDilemma" data-category="party" aria-disabled="true">
-          <div class="card-top">
-            <div class="card-icon-box" style="border-color: #ef476f;">
-              <img src="/assets/icons/vors_dilemma.png" alt="Vors-Dilemma ikon" />
-            </div>
-            <div class="card-tags-group">
-              <span class="card-tag tag-disabled">Kommer snart</span>
-              <span class="card-tag tag-multiplayer">2–20 spillere</span>
-            </div>
-          </div>
-          <h3 class="card-title">Vors-Dilemma</h3>
-          <p class="card-subtitle">Ville du heller? Studentutgaven</p>
-          <p class="card-desc">
-            Hver runde byr på to hysteriske og umulige valg. Alle må velge side på mobilen før fordelingen og diskusjonene eksploderer på storskjermen!
-          </p>
-          <div class="card-footer">
-            <span class="card-status">Under utvikling</span>
-            <span class="card-btn card-btn-disabled">Kommer snart 🔒</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Daily Tracker / Streak bar -->
-    <section class="tracker-box" aria-labelledby="trackerHeading">
-      <div>
-        <h3 class="tracker-title" id="trackerHeading">Dagens oversikt</h3>
-        <p class="tracker-subtitle">Følg daglige oppgaver og prøv nye partyspill</p>
-      </div>
-      <div class="tracker-items">
-        <div class="tracker-badge" id="trackerKattfisking">
-          <span>○</span> Kattfisking
-        </div>
-        <div class="tracker-badge" id="trackerMerMindre">
-          <span>○</span> Mer eller Mindre
-        </div>
-        <a href="/ordbombe/" class="tracker-badge tracker-party-link" id="trackerOrdbombe" title="Spill Ordbombe">
-          <span>💣</span> Ordbombe
-        </a>
-        <div class="tracker-badge tracker-disabled" id="trackerGeoguesser">
-          <span>🔒</span> NTNU guesser (snart)
         </div>
       </div>
     </section>

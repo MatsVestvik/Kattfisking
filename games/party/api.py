@@ -390,17 +390,6 @@ class PartyAPI:
                         "icon": "/assets/icons/tegn_og_gjett.png",
                         "route": "/tegn-og-gjett/",
                     },
-                    {
-                        "id": "vors_dilemma",
-                        "title": "Vors-Dilemma",
-                        "subtitle": "Ville du heller? Studentutgaven",
-                        "desc": "Umulige og hysteriske valg der alle må velge side og forsvare valget sitt.",
-                        "status": "placeholder",
-                        "badge": "Kommer snart",
-                        "players": "2–20 spillere",
-                        "icon": "/assets/icons/vors_dilemma.png",
-                        "route": "/vors-dilemma/",
-                    },
                 ]
             }
 
