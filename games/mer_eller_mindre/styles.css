@@ -47,6 +47,10 @@ body {
   overflow-x: hidden;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .app-shell {
   max-width: 980px;
   margin: 0 auto;
@@ -630,74 +634,52 @@ body {
   to { opacity: 1; }
 }
 
-/* Animated Next-Category Transition Overlay (Disappearing box with quick explanation only) */
-.cat-transition-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(10, 14, 23, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  cursor: pointer;
-  animation: overlayFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.cat-transition-overlay.anim-out {
-  animation: overlayFadeOut 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  pointer-events: none;
-}
-
-.cat-transition-card {
+/* Animated In-Page Next-Category Transition Box (Part of the webpage) */
+.cat-transition-box {
   background: linear-gradient(145deg, rgba(26, 38, 57, 0.96), rgba(16, 24, 38, 0.98));
   border: 2px solid var(--accent);
-  border-radius: 18px;
-  padding: 2.25rem 2.5rem;
-  max-width: 500px;
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  margin: 0 auto 1.5rem;
+  max-width: 680px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 32px rgba(255, 209, 102, 0.25);
-  animation: catCardPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 28px rgba(255, 209, 102, 0.2);
+  cursor: pointer;
+  animation: catBoxSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   position: relative;
   overflow: hidden;
 }
 
-.cat-transition-overlay.anim-out .cat-transition-card {
-  animation: catCardPopOut 0.22s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+.cat-transition-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.55), 0 0 32px rgba(255, 209, 102, 0.28);
 }
 
-@keyframes overlayFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.cat-transition-box.anim-out {
+  animation: catBoxSlideUp 0.25s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  pointer-events: none;
 }
 
-@keyframes overlayFadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes catCardPopIn {
+@keyframes catBoxSlideDown {
   from {
     opacity: 0;
-    transform: scale(0.88) translateY(18px);
+    transform: translateY(-16px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes catCardPopOut {
+@keyframes catBoxSlideUp {
   from {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
   }
   to {
     opacity: 0;
-    transform: scale(0.92) translateY(-14px);
+    transform: translateY(-16px) scale(0.97);
   }
 }
 
@@ -1406,7 +1388,7 @@ body {
     min-width: auto;
   }
 
-  .cat-transition-card {
+  .cat-transition-box {
     padding: 1.75rem 1.35rem;
   }
 

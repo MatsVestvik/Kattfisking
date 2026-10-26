@@ -92,6 +92,20 @@
         <p class="cat-desc" id="catDesc">Trykk på alternativet du tror har høyest tall!</p>
       </div>
 
+      <!-- Animated In-Page Next-Category Transition Box (Part of the webpage, auto-dismisses) -->
+      <section class="card cat-transition-box hidden" id="catTransitionBox" aria-live="polite">
+        <span class="trans-badge" id="transBadge">NESTE KATEGORI (2 AV 5)</span>
+        <div class="trans-hero">
+          <span class="trans-icon" id="transIcon">👥</span>
+          <h2 class="trans-title" id="transTitle">Førsteprioritetssøkere</h2>
+        </div>
+        <p class="trans-desc" id="transDesc">Hvilket studium hadde flest søkere med 1. valg?</p>
+        <div class="trans-meter-track">
+          <div class="trans-meter-fill" id="transMeterFill"></div>
+        </div>
+        <span class="trans-hint">Starter om et øyeblikk (eller trykk her / Mellomrom for å starte straks →)</span>
+      </section>
+
       <!-- Duel Arena: Click on the card you think has more! -->
       <div class="duel-container" id="duelContainer">
         <!-- Card Left: Option A -->
@@ -237,22 +251,6 @@
         </div>
       </section>
     </main>
-
-    <!-- Animated Next-Category Transition (Auto-disappears, contains only quick explanation of next category) -->
-    <div class="cat-transition-overlay hidden" id="catTransitionOverlay" role="status" aria-live="polite">
-      <div class="cat-transition-card" id="catTransitionCard">
-        <span class="trans-badge" id="transBadge">NESTE KATEGORI (2 AV 5)</span>
-        <div class="trans-hero">
-          <span class="trans-icon" id="transIcon">👥</span>
-          <h2 class="trans-title" id="transTitle">Førsteprioritetssøkere</h2>
-        </div>
-        <p class="trans-desc" id="transDesc">Hvilket studium hadde flest søkere med 1. valg?</p>
-        <div class="trans-meter-track">
-          <div class="trans-meter-fill" id="transMeterFill"></div>
-        </div>
-        <span class="trans-hint">Trykk eller trykk Mellomrom for å starte straks →</span>
-      </div>
-    </div>
 
     <!-- Help Modal -->
     <div class="modal-backdrop hidden" id="helpModal">

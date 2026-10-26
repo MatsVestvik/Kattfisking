@@ -86,9 +86,8 @@
     metricLabelB: document.getElementById("metricLabelB"),
     statusBadgeB: document.getElementById("statusBadgeB"),
 
-    // Animated Next Category Transition Overlay
-    catTransitionOverlay: document.getElementById("catTransitionOverlay"),
-    catTransitionCard: document.getElementById("catTransitionCard"),
+    // Animated In-Page Next Category Transition Box
+    catTransitionBox: document.getElementById("catTransitionBox"),
     transBadge: document.getElementById("transBadge"),
     transIcon: document.getElementById("transIcon"),
     transTitle: document.getElementById("transTitle"),
@@ -174,9 +173,9 @@
     el.btnModeDaily.classList.toggle("active", mode === "daily");
     el.btnModePractice.classList.toggle("active", mode === "practice");
 
-    if (el.catTransitionOverlay) {
-      el.catTransitionOverlay.classList.add("hidden");
-      el.catTransitionOverlay.classList.remove("anim-out");
+    if (el.catTransitionBox) {
+      el.catTransitionBox.classList.add("hidden");
+      el.catTransitionBox.classList.remove("anim-out");
     }
     if (el.summaryCard) el.summaryCard.classList.add("hidden");
     if (el.categoryTabsNav) el.categoryTabsNav.classList.remove("hidden");
@@ -584,9 +583,10 @@
       el.transMeterFill.style.animation = "meterShrink 2.2s linear forwards";
     }
 
-    // Show animated transition overlay
-    if (el.catTransitionOverlay) {
-      el.catTransitionOverlay.classList.remove("hidden", "anim-out");
+    // In-page: hide duelContainer and show catTransitionBox
+    if (el.duelContainer) el.duelContainer.classList.add("hidden");
+    if (el.catTransitionBox) {
+      el.catTransitionBox.classList.remove("hidden", "anim-out");
     }
 
     // Auto-dismiss after 2.2 seconds
@@ -603,22 +603,24 @@
 
     if (!state.inIntermission) return;
 
-    if (el.catTransitionOverlay) {
-      el.catTransitionOverlay.classList.add("anim-out");
+    if (el.catTransitionBox) {
+      el.catTransitionBox.classList.add("anim-out");
       setTimeout(() => {
-        el.catTransitionOverlay.classList.add("hidden");
-        el.catTransitionOverlay.classList.remove("anim-out");
+        el.catTransitionBox.classList.add("hidden");
+        el.catTransitionBox.classList.remove("anim-out");
+        if (el.duelContainer) el.duelContainer.classList.remove("hidden");
         state.inIntermission = false;
         state.isLocked = false;
       }, 220);
     } else {
+      if (el.duelContainer) el.duelContainer.classList.remove("hidden");
       state.inIntermission = false;
       state.isLocked = false;
     }
   }
 
-  if (el.catTransitionOverlay) {
-    el.catTransitionOverlay.addEventListener("click", () => {
+  if (el.catTransitionBox) {
+    el.catTransitionBox.addEventListener("click", () => {
       if (state.inIntermission) {
         dismissCategoryTransition();
       }
@@ -750,9 +752,9 @@
       clearTimeout(intermissionTimer);
       intermissionTimer = null;
     }
-    if (el.catTransitionOverlay) {
-      el.catTransitionOverlay.classList.add("hidden");
-      el.catTransitionOverlay.classList.remove("anim-out");
+    if (el.catTransitionBox) {
+      el.catTransitionBox.classList.add("hidden");
+      el.catTransitionBox.classList.remove("anim-out");
     }
     state.inIntermission = false;
 
