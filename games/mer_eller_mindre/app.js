@@ -86,18 +86,23 @@
     metricLabelB: document.getElementById("metricLabelB"),
     statusBadgeB: document.getElementById("statusBadgeB"),
 
-    // Category Intermission Modal
-    categoryIntermissionModal: document.getElementById("categoryIntermissionModal"),
-    intermissionIcon: document.getElementById("intermissionIcon"),
-    intermissionTitle: document.getElementById("intermissionTitle"),
-    intermissionScore: document.getElementById("intermissionScore"),
-    nextCatIcon: document.getElementById("nextCatIcon"),
-    nextCatTitle: document.getElementById("nextCatTitle"),
-    nextCatDesc: document.getElementById("nextCatDesc"),
-    btnContinueCategory: document.getElementById("btnContinueCategory"),
+    // Animated Next Category Transition Overlay
+    catTransitionOverlay: document.getElementById("catTransitionOverlay"),
+    catTransitionCard: document.getElementById("catTransitionCard"),
+    transBadge: document.getElementById("transBadge"),
+    transIcon: document.getElementById("transIcon"),
+    transTitle: document.getElementById("transTitle"),
+    transDesc: document.getElementById("transDesc"),
+    transMeterFill: document.getElementById("transMeterFill"),
 
-    // Summary Modal
-    summaryModal: document.getElementById("summaryModal"),
+    // Duel Arena & In-game Sections
+    categoryTabsNav: document.getElementById("categoryTabsNav"),
+    progressSection: document.getElementById("progressSection"),
+    categoryBanner: document.getElementById("categoryBanner"),
+    duelContainer: document.getElementById("duelContainer"),
+
+    // In-page Summary Card (matching Kattfisking)
+    summaryCard: document.getElementById("summaryCard"),
     summaryModeBadge: document.getElementById("summaryModeBadge"),
     bigScore: document.getElementById("bigScore"),
     scorePraise: document.getElementById("scorePraise"),
@@ -150,6 +155,10 @@
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
     }
+    if (intermissionTimer) {
+      clearTimeout(intermissionTimer);
+      intermissionTimer = null;
+    }
 
     state.mode = mode;
     state.todayStr = getLocalDateString();
@@ -165,8 +174,15 @@
     el.btnModeDaily.classList.toggle("active", mode === "daily");
     el.btnModePractice.classList.toggle("active", mode === "practice");
 
-    el.categoryIntermissionModal.classList.add("hidden");
-    el.summaryModal.classList.add("hidden");
+    if (el.catTransitionOverlay) {
+      el.catTransitionOverlay.classList.add("hidden");
+      el.catTransitionOverlay.classList.remove("anim-out");
+    }
+    if (el.summaryCard) el.summaryCard.classList.add("hidden");
+    if (el.categoryTabsNav) el.categoryTabsNav.classList.remove("hidden");
+    if (el.progressSection) el.progressSection.classList.remove("hidden");
+    if (el.categoryBanner) el.categoryBanner.classList.remove("hidden");
+    if (el.duelContainer) el.duelContainer.classList.remove("hidden");
 
     try {
       const endpoint = mode === "daily"
@@ -422,8 +438,8 @@
         return;
       }
 
-      // Otherwise show Category Intermission Modal!
-      showCategoryIntermission();
+      // Otherwise show animated next-category transition box!
+      showNextCategoryTransition();
       return;
     }
 
@@ -516,36 +532,98 @@
     }, 550);
   }
 
-  function showCategoryIntermission() {
+  let intermissionTimer = null;
+
+  function showNextCategoryTransition() {
+    if (intermissionTimer) {
+      clearTimeout(intermissionTimer);
+      intermissionTimer = null;
+    }
+
     state.inIntermission = true;
-    const completedCat = state.categories[state.currentCatIndex];
-    const catScore = state.categoryScores[state.currentCatIndex];
-    const nextCat = state.categories[state.currentCatIndex + 1];
+    state.isLocked = true;
 
-    el.intermissionIcon.textContent = completedCat.icon || "🎓";
-    el.intermissionTitle.textContent = `${completedCat.title} fullført!`;
-    el.intermissionScore.textContent = `Du fikk ${catScore} av 5 riktige! Totalt så langt: ${state.score} / ${state.currentCatIndex * 5 + 5} poeng.`;
-
-    el.nextCatIcon.textContent = nextCat.icon || "✨";
-    el.nextCatTitle.textContent = nextCat.title;
-    el.nextCatDesc.textContent = `${nextCat.description} (${nextCat.subtitle})`;
-
-    el.categoryIntermissionModal.classList.remove("hidden");
-  }
-
-  function continueToNextCategory() {
-    el.categoryIntermissionModal.classList.add("hidden");
-    state.inIntermission = false;
-
+    // Advance to next category in data
     state.currentCatIndex++;
     state.currentDuelInCat = 0;
+
+    // Reset card classes and prepare next duel in the background
+    el.cardA.classList.remove("winner-card", "loser-card", "chosen-card");
+    el.cardB.classList.remove("winner-card", "loser-card", "chosen-card");
+    el.cardA.style.transform = "";
+    el.cardB.style.transform = "";
+    el.cardA.style.opacity = "";
+    el.cardB.style.opacity = "";
+    el.statusBadgeA.className = "card-status-badge hidden";
+    el.statusBadgeB.className = "card-status-badge hidden";
 
     renderCategoryTabs();
     renderCategoryHeader();
     renderStep(false);
+
+    const nextCat = state.categories[state.currentCatIndex];
+    if (el.transBadge) {
+      el.transBadge.textContent = `NESTE KATEGORI (${state.currentCatIndex + 1} AV 5)`;
+    }
+    if (el.transIcon) {
+      el.transIcon.textContent = nextCat.icon || "📌";
+    }
+    if (el.transTitle) {
+      el.transTitle.textContent = nextCat.title || "Neste kategori";
+    }
+    if (el.transDesc) {
+      const desc = nextCat.description || "";
+      const sub = nextCat.subtitle ? ` (${nextCat.subtitle})` : "";
+      el.transDesc.textContent = `${desc}${sub}`;
+    }
+
+    // Trigger meter animation
+    if (el.transMeterFill) {
+      el.transMeterFill.style.animation = "none";
+      void el.transMeterFill.offsetHeight;
+      el.transMeterFill.style.animation = "meterShrink 2.2s linear forwards";
+    }
+
+    // Show animated transition overlay
+    if (el.catTransitionOverlay) {
+      el.catTransitionOverlay.classList.remove("hidden", "anim-out");
+    }
+
+    // Auto-dismiss after 2.2 seconds
+    intermissionTimer = setTimeout(() => {
+      dismissCategoryTransition();
+    }, 2200);
   }
 
-  el.btnContinueCategory.addEventListener("click", continueToNextCategory);
+  function dismissCategoryTransition() {
+    if (intermissionTimer) {
+      clearTimeout(intermissionTimer);
+      intermissionTimer = null;
+    }
+
+    if (!state.inIntermission) return;
+
+    if (el.catTransitionOverlay) {
+      el.catTransitionOverlay.classList.add("anim-out");
+      setTimeout(() => {
+        el.catTransitionOverlay.classList.add("hidden");
+        el.catTransitionOverlay.classList.remove("anim-out");
+        state.inIntermission = false;
+        state.isLocked = false;
+      }, 220);
+    } else {
+      state.inIntermission = false;
+      state.isLocked = false;
+    }
+  }
+
+  if (el.catTransitionOverlay) {
+    el.catTransitionOverlay.addEventListener("click", () => {
+      if (state.inIntermission) {
+        dismissCategoryTransition();
+      }
+    });
+  }
 
   function renderMerEllerMindreGraph(container, brackets, userScore) {
     if (!container || !Array.isArray(brackets) || !brackets.length) return;
@@ -668,6 +746,15 @@
       clearTimeout(autoAdvanceTimer);
       autoAdvanceTimer = null;
     }
+    if (intermissionTimer) {
+      clearTimeout(intermissionTimer);
+      intermissionTimer = null;
+    }
+    if (el.catTransitionOverlay) {
+      el.catTransitionOverlay.classList.add("hidden");
+      el.catTransitionOverlay.classList.remove("anim-out");
+    }
+    state.inIntermission = false;
 
     if (state.mode === "daily") {
       const dailyData = {
@@ -685,8 +772,12 @@
       localStorage.setItem(HIGHSCORE_KEY, String(state.score));
     }
 
-    el.summaryModeBadge.textContent = state.mode === "daily" ? `DAGENS 25-DUELLER (${state.todayStr})` : "FRISPILL (25 DUELLER)";
-    el.bigScore.textContent = `${state.score} / 25`;
+    if (el.summaryModeBadge) {
+      el.summaryModeBadge.textContent = state.mode === "daily" ? `DAGENS 25-DUELLER (${state.todayStr})` : "FRISPILL (25 DUELLER)";
+    }
+    if (el.bigScore) {
+      el.bigScore.textContent = `${state.score} / 25`;
+    }
 
     let praise = "God innsats!";
     if (state.score === 25) praise = "Helt uvirkelig! 25 av 25 riktige! Du er uovervinnelig! 👑⭐";
@@ -694,7 +785,9 @@
     else if (state.score >= 17) praise = "Meget imponerende resultat! Solid kunnskap i alle kategorier! 👏";
     else if (state.score >= 13) praise = "Over halvparten riktig, godt levert gjennom 25 tøffe runder! 👍";
     else praise = "25 tøffe dueller i dag! Prøv en ny runde i frispill! 💪";
-    el.scorePraise.textContent = praise;
+    if (el.scorePraise) {
+      el.scorePraise.textContent = praise;
+    }
 
     // Initialize comparison strip
     if (el.graphUserScore) el.graphUserScore.textContent = `${state.score} / 25`;
@@ -738,29 +831,40 @@
     const emojiRows = state.categoryResults.map(catRes => {
       return catRes.map(r => (r.won ? "🟩" : "🟥")).join(" ");
     });
-    el.emojiGrid.textContent = emojiRows.join("\n");
+    if (el.emojiGrid) {
+      el.emojiGrid.textContent = emojiRows.join("\n");
+    }
 
     // Build detailed review list of all 25 duels with photos
-    el.reviewList.innerHTML = "";
-    state.results.forEach((r, idx) => {
-      const chosenItem = r.chosen === "A" ? r.itemA : r.itemB;
-      const winItem = r.actualWinner === "A" ? r.itemA : r.itemB;
-      const thumbSrc = winItem.image || r.itemB.image || FALLBACK_IMG;
+    if (el.reviewList) {
+      el.reviewList.innerHTML = "";
+      state.results.forEach((r, idx) => {
+        const chosenItem = r.chosen === "A" ? r.itemA : r.itemB;
+        const winItem = r.actualWinner === "A" ? r.itemA : r.itemB;
+        const thumbSrc = winItem.image || r.itemB.image || FALLBACK_IMG;
 
-      const li = document.createElement("li");
-      li.className = `review-item ${r.won ? "correct" : "wrong"}`;
-      li.innerHTML = `
-        <img src="${thumbSrc}" alt="${winItem.title}" class="review-thumb" onerror="this.src='${FALLBACK_IMG}'" />
-        <div class="review-details">
-          <div class="review-names">#${idx + 1} (${r.categoryTitle}): ${r.itemA.title} vs ${r.itemB.title}</div>
-          <div class="review-vals">Du valgte: <strong>${chosenItem.title}</strong> • Fasit: <strong>${winItem.title}</strong> (${formatNumber(winItem.val)} ${r.unit})</div>
-        </div>
-        <div class="review-mark">${r.won ? "✅" : "❌"}</div>
-      `;
-      el.reviewList.appendChild(li);
-    });
+        const li = document.createElement("li");
+        li.className = `review-item ${r.won ? "correct" : "wrong"}`;
+        li.innerHTML = `
+          <img src="${thumbSrc}" alt="${winItem.title}" class="review-thumb" onerror="this.src='${FALLBACK_IMG}'" />
+          <div class="review-details">
+            <div class="review-names">#${idx + 1} (${r.categoryTitle}): ${r.itemA.title} vs ${r.itemB.title}</div>
+            <div class="review-vals">Du valgte: <strong>${chosenItem.title}</strong> • Fasit: <strong>${winItem.title}</strong> (${formatNumber(winItem.val)} ${r.unit})</div>
+          </div>
+          <div class="review-mark">${r.won ? "✅" : "❌"}</div>
+        `;
+        el.reviewList.appendChild(li);
+      });
+    }
 
-    el.summaryModal.classList.remove("hidden");
+    // Hide duel arena & game elements, show in-page summary card
+    if (el.categoryTabsNav) el.categoryTabsNav.classList.add("hidden");
+    if (el.progressSection) el.progressSection.classList.add("hidden");
+    if (el.categoryBanner) el.categoryBanner.classList.add("hidden");
+    if (el.duelContainer) el.duelContainer.classList.add("hidden");
+    if (el.summaryCard) el.summaryCard.classList.remove("hidden");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function copyResult() {
@@ -818,9 +922,9 @@
   // Space or Enter = Skip delay or continue intermission
   window.addEventListener("keydown", (e) => {
     if (state.inIntermission) {
-      if (e.key === "Enter" || e.key === " ") {
+      if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
         e.preventDefault();
-        continueToNextCategory();
+        dismissCategoryTransition();
       }
       return;
     }

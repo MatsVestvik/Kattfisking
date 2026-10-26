@@ -9,11 +9,13 @@
   // Check if reduced motion is requested
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  const isSeabed = Boolean(document.querySelector(".dynamic-parallax-bg.theme-seabed"));
+
   const layers = [
-    { el: document.getElementById("plSky"), depthX: 12, depthY: 8, scrollRatio: 0.03 },
-    { el: document.getElementById("plFjord"), depthX: 28, depthY: 16, scrollRatio: 0.08 },
-    { el: document.getElementById("plCampus"), depthX: 52, depthY: 28, scrollRatio: 0.16 },
-    { el: document.getElementById("plLawn"), depthX: 84, depthY: 42, scrollRatio: 0.28 },
+    { el: document.getElementById("plSky") || document.getElementById("plSeabed1"), depthX: 12, depthY: 8, scrollRatio: 0.03 },
+    { el: document.getElementById("plFjord") || document.getElementById("plSeabed2"), depthX: 28, depthY: 16, scrollRatio: 0.08 },
+    { el: document.getElementById("plCampus") || document.getElementById("plSeabed3"), depthX: 52, depthY: 28, scrollRatio: 0.16 },
+    { el: document.getElementById("plLawn") || document.getElementById("plSeabed4"), depthX: 84, depthY: 42, scrollRatio: 0.28 },
   ].filter(l => l.el !== null);
 
   if (layers.length === 0) return;
@@ -50,18 +52,25 @@
     }, { passive: true });
   }
 
-  // --- Ambient Canvas Particles (Autumn Leaves & Evening Fireflies) ---
+  // --- Ambient Canvas Particles (Autumn Leaves, Fireflies or Underwater Bubbles) ---
   const canvas = document.getElementById("ambientSparklesCanvas");
   let ctx = null;
   let particles = [];
-  const PARTICLE_COUNT = 24;
+  const PARTICLE_COUNT = isSeabed ? 28 : 24;
 
-  const PARTICLE_PALETTE = [
-    "rgba(255, 209, 102, 0.75)", // gold
-    "rgba(247, 127, 0, 0.65)",   // amber
-    "rgba(231, 111, 81, 0.60)",  // rust/autumn
-    "rgba(252, 191, 73, 0.70)",  // warm yellow
-  ];
+  const PARTICLE_PALETTE = isSeabed
+    ? [
+        "rgba(0, 180, 216, 0.75)",   // cyan bubble
+        "rgba(144, 224, 239, 0.85)",  // light aqua
+        "rgba(72, 202, 228, 0.70)",  // bright water shimmer
+        "rgba(255, 209, 102, 0.60)",  // glowing catfish ember
+      ]
+    : [
+        "rgba(255, 209, 102, 0.75)", // gold
+        "rgba(247, 127, 0, 0.65)",   // amber
+        "rgba(231, 111, 81, 0.60)",  // rust/autumn
+        "rgba(252, 191, 73, 0.70)",  // warm yellow
+      ];
 
   function resizeCanvas() {
     if (!canvas) return;
@@ -80,8 +89,8 @@
         x: Math.random() * (canvas.width || 800),
         y: Math.random() * (canvas.height || 600),
         size: Math.random() < 0.6 ? 3 : (Math.random() < 0.8 ? 2 : 4),
-        vx: (Math.random() - 0.45) * 0.4,
-        vy: 0.25 + Math.random() * 0.5,
+        vx: (Math.random() - 0.45) * 0.35,
+        vy: isSeabed ? -(0.25 + Math.random() * 0.45) : (0.25 + Math.random() * 0.5),
         color: PARTICLE_PALETTE[Math.floor(Math.random() * PARTICLE_PALETTE.length)],
         oscillationSpeed: 0.0015 + Math.random() * 0.002,
         oscillationAmplitude: 15 + Math.random() * 25,
@@ -102,9 +111,16 @@
       p.x += p.vx + Math.sin(now * p.oscillationSpeed + p.phase) * 0.25;
 
       // Wrap around bounds
-      if (p.y > canvas.height + 10) {
-        p.y = -10;
-        p.x = Math.random() * canvas.width;
+      if (isSeabed) {
+        if (p.y < -15) {
+          p.y = canvas.height + 10;
+          p.x = Math.random() * canvas.width;
+        }
+      } else {
+        if (p.y > canvas.height + 10) {
+          p.y = -10;
+          p.x = Math.random() * canvas.width;
+        }
       }
       if (p.x < -20) p.x = canvas.width + 10;
       if (p.x > canvas.width + 20) p.x = -10;

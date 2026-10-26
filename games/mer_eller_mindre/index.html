@@ -54,7 +54,7 @@
       </nav>
 
       <!-- 5-Round Progress Bar for Current Category -->
-      <section class="progress-section" aria-label="Fremgang">
+      <section class="progress-section" id="progressSection" aria-label="Fremgang">
         <div class="duel-counter-box">
           <span class="duel-counter-label">DUELL</span>
           <span class="duel-counter-val" id="duelCounterVal">1 / 25</span>
@@ -150,44 +150,41 @@
           </div>
         </div>
       </div>
-    </main>
 
-    <!-- Category Completion Intermission Modal -->
-    <div class="modal-backdrop hidden" id="categoryIntermissionModal">
-      <div class="intermission-card" role="dialog" aria-modal="true" aria-labelledby="intermissionTitle">
-        <span class="intermission-badge">KATEGORI FULLFØRT</span>
-        <div class="intermission-icon" id="intermissionIcon">🎓</div>
-        <h2 class="intermission-title" id="intermissionTitle">Kategori fullført!</h2>
-        <p class="intermission-score" id="intermissionScore">Du fikk 4 av 5 riktige!</p>
-
-        <div class="next-cat-preview">
-          <span class="next-label">NESTE KATEGORI:</span>
-          <div class="next-cat-header">
-            <span class="next-icon" id="nextCatIcon">👥</span>
-            <h3 class="next-title" id="nextCatTitle">Førsteprioritetssøkere</h3>
-          </div>
-          <p class="next-desc" id="nextCatDesc">Hvilket studium hadde flest søkere med 1. valg?</p>
-        </div>
-
-        <button type="button" class="start-next-cat-btn" id="btnContinueCategory">
-          Start neste kategori →
-        </button>
-      </div>
-    </div>
-
-    <!-- Final Game Summary Modal -->
-    <div class="modal-backdrop hidden" id="summaryModal">
-      <div class="summary-card" role="dialog" aria-modal="true" aria-labelledby="summaryHeading">
+      <!-- In-Page Summary Card (matching Kattfisking style & layout) -->
+      <section class="card summary-card hidden" id="summaryCard" aria-live="polite">
         <div class="summary-header">
-          <img src="/assets/icons/moreorless.png" alt="Mer eller Mindre" class="summary-pixel-icon" />
-          <span class="summary-badge" id="summaryModeBadge">DAGENS 25-DUELLERS</span>
-          <h2 class="summary-title" id="summaryHeading">25 dueller fullført!</h2>
-          <p class="summary-subtitle" id="summarySubtitle">Her er ditt resultat i dag:</p>
+          <div class="summary-badge-wrap">
+            <div class="summary-badge-top-row">
+              <img src="/assets/icons/moreorless.png" alt="" class="summary-pixel-mini-icon" />
+              <span class="summary-overline" id="summaryModeBadge">DAGENS 25-DUELLER</span>
+            </div>
+            <h2 class="summary-score-big" id="bigScore">0 / 25</h2>
+            <p class="summary-rank-text" id="scorePraise">God innsats!</p>
+          </div>
+
+          <div class="summary-emoji-box">
+            <pre class="emoji-grid" id="emojiGrid" aria-label="Resultatnett">🟩 🟩 🟩 🟩 🟩</pre>
+            <button type="button" class="share-btn" id="btnCopyResult">
+              Kopier resultat 📋
+            </button>
+            <span class="toast-msg hidden" id="toastMsg">Kopiert til utklippstavlen!</span>
+          </div>
         </div>
 
-        <div class="summary-score-box">
-          <div class="big-score" id="bigScore">21 / 25</div>
-          <div class="score-praise" id="scorePraise">Fantastisk spilt! 👏</div>
+        <div class="summary-stats-strip">
+          <div class="stat-box">
+            <span class="stat-label">Din poengsum</span>
+            <strong class="stat-num user-stat" id="graphUserScore">-- / 25</strong>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Dagens snitt</span>
+            <strong class="stat-num" id="graphAvgScore">-- / 25</strong>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Spillere i dag</span>
+            <strong class="stat-num" id="graphTotalPlays">--</strong>
+          </div>
         </div>
 
         <!-- Player Distribution Graph & Comparison -->
@@ -200,22 +197,6 @@
             <div class="graph-comparison-pill" id="merEllerMindrePercentilePill">
               <span class="comparison-icon">🏆</span>
               <span id="merEllerMindrePercentileText">Beregner plassering…</span>
-            </div>
-          </div>
-
-          <!-- Summary comparison stats strip -->
-          <div class="graph-stats-row">
-            <div class="graph-stat-item">
-              <span class="graph-stat-label">Din poengsum</span>
-              <strong class="graph-stat-val user-stat" id="graphUserScore">-- / 25</strong>
-            </div>
-            <div class="graph-stat-item">
-              <span class="graph-stat-label">Dagens snitt</span>
-              <strong class="graph-stat-val" id="graphAvgScore">-- / 25</strong>
-            </div>
-            <div class="graph-stat-item">
-              <span class="graph-stat-label">Spillere i dag</span>
-              <strong class="graph-stat-val" id="graphTotalPlays">--</strong>
             </div>
           </div>
 
@@ -238,15 +219,6 @@
           </div>
         </div>
 
-        <!-- Emoji share block -->
-        <div class="share-box">
-          <pre class="emoji-grid" id="emojiGrid">🟩 🟩 🟩 🟩 🟩</pre>
-          <button type="button" class="share-btn" id="btnCopyResult">
-            Kopier resultat 📋
-          </button>
-          <span class="toast-msg hidden" id="toastMsg">Kopiert til utklippstavlen!</span>
-        </div>
-
         <!-- Detailed Review List -->
         <div class="review-section">
           <h3 class="review-heading">Alle 25 dueller i dag:</h3>
@@ -255,7 +227,7 @@
           </ul>
         </div>
 
-        <div class="summary-actions">
+        <div class="summary-footer-actions">
           <button type="button" class="action-btn-primary" id="btnPlayAgain">
             Spill Frispill (ny 25-runde) ↺
           </button>
@@ -263,6 +235,22 @@
             Tilbake til NTNU Games ‹
           </a>
         </div>
+      </section>
+    </main>
+
+    <!-- Animated Next-Category Transition (Auto-disappears, contains only quick explanation of next category) -->
+    <div class="cat-transition-overlay hidden" id="catTransitionOverlay" role="status" aria-live="polite">
+      <div class="cat-transition-card" id="catTransitionCard">
+        <span class="trans-badge" id="transBadge">NESTE KATEGORI (2 AV 5)</span>
+        <div class="trans-hero">
+          <span class="trans-icon" id="transIcon">👥</span>
+          <h2 class="trans-title" id="transTitle">Førsteprioritetssøkere</h2>
+        </div>
+        <p class="trans-desc" id="transDesc">Hvilket studium hadde flest søkere med 1. valg?</p>
+        <div class="trans-meter-track">
+          <div class="trans-meter-fill" id="transMeterFill"></div>
+        </div>
+        <span class="trans-hint">Trykk eller trykk Mellomrom for å starte straks →</span>
       </div>
     </div>
 
