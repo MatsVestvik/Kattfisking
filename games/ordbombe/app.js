@@ -334,6 +334,7 @@
     arenaStreakBadge: document.getElementById("arenaStreakBadge"),
 
     circularArenaWrapper: document.getElementById("circularArenaWrapper"),
+    arenaPointerLayer: document.getElementById("arenaPointerLayer"),
     arenaPointerArrow: document.getElementById("arenaPointerArrow"),
     circlePlayersContainer: document.getElementById("circlePlayersContainer"),
     bombCenterHub: document.getElementById("bombCenterHub"),
@@ -470,7 +471,8 @@
   let currentArrowAngle = 0;
 
   function setArrowAngle(targetDeg) {
-    if (!el.arenaPointerArrow) return;
+    const layer = el.arenaPointerLayer || el.arenaPointerArrow;
+    if (!layer) return;
 
     // Calculate shortest angular difference so rotation never loops awkwardly backward
     const currentNorm = ((currentArrowAngle % 360) + 360) % 360;
@@ -481,21 +483,9 @@
 
     currentArrowAngle += diff;
 
-    // Responsive offset from arena center to the outer perimeter of center bomb hub
-    const arenaWidth = el.circularArenaWrapper ? el.circularArenaWrapper.clientWidth : 420;
-    const offsetPx = Math.round(arenaWidth * 0.22);
-
-    el.arenaPointerArrow.style.transform = `rotate(${currentArrowAngle}deg) translateY(-${offsetPx}px) translate(-50%, -100%)`;
+    // Concentric pure rotation around exact center 50% 50%
+    layer.style.transform = `rotate(${currentArrowAngle}deg)`;
   }
-
-  // Recalculate pointer arrow position on window resize
-  window.addEventListener("resize", () => {
-    if (el.arenaPointerArrow && !el.gameArena.classList.contains("hidden")) {
-      const arenaWidth = el.circularArenaWrapper ? el.circularArenaWrapper.clientWidth : 420;
-      const offsetPx = Math.round(arenaWidth * 0.22);
-      el.arenaPointerArrow.style.transform = `rotate(${currentArrowAngle}deg) translateY(-${offsetPx}px) translate(-50%, -100%)`;
-    }
-  });
 
   // Render players placed evenly in a circle around the bomb hub
   function renderCircularPlayers(playersList, activeIndexOrId) {
@@ -644,7 +634,8 @@
 
     state.isExploding = false;
     el.appShell.classList.remove("exploded");
-    el.bombGraphic.classList.remove("ticking-panic");
+    if (el.bombCenterHub) el.bombCenterHub.classList.remove("ticking-panic");
+    if (el.bombGraphic) el.bombGraphic.classList.remove("ticking-panic");
     if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
 
     // In solo mode, duration tightens as streak grows
@@ -709,10 +700,12 @@
     // The player relies entirely on ticking audio cues and bomb panic shaking.
     const isPanic = state.timerRemaining <= 3.2 && state.timerRemaining > 0;
     if (isPanic) {
-      el.bombGraphic.classList.add("ticking-panic");
+      if (el.bombCenterHub) el.bombCenterHub.classList.add("ticking-panic");
+      if (el.bombGraphic) el.bombGraphic.classList.add("ticking-panic");
       if (el.arenaPointerArrow) el.arenaPointerArrow.classList.add("ticking-panic");
     } else {
-      el.bombGraphic.classList.remove("ticking-panic");
+      if (el.bombCenterHub) el.bombCenterHub.classList.remove("ticking-panic");
+      if (el.bombGraphic) el.bombGraphic.classList.remove("ticking-panic");
       if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
     }
   }
@@ -727,6 +720,10 @@
     sfx.explosion();
 
     el.appShell.classList.add("exploded");
+    if (el.bombCenterHub) {
+      el.bombCenterHub.classList.add("exploding");
+      setTimeout(() => el.bombCenterHub.classList.remove("exploding"), 1200);
+    }
     el.wordInput.disabled = true;
 
     const curPlayer = state.players[state.activePlayerIndex];
@@ -1156,10 +1153,12 @@
       sfx.tick(isPanic);
     }
     if (isPanic) {
-      el.bombGraphic.classList.add("ticking-panic");
+      if (el.bombCenterHub) el.bombCenterHub.classList.add("ticking-panic");
+      if (el.bombGraphic) el.bombGraphic.classList.add("ticking-panic");
       if (el.arenaPointerArrow) el.arenaPointerArrow.classList.add("ticking-panic");
     } else {
-      el.bombGraphic.classList.remove("ticking-panic");
+      if (el.bombCenterHub) el.bombCenterHub.classList.remove("ticking-panic");
+      if (el.bombGraphic) el.bombGraphic.classList.remove("ticking-panic");
       if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
     }
 
@@ -1202,9 +1201,13 @@
       state.lastHandledEventTimestamp = gs.last_event.timestamp;
       if (gs.last_event.type === "explosion") {
         sfx.explosion();
-        el.bombGraphic.classList.add("exploding");
+        if (el.bombCenterHub) el.bombCenterHub.classList.add("exploding");
+        if (el.bombGraphic) el.bombGraphic.classList.add("exploding");
         sparks.explode();
-        setTimeout(() => el.bombGraphic.classList.remove("exploding"), 1200);
+        setTimeout(() => {
+          if (el.bombCenterHub) el.bombCenterHub.classList.remove("exploding");
+          if (el.bombGraphic) el.bombGraphic.classList.remove("exploding");
+        }, 1200);
       } else if (gs.last_event.type === "word_accepted") {
         sfx.pass();
       }

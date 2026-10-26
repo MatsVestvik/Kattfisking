@@ -183,36 +183,45 @@
           <!-- Background table ring -->
           <div class="circle-table-ring" id="circleTableRing"></div>
 
-          <!-- Rotating Arrow Pointer originating from center -->
-          <div class="arena-center-pointer-wrap" id="arenaCenterPointerWrap">
+          <!-- Rotating Arrow Layer (Centered at 50% 50%, rotates 100% concentric about center) -->
+          <div class="arena-pointer-layer" id="arenaPointerLayer">
             <div class="arena-pointer-arrow" id="arenaPointerArrow">
-              <svg class="pointer-svg" viewBox="0 0 36 82" width="34" height="74" aria-hidden="true">
+              <svg class="pointer-svg" viewBox="0 0 36 80" width="36" height="80" aria-hidden="true">
                 <defs>
                   <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stop-color="#fb8500" stop-opacity="0.1" />
-                    <stop offset="35%" stop-color="#fb8500" stop-opacity="0.9" />
-                    <stop offset="100%" stop-color="#ffd166" stop-opacity="1" />
+                    <stop offset="0%" stop-color="#b23a00" />
+                    <stop offset="40%" stop-color="#fb8500" />
+                    <stop offset="100%" stop-color="#ffd166" />
                   </linearGradient>
                   <filter id="arrowGlow" x="-50%" y="-50%" width="200%" height="200%">
                     <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#fb8500" />
                   </filter>
                 </defs>
-                <path d="M 18 0 L 34 26 L 23 26 L 23 80 L 13 80 L 13 26 L 2 26 Z" fill="url(#arrowGrad)" filter="url(#arrowGlow)" />
+                <!-- Main needle body -->
+                <path d="M 18 0 L 34 28 L 24 28 L 24 80 L 12 80 L 12 28 L 2 28 Z" fill="url(#arrowGrad)" filter="url(#arrowGlow)" stroke="#ffe8a1" stroke-width="1.2" />
+                <!-- Left highlight facet -->
+                <path d="M 18 0 L 2 28 L 12 28 L 12 80 L 18 80 Z" fill="rgba(255, 255, 255, 0.28)" />
+                <!-- Right shadow facet -->
+                <path d="M 18 0 L 34 28 L 24 28 L 24 80 L 18 80 Z" fill="rgba(0, 0, 0, 0.2)" />
               </svg>
             </div>
           </div>
 
-          <!-- Center Bomb & Letters Hub (NO VISIBLE TIMER) -->
+          <!-- Center Bomb Sphere & Prompt (NO TACKY IMAGE! Pure sleek bomb core with burning wick) -->
           <div class="bomb-center-hub" id="bombCenterHub">
-            <canvas class="bomb-sparks-canvas" id="bombSparksCanvas" width="280" height="280"></canvas>
-            <div class="bomb-graphic" id="bombGraphic">
+            <!-- Bomb collar & burning fuse wick on top -->
+            <div class="bomb-cap-assembly" id="bombGraphic">
+              <div class="bomb-collar"></div>
+              <svg class="bomb-wick-svg" viewBox="0 0 32 28" width="32" height="28" aria-hidden="true">
+                <path d="M 10 28 Q 14 8 26 4" fill="none" stroke="#d4a373" stroke-width="4.2" stroke-linecap="round" />
+              </svg>
               <div class="fuse-glow" id="fuseGlow"></div>
-              <img src="/assets/icons/ordbombe.png" alt="Tikkende bombe" class="bomb-pixel-art" id="bombImg" />
+              <canvas class="bomb-sparks-canvas" id="bombSparksCanvas" width="280" height="280"></canvas>
             </div>
 
             <!-- Syllable Prompt in Center of Bomb -->
             <div class="prompt-box" id="promptBox">
-              <span class="prompt-caption">Inneholder:</span>
+              <span class="prompt-caption">Må inneholde:</span>
               <div class="prompt-letters" id="promptLetters">BIL</div>
             </div>
           </div>
