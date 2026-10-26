@@ -4,6 +4,15 @@
    and dynamic animations.
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap');
+
+@font-face {
+  font-family: "EditUndo";
+  src: url("/assets/fonts/editundo.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --canvas-bg: #ffffff;
   --panel-bg: rgba(18, 26, 44, 0.88);
@@ -14,7 +23,9 @@
   --accent-red: #ef4444;
   --accent-yellow: #facc15;
   --accent-purple: #8b5cf6;
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Space Grotesk", var(--font-family);
+  --font-pixel: "EditUndo", "Courier New", monospace;
 }
 
 * {

@@ -1,14 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap');
+
+@font-face {
+  font-family: "EditUndo";
+  src: url("/assets/fonts/editundo.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
-  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", Monaco, "Courier New", Courier, monospace;
+  --font-main: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Space Grotesk", var(--font-main);
+  --font-pixel: "EditUndo", "Courier New", monospace;
+  --font-mono: "EditUndo", "SF Mono", Monaco, monospace;
   --bg-page: #0a0e17;
-  --bg-card: #131b2e;
-  --bg-card-hover: #19243d;
-  --bg-subtle: #1c2742;
-  --border: #233150;
-  --border-strong: #3b5080;
-  --text: #f0f4fc;
-  --text-muted: #8b9bb4;
+  --bg-card: rgba(18, 26, 44, 0.88);
+  --bg-card-hover: rgba(25, 36, 61, 0.95);
+  --bg-subtle: #162035;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
   --accent: #ffd166;
   --success: #06d6a0;
   --danger: #ef476f;

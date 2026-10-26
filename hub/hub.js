@@ -114,6 +114,34 @@
     console.warn("Could not check ordbombe progress", e);
   }
 
+  // Category quick filter tabs
+  const tabButtons = document.querySelectorAll(".hub-tab-btn[data-filter]");
+  const sections = document.querySelectorAll(".game-category-section");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter;
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      sections.forEach(sec => {
+        const secCat = sec.dataset.sectionCategory;
+        if (filter === "all" || secCat === filter) {
+          sec.classList.remove("hidden");
+          sec.style.opacity = "0";
+          sec.style.transform = "translateY(8px)";
+          setTimeout(() => {
+            sec.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+            sec.style.opacity = "1";
+            sec.style.transform = "translateY(0)";
+          }, 10);
+        } else {
+          sec.classList.add("hidden");
+        }
+      });
+    });
+  });
+
   // Handle initial hash on page load for deep links (e.g. #party scrolls smoothly to party section)
   const initialHash = window.location.hash.replace("#", "").toLowerCase();
   if (initialHash === "party") {

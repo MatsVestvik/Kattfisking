@@ -1,31 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap');
+
+@font-face {
+  font-family: "EditUndo";
+  src: url("/assets/fonts/editundo.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
-  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-pixel: "Courier New", Courier, monospace;
+  --font-main: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Space Grotesk", var(--font-main);
+  --font-pixel: "EditUndo", "Courier New", monospace;
+
+  /* Nordic Campus Palette */
   --bg-page: #0a0e17;
-  --bg-card: #131b2e;
-  --bg-card-hover: #17223b;
-  --bg-subtle: #1c2742;
-  --border: #233150;
-  --border-strong: #3b5080;
-  --text: #f0f4fc;
-  --text-muted: #8b9bb4;
-  --accent: #ffd166;
+  --bg-card: rgba(18, 26, 44, 0.84);
+  --bg-card-hover: rgba(24, 35, 60, 0.94);
+  --bg-subtle: #162035;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+
+  --accent-gold: #ffd166;
   --accent-blue: #00b4d8;
   --accent-green: #06d6a0;
+  --accent-orange: #fb8500;
   --accent-pink: #ef476f;
-  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --accent-purple: #8338ec;
+
+  --card-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="light"] {
-  --bg-page: #f5f7fb;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f9fbfe;
-  --bg-subtle: #e9eef6;
-  --border: #d0d9e8;
-  --border-strong: #a6b7d2;
-  --text: #111827;
-  --text-muted: #4b5563;
-  --accent: #d97706;
+  --bg-page: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.94);
+  --bg-card-hover: #ffffff;
+  --bg-subtle: #edf2f9;
+  --border: #dbe2ef;
+  --border-strong: #b9c7df;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --accent-gold: #d97706;
   --accent-blue: #0284c7;
   --accent-green: #059669;
   --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
@@ -105,33 +123,119 @@ body {
 }
 
 .brand-title {
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 40%, var(--accent-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: none;
 }
 
 .brand-subtitle {
   font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .hub-header-right {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
+}
+
+.status-dot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(6, 214, 160, 0.12);
+  border: 1px solid rgba(6, 214, 160, 0.35);
+  color: var(--accent-green);
+  font-family: var(--font-pixel);
+  font-size: 0.8rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  letter-spacing: 0.03em;
+}
+
+.live-pulse-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-green);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
 }
 
 .date-badge {
   font-family: var(--font-pixel);
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: #ffd166;
   font-weight: 700;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: rgba(255, 209, 102, 0.08);
+  border: 1px solid rgba(255, 209, 102, 0.25);
   padding: 0.35rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Category Quick Navigation Filter */
+.hub-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.hub-tab-btn {
+  background: rgba(19, 27, 46, 0.65);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hub-tab-btn:hover {
+  background: rgba(25, 36, 61, 0.9);
+  color: var(--text);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.hub-tab-btn.active {
+  background: rgba(0, 180, 216, 0.16);
+  border-color: var(--accent-blue);
+  color: #f8fafc;
+  box-shadow: 0 0 14px rgba(0, 180, 216, 0.25);
+}
+
+.hub-tab-badge {
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
 }
 
 /* Disabled Card State */
@@ -172,21 +276,29 @@ body {
 }
 
 .section-title {
-  font-size: 1.3rem;
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
 }
 
 .section-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
 .section-counter {
+  font-family: var(--font-pixel);
   font-size: 0.85rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
 }
 
 /* Games Grid */
@@ -357,30 +469,33 @@ body {
 }
 
 .card-icon-box {
-  width: 78px;
-  height: 78px;
-  border-radius: 14px;
+  width: 74px;
+  height: 74px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-subtle);
-  border: 2px solid var(--border-strong);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #0d1424;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .game-card:hover .card-icon-box {
-  border-color: var(--accent);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .card-icon-box img {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   image-rendering: pixelated;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .game-card:hover .card-icon-box img {
@@ -388,18 +503,18 @@ body {
 }
 
 .card-tag {
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-family: var(--font-pixel);
+  font-size: 0.8rem;
+  font-weight: 700;
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .tag-daily {
-  background: rgba(255, 209, 102, 0.15);
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  background: rgba(255, 209, 102, 0.14);
+  color: var(--accent-gold);
+  border: 1px solid rgba(255, 209, 102, 0.4);
 }
 
 .tag-new {
@@ -415,9 +530,9 @@ body {
 }
 
 .tag-disabled {
-  background: rgba(139, 155, 180, 0.15);
+  background: rgba(139, 155, 180, 0.12);
   color: var(--text-muted);
-  border: 1px solid var(--border-strong);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .card-tags-group {
@@ -429,27 +544,30 @@ body {
 
 .tag-party {
   background: rgba(251, 133, 0, 0.16);
-  color: #fb8500;
-  border: 1px solid #fb8500;
+  color: var(--accent-orange);
+  border: 1px solid rgba(251, 133, 0, 0.45);
 }
 
 .tag-multiplayer {
   background: rgba(239, 71, 111, 0.14);
-  color: #ef476f;
-  border: 1px solid rgba(239, 71, 111, 0.5);
+  color: var(--accent-pink);
+  border: 1px solid rgba(239, 71, 111, 0.45);
 }
 
 .card-title {
+  font-family: var(--font-heading);
   font-size: 1.35rem;
   font-weight: 800;
-  margin-bottom: 0.3rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+  color: #f8fafc;
 }
 
 .card-subtitle {
   font-size: 0.85rem;
   color: var(--text-muted);
   font-weight: 600;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 .card-desc {

@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NTNU Games – Daglige norske spill & hjernetrim</title>
-  <meta name="description" content="Spill daglige spill fra NTNU Games: Kattfisking, Mer eller Mindre og NTNU guesser." />
+  <title>NTNU Games – Daglige spill &amp; selskapsspill for studenter</title>
+  <meta name="description" content="Norges uoffisielle student-spillhjørne. Spill Kattfisking, Mer eller Mindre, Ordbombe og Tegn &amp; Gjett alene eller sammen i festlounge på egen telefon." />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/favicon.png" />
-  <link rel="stylesheet" href="/hub.css?v=1.2" />
+  <link rel="stylesheet" href="/hub.css?v=2.2" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
 <body>
@@ -31,22 +31,41 @@
         </div>
         <div>
           <h1 class="brand-title">NTNU Games</h1>
-          <p class="brand-subtitle">Norske dagsspill & studenttrim</p>
+          <p class="brand-subtitle">Daglige hjernetrim-spill &amp; selskapsspill</p>
         </div>
       </a>
 
       <div class="hub-header-right">
+        <div class="status-dot-pill">
+          <span class="live-pulse-dot"></span>
+          <span>4 AKTIVE SPILL</span>
+        </div>
         <div class="date-badge" id="hubDateBadge">Laster dato…</div>
       </div>
     </header>
 
+    <!-- Quick Category Filter Pills -->
+    <nav class="hub-nav-tabs" aria-label="Filtrer spillkategorier">
+      <button type="button" class="hub-tab-btn active" data-filter="all">
+        🌟 Alle spill <span class="hub-tab-badge">4</span>
+      </button>
+      <button type="button" class="hub-tab-btn" data-filter="daily">
+        📅 Dagsspill <span class="hub-tab-badge">2</span>
+      </button>
+      <button type="button" class="hub-tab-btn" data-filter="party">
+        🎉 Partyspill <span class="hub-tab-badge">2</span>
+      </button>
+      <a href="/party/" class="hub-tab-btn" style="margin-left: auto; background: rgba(251, 133, 0, 0.15); border-color: rgba(251, 133, 0, 0.4); color: #fb8500;">
+        🚀 Party Lounge
+      </a>
+    </nav>
 
     <!-- Category Section 1: Daglige spill -->
     <section class="game-category-section" data-section-category="daily" aria-labelledby="dailyGamesHeading">
       <div class="section-header">
         <div>
-          <h2 class="section-title" id="dailyGamesHeading">📅 Daglige spill</h2>
-          <p class="section-subtitle">Nye utfordringer hver dag kl. 00:00</p>
+          <h2 class="section-title" id="dailyGamesHeading">📅 Daglige utfordringer</h2>
+          <p class="section-subtitle">Nye nøtter hver dag kl. 00:00. Hold streak-en gående!</p>
         </div>
         <span class="section-counter">2 aktive • 1 under utvikling</span>
       </div>
@@ -68,7 +87,7 @@
           <h3 class="card-title">Kattfisking</h3>
           <p class="card-subtitle">Wikipedia-kategorijakt</p>
           <p class="card-desc">
-            Finn oppslagsordet ved å analysere Wikipedia-kategorier. Inkluderer Dagens utfordring, historisk Arkiv og Frispill.
+            Gjett det hemmelige oppslagsordet kun ut fra kategoriene. 5 daglige nøtter, historisk arkiv og frikasting i Nidelva.
           </p>
           <div class="card-footer">
             <span class="card-status" id="kattfiskingStatus">5 artikler per dag</span>
@@ -90,9 +109,9 @@
             </div>
           </div>
           <h3 class="card-title">Mer eller Mindre</h3>
-          <p class="card-subtitle">Karakterer, søkere & strykprosent</p>
+          <p class="card-subtitle">Hvem har høyest snitt &amp; mest stryk?</p>
           <p class="card-desc">
-            5 kategorier med 5 spørsmål hver: Karaktergrenser, førsteprioritetssøkere, strykprosent, studenttall og inntakssnitt på VGS.
+            25 lynraske dueller om student-Norge. Karaktergrenser, førsteprioriteter, strykprosent og inntakssnitt på VGS.
           </p>
           <div class="card-footer">
             <span class="card-status" id="merMindreStatus">25 dueller per dag</span>
@@ -109,9 +128,9 @@
             <span class="card-tag tag-disabled">Kommer snart</span>
           </div>
           <h3 class="card-title">NTNU guesser</h3>
-          <p class="card-subtitle">Hvor på campus er dette?</p>
+          <p class="card-subtitle">Kjenner du igjen campuskrokene?</p>
           <p class="card-desc">
-            Kjenner du igjen NTNUs campuser, historiske bygg, auditorier og linjeforeningsrom? Gjett riktig plassering og samle poeng!
+            Hvor på Gløshaugen, Dragvoll eller Øya er bildet tatt? Test stedsansen på historiske bygg, auditorier og linjeforeningsrom.
           </p>
           <div class="card-footer">
             <span class="card-status">Under utvikling</span>
@@ -125,8 +144,8 @@
     <section class="game-category-section" data-section-category="party" aria-labelledby="partyGamesHeading">
       <div class="section-header">
         <div>
-          <h2 class="section-title" id="partyGamesHeading">💣 Partyspill</h2>
-          <p class="section-subtitle">Lobby-baserte selskapsspill der alle bruker sin egen telefon</p>
+          <h2 class="section-title" id="partyGamesHeading">🎉 Partyspill</h2>
+          <p class="section-subtitle">Lobby-moro for vorspiel, hybelkvelder og vennegjengen</p>
         </div>
         <span class="section-counter">2 aktive spill</span>
       </div>
@@ -134,16 +153,16 @@
       <!-- Featured Party Lounge Banner -->
       <div class="party-lobby-hub-banner">
         <div class="pl-banner-left">
-          <span class="pl-banner-emoji">🎉</span>
+          <span class="pl-banner-emoji">🍻</span>
           <div>
-            <span class="pl-banner-tag">Lobby & Multi-enhet</span>
+            <span class="pl-banner-tag">Felles Lounge • Multi-enhet</span>
             <h3 class="pl-banner-title">NTNU Party Lounge</h3>
             <p class="pl-banner-desc">
-              Opprett et felles rom på storskjermen eller mobilen. Alle venner kan koble til med romkoden på sin egen enhet, og verten kan flytte alle sømløst mellom spillene!
+              Opprett felles rom på TV-en eller mobilen. Alle venner kobler til med 4-bokstavs kode på egen telefon, og verten bytter sømløst mellom spillene!
             </p>
           </div>
         </div>
-        <a href="/party/" class="pl-banner-btn">Åpne Party Lounge 🚀</a>
+        <a href="/party/" class="pl-banner-btn">Gå til Party Lounge 🚀</a>
       </div>
 
       <div class="games-grid">
@@ -159,12 +178,12 @@
             </div>
           </div>
           <h3 class="card-title">Ordbombe</h3>
-          <p class="card-subtitle">Norsk Word Bomb med tikkende lunte</p>
+          <p class="card-subtitle">Kaotisk ordkrig med tikkende lunte</p>
           <p class="card-desc">
-            Finn et gyldig norsk ord som inneholder stavelsen før bomben eksploderer på din mobil! Spill sammen i lobby eller solo mot klokka. 495 000+ ord i ordboken.
+            Finn et gyldig ord med stavelsen før bomben eksploderer på mobilen din! Spill i festlobby eller øv solo mot klokka. 495 000+ norske ord.
           </p>
           <div class="card-footer">
-            <span class="card-status" id="ordbombeStatus">Lobby & Solo</span>
+            <span class="card-status" id="ordbombeStatus">Lobby &amp; Solo</span>
             <span class="card-btn">Spill nå →</span>
           </div>
         </a>
@@ -172,7 +191,7 @@
         <!-- Game 2: Tegn & Gjett -->
         <a href="/tegn-og-gjett/" class="game-card card-cyan" id="cardTegnOgGjett" data-category="party">
           <div class="card-top">
-            <div class="card-icon-box" style="border-color: #00b4d8;">
+            <div class="card-icon-box">
               <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett ikon" />
             </div>
             <div class="card-tags-group">
@@ -180,13 +199,13 @@
               <span class="card-tag tag-multiplayer">2–16 spillere</span>
             </div>
           </div>
-          <h3 class="card-title">Tegn & Gjett</h3>
-          <p class="card-subtitle">Norsk Skribbl.io for vennegjengen</p>
+          <h3 class="card-title">Tegn &amp; Gjett</h3>
+          <p class="card-subtitle">Norsk Skribbl for vennegjengen</p>
           <p class="card-desc">
-            Én spiller tegner det hemmelige ordet på mobilen eller PC-en. Resten av vennegjengen gjetter i lynrask sanntidschat på egne enheter!
+            Én tegner det hemmelige ordet på mobilskjermen i sanntid. Resten gjetter i lynrask chat på egen telefon! Hvem i gjengen kan egentlig tegne?
           </p>
           <div class="card-footer">
-            <span class="card-status" id="tegnOgGjettStatus">Lobby & Frispill</span>
+            <span class="card-status" id="tegnOgGjettStatus">Lobby &amp; Frispill</span>
             <span class="card-btn">Spill nå →</span>
           </div>
         </a>
