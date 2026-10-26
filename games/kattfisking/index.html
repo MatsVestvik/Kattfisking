@@ -7,20 +7,31 @@
   <meta name="description" content="Gjett hvilken norsk Wikipedia-artikkel det er ut fra kategoriene! Inspirert av catfishing.net." />
   <link rel="icon" type="image/png" href="/assets/icons/catfish.png" />
   <link rel="apple-touch-icon" href="/assets/icons/catfish.png" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="stylesheet" href="/kattfisking/styles.css?v=5.2" />
+  <link rel="stylesheet" href="/kattfisking/styles.css?v=6.0" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
 <body>
+  <!-- Dynamic Multilayered Parallax Background (Trondheim / NTNU) -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
   <div class="app-shell">
     <!-- Top Header -->
-    <header class="site-header">
-      <div class="brand-wrap" id="brandHomeBtn" role="button" tabindex="0" title="Gå til dagens utfordring">
-        <div class="brand-logo" aria-hidden="true">
-          <img src="/assets/icons/catfish.png" alt="Kattfisking logo" class="brand-logo-img" />
-        </div>
-        <div>
-          <h1 class="brand-title">Kattfisking</h1>
-          <p class="brand-subtitle">Norsk Wikipedia-kategorijakt</p>
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/" class="icon-btn text-btn-link" title="Tilbake til NTNU Games">‹ NTNU GAMES</a>
+        <div class="brand-wrap" id="brandHomeBtn" role="button" tabindex="0" title="Gå til dagens utfordring">
+          <img src="/assets/icons/catfish.png" alt="Kattfisking logo" class="header-pixel-icon" />
+          <div class="game-branding">
+            <h1 class="game-title">Kattfisking</h1>
+            <span class="game-subtitle">Norsk Wikipedia-kategorijakt</span>
+          </div>
         </div>
       </div>
 
@@ -39,10 +50,7 @@
         </button>
       </nav>
 
-      <div class="header-actions">
-        <a href="/" class="icon-btn text-btn-link" title="Tilbake til NTNU Games" aria-label="Tilbake til NTNU Games">
-          ‹ NTNU GAMES
-        </a>
+      <div class="header-right">
         <button type="button" class="icon-btn" id="helpModalBtn" title="Spilleregler og om Kattfisking" aria-label="Spilleregler">
           ?
         </button>
@@ -376,11 +384,17 @@
       </div>
     </div>
 
-    <footer class="site-footer">
-      <span>Kattfisking • Innhold fra <a href="https://no.wikipedia.org" target="_blank" rel="noopener noreferrer">Norsk Wikipedia</a> (CC BY-SA 4.0) • Inspirert av <a href="https://catfishing.net" target="_blank" rel="noopener noreferrer">catfishing.net</a></span>
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>
+        <strong>Kattfisking</strong> • Del av <a href="/">NTNU Games</a> • 
+        Innhold fra <a href="https://no.wikipedia.org" target="_blank" rel="noopener noreferrer">Norsk Wikipedia</a> • 
+        Inspirert av <a href="https://catfishing.net" target="_blank" rel="noopener noreferrer">catfishing.net</a>
+      </p>
     </footer>
   </div>
 
   <script src="/kattfisking/app.js?v=5.2"></script>
+  <script src="/parallax-bg.js?v=1.0"></script>
 </body>
 </html>
