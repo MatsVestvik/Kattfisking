@@ -132,9 +132,14 @@ body {
 
 /* Disabled Card State */
 .game-card.disabled-card {
-  opacity: 0.62;
-  cursor: not-allowed;
-  filter: grayscale(0.25);
+  opacity: 0.58;
+  cursor: not-allowed !important;
+  filter: grayscale(0.35);
+  user-select: none;
+}
+
+.game-card.disabled-card * {
+  pointer-events: none;
 }
 
 .game-card.disabled-card:hover {
@@ -146,7 +151,7 @@ body {
 
 .card-btn-disabled {
   color: var(--text-muted) !important;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
 
 /* Category Filter Pills */

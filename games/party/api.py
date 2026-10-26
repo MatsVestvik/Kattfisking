@@ -515,9 +515,7 @@ class PartyAPI:
                     room.game_state = {}
                     room.bump()
                 else:
-                    room.current_game = str(game_id)
-                    room.game_state = {"status": "placeholder"}
-                    room.bump()
+                    return 400, {"ok": False, "error": f"Spillet '{game_id}' er under utvikling og ikke tilgjengelig enda."}
 
             return 200, {"ok": True, "currentGame": room.current_game}
 
