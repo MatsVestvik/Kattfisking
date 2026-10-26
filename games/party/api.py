@@ -141,6 +141,7 @@ class PartyRoom:
                 "active_player_id": active_ids[0],
                 "active_player_name": self.players[active_ids[0]]["name"],
                 "prompt": initial_prompt,
+                "current_typing": "",
                 "used_words": [],
                 "turn_start_time": time.time(),
                 "time_remaining": turn_sec,
@@ -227,6 +228,7 @@ class PartyRoom:
             self.game_state["active_player_id"] = next_player_id
             self.game_state["active_player_name"] = next_player["name"] if next_player else "Ukjent"
             self.game_state["prompt"] = new_prompt
+            self.game_state["current_typing"] = ""
             self.game_state["turn_start_time"] = time.time()
             self.game_state["time_remaining"] = self.game_state["turn_duration"]
             self.game_state["last_event"] = {
@@ -283,6 +285,7 @@ class PartyRoom:
 
                 # Temporary explosion pause for animation
                 self.game_state["status"] = "exploded"
+                self.game_state["current_typing"] = ""
                 self.game_state["explosion_until"] = now + 2.4
                 self.game_state["last_event"] = {
                     "type": "explosion",
@@ -317,6 +320,7 @@ class PartyRoom:
                 self.game_state["active_player_id"] = next_player_id
                 self.game_state["active_player_name"] = next_player["name"] if next_player else "Ukjent"
                 self.game_state["prompt"] = new_prompt
+                self.game_state["current_typing"] = ""
                 self.game_state["turn_start_time"] = now
                 self.game_state["time_remaining"] = self.game_state["turn_duration"]
                 self.game_state["last_event"] = {
@@ -326,6 +330,18 @@ class PartyRoom:
                     "timestamp": now,
                 }
                 self.bump()
+
+    def set_ordbombe_typing(self, player_id: str, text: str) -> bool:
+        with self.lock:
+            if self.current_game != "ordbombe":
+                return False
+            if self.game_state.get("active_player_id") != player_id:
+                return False
+            clean_text = (text or "")[:40]
+            if self.game_state.get("current_typing") != clean_text:
+                self.game_state["current_typing"] = clean_text
+                self.bump()
+            return True
 
     # --- TEGN & GJETT ENGINE (skribbl.io style) ---
 
@@ -1025,6 +1041,11 @@ class PartyAPI:
 
             if not room:
                 return 404, {"ok": False, "error": "Rommet finnes ikke"}
+
+            if action == "typing":
+                text = str(body.get("text") or "")
+                room.set_ordbombe_typing(player_id, text)
+                return 200, {"ok": True}
 
             if action == "submit_word":
                 word = str(body.get("word") or "")

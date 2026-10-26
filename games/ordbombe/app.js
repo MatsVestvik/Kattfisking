@@ -293,6 +293,11 @@
     isHost: false,
     roomVersion: 0,
     lastHandledEventTimestamp: 0,
+    currentTyping: "",
+    typingThrottleTimer: null,
+    lastTypingSentTime: 0,
+    lastRoomPlayers: [],
+    currentRoomStatus: "idle",
   };
 
   // DOM Elements
@@ -349,6 +354,16 @@
     usedWordsContainer: document.getElementById("usedWordsContainer"),
     usedWordsCount: document.getElementById("usedWordsCount"),
     usedWordsList: document.getElementById("usedWordsList"),
+
+    // Live Typing Stream Elements
+    liveTypingStreamBox: document.getElementById("liveTypingStreamBox"),
+    streamAvatar: document.getElementById("streamAvatar"),
+    streamName: document.getElementById("streamName"),
+    streamStatus: document.getElementById("streamStatus"),
+    streamMatchBadge: document.getElementById("streamMatchBadge"),
+    streamWordBubble: document.getElementById("streamWordBubble"),
+    streamWordText: document.getElementById("streamWordText"),
+    streamCursor: document.getElementById("streamCursor"),
 
     // Game Over Card
     gameOverCard: document.getElementById("gameOverCard"),
@@ -527,6 +542,10 @@
       const heartsStr = "❤️".repeat(lives) + "🖤".repeat(Math.max(0, 3 - lives));
 
       node.innerHTML = `
+        <div class="cp-typing-bubble ${isActive && !p.eliminated ? 'is-active' : ''}" style="${isActive && !p.eliminated ? '' : 'display:none;'}">
+          <span class="cp-typing-text"></span>
+          <span class="cp-typing-cursor"></span>
+        </div>
         <div class="cp-avatar-wrap">
           <span class="cp-avatar-emoji">${avatar}</span>
           ${isActive && !p.eliminated ? '<span class="cp-bomb-indicator" title="Har bomben!">💣</span>' : ""}
@@ -539,6 +558,139 @@
 
       el.circlePlayersContainer.appendChild(node);
     });
+  }
+
+  // --- REAL-TIME TYPING SYNC & DISPLAY HELPERS ---
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatPromptMatchHtml(text, prompt) {
+    if (!text) return "";
+    const upperText = text.toUpperCase();
+    const upperPrompt = (prompt || "").toUpperCase();
+    if (upperPrompt && upperText.includes(upperPrompt)) {
+      const idx = upperText.indexOf(upperPrompt);
+      const before = escapeHtml(text.slice(0, idx));
+      const matched = escapeHtml(text.slice(idx, idx + upperPrompt.length));
+      const after = escapeHtml(text.slice(idx + upperPrompt.length));
+      return `${before}<span class="prompt-match-highlight">${matched}</span>${after}`;
+    }
+    return escapeHtml(text);
+  }
+
+  function updateTypingUI(rawText, prompt, isMyTurn, activeName, activeAvatar) {
+    const clean = (rawText || "").trim();
+    const upperPrompt = (prompt || state.currentPrompt || "").toUpperCase();
+    const hasMatch = upperPrompt && clean.toUpperCase().includes(upperPrompt);
+
+    // 1. Update Floating Speech Bubble on Active Circle Player Node
+    const activeNode = el.circlePlayersContainer ? el.circlePlayersContainer.querySelector(".circle-player-node.is-active-turn") : null;
+    if (activeNode) {
+      let bubble = activeNode.querySelector(".cp-typing-bubble");
+      if (!bubble) {
+        bubble = document.createElement("div");
+        bubble.className = "cp-typing-bubble";
+        bubble.innerHTML = '<span class="cp-typing-text"></span><span class="cp-typing-cursor"></span>';
+        activeNode.prepend(bubble);
+      }
+      const textEl = bubble.querySelector(".cp-typing-text");
+      if (textEl) {
+        if (clean) {
+          textEl.innerHTML = formatPromptMatchHtml(clean.toUpperCase(), upperPrompt);
+        } else {
+          textEl.innerHTML = '<span class="cp-dots"><span>•</span><span>•</span><span>•</span></span>';
+        }
+      }
+      bubble.style.display = "";
+    }
+
+    // 2. Update Live Stream Box
+    if (el.liveTypingStreamBox) {
+      if (el.streamAvatar) el.streamAvatar.textContent = activeAvatar || "👤";
+      if (el.streamName) el.streamName.textContent = isMyTurn ? "Du" : (activeName || "Spiller");
+      if (el.streamStatus) el.streamStatus.textContent = isMyTurn ? "(taster):" : "skriver:";
+
+      if (el.streamWordText) {
+        if (clean) {
+          el.streamWordText.classList.remove("placeholder");
+          el.streamWordText.innerHTML = formatPromptMatchHtml(clean.toUpperCase(), upperPrompt);
+        } else {
+          el.streamWordText.classList.add("placeholder");
+          el.streamWordText.textContent = isMyTurn ? `Skriv et ord med ${upperPrompt}...` : "Venter på første bokstav...";
+        }
+      }
+
+      if (el.streamMatchBadge) {
+        if (hasMatch) {
+          el.streamMatchBadge.className = "stream-match-badge matched";
+          el.streamMatchBadge.textContent = `✓ Inneholder ${upperPrompt}!`;
+        } else {
+          el.streamMatchBadge.className = "stream-match-badge waiting";
+          el.streamMatchBadge.textContent = `Mangler ${upperPrompt}`;
+        }
+      }
+
+      if (hasMatch) {
+        el.liveTypingStreamBox.classList.add("has-match");
+      } else {
+        el.liveTypingStreamBox.classList.remove("has-match");
+      }
+    }
+
+    // 3. For spectator, mirror typing into wordInput
+    if (!isMyTurn && el.wordInput) {
+      el.wordInput.classList.add("spectator-view");
+      if (clean) {
+        el.wordInput.value = clean.toUpperCase();
+      } else {
+        el.wordInput.value = "";
+      }
+    } else if (isMyTurn && el.wordInput) {
+      el.wordInput.classList.remove("spectator-view");
+    }
+  }
+
+  function sendTypingToServer(text) {
+    if (!state.isRoomMode || !state.roomCode || !state.playerId) return;
+
+    const now = Date.now();
+    if (state.typingThrottleTimer) {
+      clearTimeout(state.typingThrottleTimer);
+      state.typingThrottleTimer = null;
+    }
+
+    const doSend = async (val) => {
+      state.lastTypingSentTime = Date.now();
+      try {
+        await fetch("/api/party/ordbombe/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            playerId: state.playerId,
+            action: "typing",
+            text: val,
+          }),
+        });
+      } catch (e) {
+        // Ignore network noise
+      }
+    };
+
+    if (now - state.lastTypingSentTime > 85) {
+      doSend(text);
+    } else {
+      state.typingThrottleTimer = setTimeout(() => {
+        doSend(text);
+      }, 85);
+    }
   }
 
   // Smoothly rotate the central pointer arrow toward the active player
@@ -669,6 +821,14 @@
     el.wordInput.value = "";
     el.wordInput.className = "word-input";
     el.wordInput.focus();
+    state.currentTyping = "";
+    updateTypingUI(
+      "",
+      state.currentPrompt,
+      true,
+      state.mode === "party" ? curPlayer.name : state.soloName,
+      state.mode === "party" ? (curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "👤"
+    );
 
     // Tick loop every 100ms
     const startTime = performance.now();
@@ -725,6 +885,8 @@
       setTimeout(() => el.bombCenterHub.classList.remove("exploding"), 1200);
     }
     el.wordInput.disabled = true;
+    state.currentTyping = "";
+    updateTypingUI("💥 BOOM!", state.currentPrompt, false, curPlayer ? curPlayer.name : "Spiller", curPlayer ? curPlayer.avatar : "👤");
 
     const curPlayer = state.players[state.activePlayerIndex];
     curPlayer.lives--;
@@ -838,6 +1000,9 @@
           sfx.success();
           showFeedback(`✓ Godkjent: «${rawWord}»!`, "ok");
           el.wordInput.value = "";
+          state.currentTyping = "";
+          updateTypingUI("", state.currentPrompt, false);
+          sendTypingToServer("");
         } else {
           sfx.error();
           el.wordInput.classList.add("shake");
@@ -1041,6 +1206,31 @@
   el.btnStartGame.addEventListener("click", startGame);
   el.wordForm.addEventListener("submit", submitWord);
 
+  el.wordInput.addEventListener("input", () => {
+    if (el.wordInput.disabled) return;
+    const val = el.wordInput.value || "";
+    state.currentTyping = val;
+
+    let activeName = "Spiller";
+    let activeAvatar = "👤";
+
+    if (state.isRoomMode) {
+      const activePlayer = state.lastRoomPlayers?.find(p => p.id === state.playerId);
+      activeName = activePlayer ? activePlayer.name : "Du";
+      activeAvatar = activePlayer ? (activePlayer.avatar || "👤") : "👤";
+      sendTypingToServer(val);
+    } else if (state.mode === "party") {
+      const cur = state.players[state.activePlayerIndex];
+      activeName = cur ? cur.name : "Spiller";
+      activeAvatar = cur ? (cur.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "👤";
+    } else {
+      activeName = state.soloName || "Spiller 1";
+      activeAvatar = "👤";
+    }
+
+    updateTypingUI(val, state.currentPrompt, true, activeName, activeAvatar);
+  });
+
   el.btnPlayAgain.addEventListener("click", async () => {
     if (state.isRoomMode && state.isHost) {
       const hostToken = state.hostToken || sessionStorage.getItem("party_host_token");
@@ -1131,7 +1321,8 @@
       console.warn("Room poll error:", err);
     }
 
-    setTimeout(pollRoomState, 450);
+    const pollInterval = (state.isRoomMode && state.currentRoomStatus === "playing") ? 220 : 450;
+    setTimeout(pollRoomState, pollInterval);
   }
 
   function syncRoomGameState(data) {
@@ -1163,6 +1354,9 @@
     }
 
     // Active player and turn checking
+    state.lastRoomPlayers = data.players || [];
+    state.currentRoomStatus = gs.status || "idle";
+
     const isMyTurn = gs.active_player_id === state.playerId;
     const activePlayer = data.players.find(p => p.id === gs.active_player_id);
 
@@ -1172,6 +1366,16 @@
     // Render Circular Arena and point arrow
     renderCircularPlayers(data.players || [], gs.active_player_id);
     rotateArrowToActive(data.players || [], gs.active_player_id);
+
+    const liveTypingText = isMyTurn ? (el.wordInput.value || "") : (gs.current_typing || "");
+
+    updateTypingUI(
+      liveTypingText,
+      state.currentPrompt,
+      isMyTurn,
+      activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller"),
+      activePlayer ? (activePlayer.avatar || "👤") : "👤"
+    );
 
     if (isMyTurn) {
       el.turnOverline.textContent = "💣 DET ER DIN TUR!";
@@ -1185,7 +1389,7 @@
     } else {
       el.turnOverline.textContent = `${gs.active_player_name || 'En annen spiller'} har bomben:`;
       el.wordInput.disabled = true;
-      el.wordInput.placeholder = `Venter på at ${gs.active_player_name || 'spilleren'} skal svare...`;
+      el.wordInput.placeholder = liveTypingText ? `✍️ ${liveTypingText}` : `Venter på at ${gs.active_player_name || 'spilleren'} skal svare...`;
       el.btnSubmitWord.disabled = true;
       el.appShell.classList.remove("my-turn-active");
     }
