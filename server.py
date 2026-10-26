@@ -16,6 +16,7 @@ from typing import Any, Dict, Optional, Tuple
 from games.kattfisking import KattfiskingAPI
 from games.mer_eller_mindre import MerEllerMindreAPI
 from games.geoguesser import GeoguesserAPI
+from games.ordbombe import OrdbombeAPI
 
 PORT = int(os.environ.get("PORT", "3000"))
 HOST = os.environ.get("HOST", "0.0.0.0")
@@ -85,7 +86,13 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                 if res:
                     return self._send_json(res[1], status=res[0])
 
-            # 4. Static files
+            # 4. Check Ordbombe API
+            if path.startswith("/api/ordbombe/"):
+                res = OrdbombeAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 5. Static files
             self.serve_static(path, head_only=head_only)
 
         except Exception as exc:
@@ -118,6 +125,12 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
             # 3. Check Geoguesser API
             if path.startswith("/api/geoguesser/"):
                 res = GeoguesserAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 4. Check Ordbombe API
+            if path.startswith("/api/ordbombe/"):
+                res = OrdbombeAPI.handle_post(path, body)
                 if res:
                     return self._send_json(res[1], status=res[0])
 
@@ -239,6 +252,7 @@ def main() -> None:
     print(f"   • Hub:          http://{HOST}:{PORT}/")
     print(f"   • Kattfisking:  http://{HOST}:{PORT}/kattfisking/")
     print(f"   • Mer/Mindre:   http://{HOST}:{PORT}/mer-eller-mindre/")
+    print(f"   • Ordbombe:     http://{HOST}:{PORT}/ordbombe/ (Partyspill)")
     print(f"   • NTNU guesser: http://{HOST}:{PORT}/geoguesser/ (under utvikling)\n")
 
     try:

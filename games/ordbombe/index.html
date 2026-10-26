@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ordbombe – Norsk Word Bomb Partyspill | NTNU Games</title>
+  <meta name="description" content="Ordbombe er et lynraskt norsk partyspill inspirert av Word Bomb. Tast inn et gyldig norsk ord før bomben eksploderer! Spill alene eller i partymodus med venner." />
+  <link rel="icon" type="image/png" href="/assets/icons/ordbombe.png" />
+  <link rel="apple-touch-icon" href="/assets/icons/ordbombe.png" />
+  <link rel="stylesheet" href="/ordbombe/styles.css?v=1.0" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
+</head>
+<body>
+  <!-- Dynamic Multilayered Parallax Background -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
+  <div class="app-shell" id="appShell">
+    <!-- Header -->
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/" class="back-link" title="Tilbake til NTNU Games">‹ Hub</a>
+        <div class="game-brand">
+          <img src="/assets/icons/ordbombe.png" alt="Ordbombe" class="game-icon-mini" />
+          <div class="game-brand-text">
+            <h1 class="game-title">Ordbombe</h1>
+            <span class="game-category-badge">💣 Partyspill</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button type="button" class="header-btn" id="btnSoundToggle" title="Slå lyd av eller på" aria-label="Lyd">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button type="button" class="header-btn" id="btnHelp" title="Hvordan spille" aria-label="Hjelp">?</button>
+      </div>
+    </header>
+
+    <main class="game-main">
+      <!-- 1. SETUP CARD (Shown before starting game) -->
+      <section class="card setup-card" id="setupCard" aria-labelledby="setupHeading">
+        <div class="setup-hero">
+          <img src="/assets/icons/ordbombe.png" alt="Ordbombe logo" class="setup-bomb-icon" />
+          <h2 class="setup-title" id="setupHeading">Ordbombe</h2>
+          <p class="setup-subtitle">Lynraskt norsk ordspill inspirert av <em>Word Bomb</em>. Tast inn et gyldig norsk ord som inneholder bokstavene før lunta brenner ut!</p>
+        </div>
+
+        <!-- Mode selector tabs -->
+        <div class="mode-tabs">
+          <button type="button" class="mode-tab-btn active" id="tabPartyMode">
+            🎉 Partymodus <span class="tab-sub">(2–8 spillere)</span>
+          </button>
+          <button type="button" class="mode-tab-btn" id="tabSoloMode">
+            ⚡ Solomodus <span class="tab-sub">(Overlev mot klokka)</span>
+          </button>
+        </div>
+
+        <!-- PARTY MODE SETTINGS -->
+        <div class="mode-settings-block" id="partySettingsBlock">
+          <div class="setting-group">
+            <label class="setting-label">Antall spillere:</label>
+            <div class="player-count-buttons" id="playerCountSelector">
+              <button type="button" class="count-btn" data-count="2">2</button>
+              <button type="button" class="count-btn active" data-count="3">3</button>
+              <button type="button" class="count-btn" data-count="4">4</button>
+              <button type="button" class="count-btn" data-count="5">5</button>
+              <button type="button" class="count-btn" data-count="6">6</button>
+              <button type="button" class="count-btn" data-count="7">7</button>
+              <button type="button" class="count-btn" data-count="8">8</button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">Spillernavn (send enheten videre på tur):</label>
+            <div class="players-inputs-list" id="playersInputsList">
+              <!-- Dynamically populated name inputs -->
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-group">
+              <label class="setting-label" for="selectTimerDifficulty">Tid per tur:</label>
+              <select class="custom-select" id="selectTimerDifficulty">
+                <option value="12">Avslappet (12 sekunder)</option>
+                <option value="9" selected>Standard (9 sekunder)</option>
+                <option value="6">Panikk (6 sekunder) 🔥</option>
+              </select>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label" for="selectPromptDifficulty">Vanskelighetsgrad på bokstaver:</label>
+              <select class="custom-select" id="selectPromptDifficulty">
+                <option value="easy">Lett (2-bokstavs stavelser, f.eks. ST, BIL)</option>
+                <option value="medium" selected>Middels (3-bokstavs ordstammer, f.eks. TAK, FIS)</option>
+                <option value="hard">Kaos (Utfordrende klynger, f.eks. KNU, FRØ)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- SOLO MODE SETTINGS -->
+        <div class="mode-settings-block hidden" id="soloSettingsBlock">
+          <div class="solo-intro-box">
+            <div class="solo-stat-pill">
+              <span class="solo-stat-label">Personlig rekord:</span>
+              <strong class="solo-stat-val" id="soloBestScore">0 poeng</strong>
+            </div>
+            <div class="solo-stat-pill">
+              <span class="solo-stat-label">Beste streak:</span>
+              <strong class="solo-stat-val" id="soloBestStreak">0 ord</strong>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label" for="inputSoloName">Ditt navn / kallenavn:</label>
+            <input type="text" class="custom-input" id="inputSoloName" placeholder="Ditt spillernavn..." maxlength="20" value="Spiller 1" />
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label" for="selectSoloDifficulty">Start-vanskelighetsgrad:</label>
+            <select class="custom-select" id="selectSoloDifficulty">
+              <option value="easy">Lett (Mye tid og enkle stavelser)</option>
+              <option value="medium" selected>Middels (Klassisk Word Bomb-flyt)</option>
+              <option value="hard">Ekspert (Korte tidsfrister og tøffe bokstaver)</option>
+            </select>
+          </div>
+          <p class="solo-tip-text">💡 <em>I solomodus starter timeren på 10 sekunder og blir gradvis kortere jo høyere streak du bygger! Du har 3 liv.</em></p>
+        </div>
+
+        <button type="button" class="btn-start-game" id="btnStartGame">
+          Start Ordbombe 💣
+        </button>
+      </section>
+
+      <!-- 2. GAMEPLAY ARENA (Active Bomb Stage) -->
+      <section class="card game-arena hidden" id="gameArena" aria-live="polite">
+        <!-- Party / Solo Status Bar -->
+        <div class="arena-top-bar">
+          <!-- Turn Indicator -->
+          <div class="active-turn-card" id="activeTurnCard">
+            <span class="turn-avatar" id="turnAvatar">👤</span>
+            <div>
+              <span class="turn-overline" id="turnOverline">Tur:</span>
+              <h3 class="turn-player-name" id="turnPlayerName">Spiller 1</h3>
+            </div>
+          </div>
+
+          <!-- Hearts / Score Display -->
+          <div class="arena-stats-right">
+            <div class="hearts-box" id="activeHeartsBox" aria-label="Liv">
+              <span class="heart active">❤️</span>
+              <span class="heart active">❤️</span>
+              <span class="heart active">❤️</span>
+            </div>
+            <div class="solo-score-display hidden" id="soloScoreDisplay">
+              <span class="score-label">Poeng:</span>
+              <span class="score-num" id="arenaScoreNum">0</span>
+              <span class="streak-badge" id="arenaStreakBadge">x1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multi-player chips bar in party mode -->
+        <div class="party-players-strip" id="partyPlayersStrip">
+          <!-- Populated with player status pills -->
+        </div>
+
+        <!-- Central Bomb & Burning Fuse Stage -->
+        <div class="bomb-stage-wrap" id="bombStageWrap">
+          <!-- Canvas for burning ember sparks -->
+          <canvas class="bomb-sparks-canvas" id="bombSparksCanvas" width="400" height="340"></canvas>
+
+          <!-- SVG Pixel Bomb Illustration -->
+          <div class="bomb-graphic" id="bombGraphic">
+            <div class="fuse-glow" id="fuseGlow"></div>
+            <img src="/assets/icons/ordbombe.png" alt="Tikkende bombe" class="bomb-pixel-art" id="bombImg" />
+          </div>
+
+          <!-- Timer Clock Gauge -->
+          <div class="timer-dial-box" id="timerDialBox">
+            <div class="timer-bar-track">
+              <div class="timer-bar-fill" id="timerBarFill" style="width: 100%;"></div>
+            </div>
+            <div class="timer-digits" id="timerDigits">9.0s</div>
+          </div>
+
+          <!-- Syllable Letter Prompt Box -->
+          <div class="prompt-box" id="promptBox">
+            <span class="prompt-caption">Ordet må inneholde:</span>
+            <div class="prompt-letters" id="promptLetters">BIL</div>
+          </div>
+        </div>
+
+        <!-- Word Input Form -->
+        <form class="word-form" id="wordForm" autocomplete="off">
+          <div class="word-input-wrap">
+            <input
+              type="text"
+              id="wordInput"
+              class="word-input"
+              placeholder="Skriv et norsk ord..."
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              aria-label="Skriv inn norsk ord"
+            />
+            <button type="submit" class="btn-submit-word" id="btnSubmitWord">
+              Gjett ⏎
+            </button>
+          </div>
+          <div class="input-feedback hidden" id="inputFeedback"></div>
+        </form>
+
+        <!-- Used words history ticker -->
+        <div class="used-words-container" id="usedWordsContainer">
+          <span class="used-words-label">Brukte ord i denne runden (<span id="usedWordsCount">0</span>):</span>
+          <div class="used-words-list" id="usedWordsList"></div>
+        </div>
+      </section>
+
+      <!-- 3. GAME OVER / VICTORY CARD -->
+      <section class="card game-over-card hidden" id="gameOverCard" aria-live="polite">
+        <div class="game-over-header">
+          <div class="victory-icon-wrap" id="victoryIconWrap">🏆</div>
+          <span class="game-over-badge" id="gameOverBadge">SPILLET ER SLUTT</span>
+          <h2 class="game-over-title" id="gameOverTitle">Mats vant Ordbombe!</h2>
+          <p class="game-over-subtitle" id="gameOverSubtitle">Fantastisk ordforråd og lynraske reflekser!</p>
+        </div>
+
+        <!-- Standings / Leaderboard in Party mode -->
+        <div class="standings-box" id="partyStandingsBox">
+          <h3 class="standings-heading">Resultater fra runden:</h3>
+          <div class="standings-list" id="partyStandingsList"></div>
+        </div>
+
+        <!-- Solo Stats Summary in Solo mode -->
+        <div class="solo-summary-box hidden" id="soloSummaryBox">
+          <div class="summary-stats-grid">
+            <div class="stat-cell">
+              <span class="cell-label">Total poengsum</span>
+              <strong class="cell-num" id="endScoreNum">0</strong>
+            </div>
+            <div class="stat-cell">
+              <span class="cell-label">Lengste streak</span>
+              <strong class="cell-num" id="endStreakNum">0</strong>
+            </div>
+            <div class="stat-cell">
+              <span class="cell-label">Godkjente ord</span>
+              <strong class="cell-num" id="endWordsCount">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Action Buttons -->
+        <div class="game-over-actions">
+          <button type="button" class="action-btn-primary" id="btnPlayAgain">
+            Spill en ny runde ↺
+          </button>
+          <button type="button" class="action-btn-secondary" id="btnChangeSettings">
+            Bytt innstillinger ⚙️
+          </button>
+          <a href="/" class="action-btn-secondary">
+            Tilbake til NTNU Games ‹
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- Rules / Help Modal -->
+    <div class="modal-backdrop hidden" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <div class="rules-card">
+        <div class="rules-header">
+          <h2 class="rules-title" id="helpModalTitle">
+            <img src="/assets/icons/ordbombe.png" alt="" class="modal-icon-mini" /> Slik spiller du Ordbombe
+          </h2>
+          <button type="button" class="close-btn" id="btnCloseHelp" aria-label="Lukk">×</button>
+        </div>
+        <div class="rules-body">
+          <p>
+            <strong>Ordbombe</strong> er et heseblesende norsk partyspill inspirert av <em>Word Bomb</em> (og klassikeren <em>Pass the Bomb</em>).
+          </p>
+          <ul class="rules-list">
+            <li>
+              <strong>1. Følg med på bokstavene:</strong> I midten av bomben ser du en kombinasjon av 2–3 bokstaver (f.eks. <code>BIL</code>).
+            </li>
+            <li>
+              <strong>2. Finn et norsk ord:</strong> Tast inn et hvilket som helst gyldig norsk ord som inneholder disse bokstavene i samme rekkefølge (f.eks. <em>billett</em>, <em>lastebil</em>, <em>bilde</em>, <em>stabilitet</em>).
+            </li>
+            <li>
+              <strong>3. Lunten brenner:</strong> Du må taste inn ordet før timeren når 0! Hvert sekund brenner lunta kortere og bomben tikker raskere.
+            </li>
+            <li>
+              <strong>4. Partymodus (Send bomben videre):</strong> Så snart du har tastet et gyldig ord, tilbakestilles lunta og bomben sendes til neste spiller med en ny bokstavkombinasjon! Den som har bomben når den smeller, mister 1 hjerte ❤️. Siste spiller med liv igjen vinner!
+            </li>
+            <li>
+              <strong>5. Solomodus (Overlev mot klokka):</strong> Hvor mange ord klarer du på rad før du mister alle 3 liv? Jo høyere streak, desto kortere tid får du per ord!
+            </li>
+            <li>
+              <strong>6. Ekte ordbok:</strong> Spillet bruker en massiv norsk ordbok med over 495 000 offisielle Bokmål-ord!
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>
+        <strong>Ordbombe</strong> • Del av <a href="/">NTNU Games</a> • 
+        Offisiell norsk ordbok (495 000+ ord)
+      </p>
+    </footer>
+  </div>
+
+  <script src="/ordbombe/app.js?v=1.0"></script>
+  <script src="/parallax-bg.js?v=1.0"></script>
+</body>
+</html>

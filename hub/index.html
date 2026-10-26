@@ -39,16 +39,38 @@
       </div>
     </header>
 
-    <!-- Game Selection Grid -->
-    <section aria-labelledby="gamesSectionHeading">
+    <!-- Category Tabs Navigation -->
+    <nav class="category-nav" aria-label="Spillkategorier">
+      <button type="button" class="category-pill active" data-category="all" id="tabCatAll">
+        <span class="pill-icon">✨</span>
+        <span class="pill-label">Alle spill</span>
+        <span class="pill-count">4</span>
+      </button>
+      <button type="button" class="category-pill" data-category="daily" id="tabCatDaily">
+        <span class="pill-icon">📅</span>
+        <span class="pill-label">Daglige spill</span>
+        <span class="pill-count">3</span>
+      </button>
+      <button type="button" class="category-pill" data-category="party" id="tabCatParty">
+        <span class="pill-icon">💣</span>
+        <span class="pill-label">Partyspill</span>
+        <span class="pill-count">1</span>
+      </button>
+    </nav>
+
+    <!-- Category Section 1: Daglige spill -->
+    <section class="game-category-section" data-section-category="daily" aria-labelledby="dailyGamesHeading">
       <div class="section-header">
-        <h2 class="section-title" id="gamesSectionHeading">Alle spill</h2>
-        <span class="section-counter">2 aktive spill • 1 under utvikling</span>
+        <div>
+          <h2 class="section-title" id="dailyGamesHeading">📅 Daglige spill</h2>
+          <p class="section-subtitle">Nye utfordringer hver dag kl. 00:00</p>
+        </div>
+        <span class="section-counter">2 aktive • 1 under utvikling</span>
       </div>
 
       <div class="games-grid">
         <!-- Game 1: Kattfisking -->
-        <a href="/kattfisking/" class="game-card featured-card" id="cardKattfisking">
+        <a href="/kattfisking/" class="game-card featured-card" id="cardKattfisking" data-category="daily">
           <div class="card-top">
             <div class="card-icon-box">
               <img src="/assets/icons/catfish.png" alt="Kattfisk" />
@@ -67,7 +89,7 @@
         </a>
 
         <!-- Game 2: Mer eller Mindre -->
-        <a href="/mer-eller-mindre/" class="game-card card-green" id="cardMerMindre">
+        <a href="/mer-eller-mindre/" class="game-card card-green" id="cardMerMindre" data-category="daily">
           <div class="card-top">
             <div class="card-icon-box">
               <img src="/assets/icons/moreorless.png" alt="Mer eller Mindre ikon" />
@@ -86,7 +108,7 @@
         </a>
 
         <!-- Game 3: NTNU guesser (Disabled / Under utvikling) -->
-        <div class="game-card card-blue disabled-card" id="cardGeoguesser" aria-disabled="true">
+        <div class="game-card card-blue disabled-card" id="cardGeoguesser" data-category="daily" aria-disabled="true">
           <div class="card-top">
             <div class="card-icon-box">
               <img src="/assets/icons/ntnu_guesser.png" alt="NTNU guesser ikon" />
@@ -106,11 +128,46 @@
       </div>
     </section>
 
+    <!-- Category Section 2: Partyspill -->
+    <section class="game-category-section" data-section-category="party" aria-labelledby="partyGamesHeading">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" id="partyGamesHeading">💣 Partyspill</h2>
+          <p class="section-subtitle">Sosiale spill for vorspiel, pauser eller vennegjengen</p>
+        </div>
+        <span class="section-counter">1 aktivt spill • 2–8 spillere & solo</span>
+      </div>
+
+      <div class="games-grid">
+        <!-- Game: Ordbombe -->
+        <a href="/ordbombe/" class="game-card card-orange" id="cardOrdbombe" data-category="party">
+          <div class="card-top">
+            <div class="card-icon-box">
+              <img src="/assets/icons/ordbombe.png" alt="Ordbombe ikon" />
+            </div>
+            <div class="card-tags-group">
+              <span class="card-tag tag-party">Partyspill</span>
+              <span class="card-tag tag-multiplayer">2–8 spillere / Solo</span>
+            </div>
+          </div>
+          <h3 class="card-title">Ordbombe</h3>
+          <p class="card-subtitle">Norsk Word Bomb med tikkende lunte</p>
+          <p class="card-desc">
+            Finn et gyldig norsk ord som inneholder stavelsen før bomben eksploderer! Send bomben videre i partymodus eller utfordre deg selv mot klokka i solo arkademodus. 495 000+ ord i ordboken.
+          </p>
+          <div class="card-footer">
+            <span class="card-status" id="ordbombeStatus">Partymodus & Solo</span>
+            <span class="card-btn">Spill nå →</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
     <!-- Daily Tracker / Streak bar -->
     <section class="tracker-box" aria-labelledby="trackerHeading">
       <div>
-        <h3 class="tracker-title" id="trackerHeading">Dagens fremgang</h3>
-        <p class="tracker-subtitle">Hold oversikt over spillene du har prøvd i dag</p>
+        <h3 class="tracker-title" id="trackerHeading">Dagens oversikt</h3>
+        <p class="tracker-subtitle">Følg daglige oppgaver og prøv nye partyspill</p>
       </div>
       <div class="tracker-items">
         <div class="tracker-badge" id="trackerKattfisking">
@@ -119,6 +176,9 @@
         <div class="tracker-badge" id="trackerMerMindre">
           <span>○</span> Mer eller Mindre
         </div>
+        <a href="/ordbombe/" class="tracker-badge tracker-party-link" id="trackerOrdbombe" title="Spill Ordbombe">
+          <span>💣</span> Ordbombe
+        </a>
         <div class="tracker-badge tracker-disabled" id="trackerGeoguesser">
           <span>🔒</span> NTNU guesser (snart)
         </div>
@@ -134,7 +194,7 @@
     </footer>
   </div>
 
-  <script src="/hub.js?v=1.1"></script>
+  <script src="/hub.js?v=2.0"></script>
   <script src="/parallax-bg.js?v=1.0"></script>
 </body>
 </html>

@@ -80,4 +80,65 @@
   } catch (e) {
     console.warn("Could not check mer eller mindre progress", e);
   }
+
+  // Check Ordbombe Highscore & Party Status
+  const ordbombeStatus = document.getElementById("ordbombeStatus");
+  const trackerOrdbombe = document.getElementById("trackerOrdbombe");
+  try {
+    const obHs = localStorage.getItem("ordbombe_highscore");
+    if (obHs && parseInt(obHs, 10) > 0) {
+      const score = parseInt(obHs, 10);
+      if (ordbombeStatus) {
+        ordbombeStatus.textContent = `Beste solo: ${score} ord 🔥`;
+      }
+      if (trackerOrdbombe) {
+        trackerOrdbombe.innerHTML = `<span>💣</span> Ordbombe (${score} ord)`;
+        trackerOrdbombe.classList.add("done");
+      }
+    }
+  } catch (e) {
+    console.warn("Could not check ordbombe progress", e);
+  }
+
+  // Category Filtering Navigation
+  const categoryPills = document.querySelectorAll(".category-pill");
+  const categorySections = document.querySelectorAll(".game-category-section");
+
+  function filterCategory(cat, updateHash = true) {
+    categoryPills.forEach(pill => {
+      const isActive = pill.dataset.category === cat;
+      pill.classList.toggle("active", isActive);
+      pill.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+
+    categorySections.forEach(sec => {
+      const secCat = sec.dataset.sectionCategory;
+      if (cat === "all" || secCat === cat) {
+        sec.classList.remove("category-hidden");
+      } else {
+        sec.classList.add("category-hidden");
+      }
+    });
+
+    if (updateHash) {
+      if (cat === "all") {
+        history.replaceState(null, "", window.location.pathname);
+      } else {
+        history.replaceState(null, "", `#${cat}`);
+      }
+    }
+  }
+
+  categoryPills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      const cat = pill.dataset.category || "all";
+      filterCategory(cat, true);
+    });
+  });
+
+  // Handle initial hash on page load (e.g. #party or #daily)
+  const initialHash = window.location.hash.replace("#", "").toLowerCase();
+  if (initialHash === "party" || initialHash === "daily") {
+    filterCategory(initialHash, false);
+  }
 })();

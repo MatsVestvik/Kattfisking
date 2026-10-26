@@ -446,5 +446,6 @@ server.listen(PORT, HOST, () => {
   console.log(`   • Hub:          http://${HOST}:${PORT}/`);
   console.log(`   • Kattfisking:  http://${HOST}:${PORT}/kattfisking/`);
   console.log(`   • Mer/Mindre:   http://${HOST}:${PORT}/mer-eller-mindre/`);
+  console.log(`   • Ordbombe:     http://${HOST}:${PORT}/ordbombe/ (Partyspill)`);
   console.log(`   • NTNU guesser: http://${HOST}:${PORT}/geoguesser/ (under utvikling)\n`);
 });
