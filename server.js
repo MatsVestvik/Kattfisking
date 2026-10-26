@@ -407,8 +407,13 @@ print(json.dumps(res, ensure_ascii=False))
 
       if (fs.existsSync(candidate)) {
         fullPath = candidate;
-      } else if ((safeRel.startsWith("background/") || safeRel.startsWith("seabed/")) && fs.existsSync(path.join(BASE_DIR, safeRel))) {
-        fullPath = path.join(BASE_DIR, safeRel);
+      } else if (safeRel.startsWith("background/") || safeRel.startsWith("seabed/")) {
+        const assetCand = path.join(HUB_DIR, "assets", safeRel);
+        if (fs.existsSync(assetCand)) {
+          fullPath = assetCand;
+        } else if (fs.existsSync(path.join(BASE_DIR, safeRel))) {
+          fullPath = path.join(BASE_DIR, safeRel);
+        }
       } else {
         const hubIndex = path.join(HUB_DIR, "index.html");
         if (fs.existsSync(hubIndex) && !safeRel.startsWith("api/")) {

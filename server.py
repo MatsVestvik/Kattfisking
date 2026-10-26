@@ -208,8 +208,12 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
 
             if os.path.isfile(candidate):
                 full_path = candidate
-            elif (safe_rel.startswith("background/") or safe_rel.startswith("seabed/")) and os.path.isfile(os.path.join(BASE_DIR, safe_rel)):
-                full_path = os.path.join(BASE_DIR, safe_rel)
+            elif safe_rel.startswith("background/") or safe_rel.startswith("seabed/"):
+                asset_cand = os.path.join(HUB_DIR, "assets", safe_rel)
+                if os.path.isfile(asset_cand):
+                    full_path = asset_cand
+                elif os.path.isfile(os.path.join(BASE_DIR, safe_rel)):
+                    full_path = os.path.join(BASE_DIR, safe_rel)
             else:
                 # Fallback to hub index.html for root SPA navigation
                 hub_index = os.path.join(HUB_DIR, "index.html")

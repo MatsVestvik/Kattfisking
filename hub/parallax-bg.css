@@ -41,7 +41,7 @@
 
 /* Layer 1: Sky, Sun & Clouds */
 .parallax-layer.layer-1-sky {
-  background-image: url("/background/1.jpeg");
+  background-image: url("/assets/background/1.jpeg");
   z-index: 1;
   animation: skyGlowPulse 12s ease-in-out infinite alternate;
 }
@@ -57,7 +57,7 @@
 
 /* Layer 2: Fjord & Distant Hills with Evening Shoreline Lights */
 .parallax-layer.layer-2-fjord {
-  background-image: url("/background/2.png");
+  background-image: url("/assets/background/2.png");
   z-index: 2;
   animation: fjordLightsShimmer 6s ease-in-out infinite alternate;
 }
@@ -73,23 +73,23 @@
 
 /* Layer 3: NTNU Gløshaugen Hovedbygningen */
 .parallax-layer.layer-3-campus {
-  background-image: url("/background/3.png");
+  background-image: url("/assets/background/3.png");
   z-index: 3;
 }
 
 /* Layer 4: Foreground Lawn, Stairs, Lampposts & Students */
 .parallax-layer.layer-4-lawn {
-  background-image: url("/background/4.png");
+  background-image: url("/assets/background/4.png");
   z-index: 4;
 }
 
 /* ==========================================================================
    SEABED THEME (Kattfisking underwater parallax background)
-   4 Layers in /seabed/:
-     Layer 1 (Deep Water / Light Rays): /seabed/1.png
-     Layer 2 (Distant Coral / Kelp): /seabed/2.png
-     Layer 3 (Midground Reef & Seabed): /seabed/3.png
-     Layer 4 (Foreground Sand & Marine Floor): /seabed/4.png
+   4 Layers in /assets/seabed/:
+     Layer 1 (Deep Water / Light Rays): /assets/seabed/1.png
+     Layer 2 (Distant Coral / Kelp): /assets/seabed/2.png
+     Layer 3 (Midground Reef & Seabed): /assets/seabed/3.png
+     Layer 4 (Foreground Sand & Marine Floor): /assets/seabed/4.png
    ========================================================================== */
 
 .dynamic-parallax-bg.theme-seabed {
@@ -99,7 +99,7 @@
 .dynamic-parallax-bg.theme-seabed .layer-1-sky,
 .dynamic-parallax-bg.theme-seabed .layer-1-seabed,
 .parallax-layer.layer-1-seabed {
-  background-image: url("/seabed/1.png");
+  background-image: url("/assets/seabed/1.png");
   z-index: 1;
   animation: seabedDepthPulse 14s ease-in-out infinite alternate;
 }
@@ -107,7 +107,7 @@
 .dynamic-parallax-bg.theme-seabed .layer-2-fjord,
 .dynamic-parallax-bg.theme-seabed .layer-2-seabed,
 .parallax-layer.layer-2-seabed {
-  background-image: url("/seabed/2.png");
+  background-image: url("/assets/seabed/2.png");
   z-index: 2;
   animation: seabedCausticsShimmer 7s ease-in-out infinite alternate;
 }
@@ -115,14 +115,14 @@
 .dynamic-parallax-bg.theme-seabed .layer-3-campus,
 .dynamic-parallax-bg.theme-seabed .layer-3-seabed,
 .parallax-layer.layer-3-seabed {
-  background-image: url("/seabed/3.png");
+  background-image: url("/assets/seabed/3.png");
   z-index: 3;
 }
 
 .dynamic-parallax-bg.theme-seabed .layer-4-lawn,
 .dynamic-parallax-bg.theme-seabed .layer-4-seabed,
 .parallax-layer.layer-4-seabed {
-  background-image: url("/seabed/4.png");
+  background-image: url("/assets/seabed/4.png");
   z-index: 4;
 }
 
