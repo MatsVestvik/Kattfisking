@@ -48,6 +48,9 @@
     betterThanPct: null,
     distribution: null,
     stats: null,
+
+    // Active view mode: "game" (solving / reviewing article) or "summary" (final results page)
+    viewMode: "game",
   };
 
   // DOM Elements
@@ -76,6 +79,7 @@
     currentScoreVal: document.getElementById("currentScoreVal"),
     currentMaxVal: document.getElementById("currentMaxVal"),
 
+    cluesCard: document.getElementById("cluesCard"),
     questionCounterHeading: document.getElementById("questionCounterHeading"),
     categoryCountNum: document.getElementById("categoryCountNum"),
     hintControls: document.getElementById("hintControls"),
@@ -402,15 +406,20 @@
         state.submittedToServer = false;
       }
 
-      // If currentIndex points to a finished item, jump to first pending if any
+      // If all articles are finished, show the summary results page directly
       const firstPending = state.progress.findIndex(
         (p) => p.status === "pending"
       );
-      if (
-        state.progress[state.currentIndex]?.status !== "pending" &&
-        firstPending !== -1
-      ) {
-        state.currentIndex = firstPending;
+      if (firstPending === -1 && state.progress.length > 0) {
+        state.viewMode = "summary";
+      } else {
+        state.viewMode = "game";
+        if (
+          state.progress[state.currentIndex]?.status !== "pending" &&
+          firstPending !== -1
+        ) {
+          state.currentIndex = firstPending;
+        }
       }
 
       setActiveNav("daily");
@@ -513,6 +522,22 @@
       el.practiceCountVal.textContent = String(state.practiceCount);
     }
 
+    // Daily Mode: Summary / Results Page view
+    if (state.mode === "daily" && state.viewMode === "summary") {
+      if (el.cluesCard) el.cluesCard.classList.add("hidden");
+      el.guessForm.classList.add("hidden");
+      el.revealCard.classList.add("hidden");
+      el.didYouMeanBox.classList.add("hidden");
+
+      maybeSubmitDailyScore();
+      renderSummaryCard();
+      return;
+    }
+
+    // Normal article / game view
+    if (el.cluesCard) el.cluesCard.classList.remove("hidden");
+    el.summaryCard.classList.add("hidden");
+
     if (!art) return;
 
     // Clues Card
@@ -568,13 +593,7 @@
     } else {
       el.guessForm.classList.add("hidden");
       renderRevealCard(art, item);
-
-      if (isAllDailyFinished()) {
-        maybeSubmitDailyScore();
-        renderSummaryCard();
-      } else {
-        el.summaryCard.classList.add("hidden");
-      }
+      el.summaryCard.classList.add("hidden");
     }
   }
 
@@ -584,7 +603,7 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "step-dot";
-      if (idx === state.currentIndex) btn.classList.add("current");
+      if (state.viewMode === "game" && idx === state.currentIndex) btn.classList.add("current");
 
       if (p.status === "solved") {
         btn.classList.add("done-full");
@@ -602,11 +621,26 @@
       btn.title = `Artikkel ${idx + 1}`;
       btn.addEventListener("click", () => {
         state.currentIndex = idx;
+        state.viewMode = "game";
         saveDailyProgress();
         renderGameView();
       });
       el.dailyStepTracker.appendChild(btn);
     });
+
+    if (isAllDailyFinished()) {
+      const resBtn = document.createElement("button");
+      resBtn.type = "button";
+      resBtn.className = "step-dot step-result-btn" + (state.viewMode === "summary" ? " current" : "");
+      resBtn.title = "Gå til resultatsiden";
+      resBtn.innerHTML = "📊";
+      resBtn.addEventListener("click", () => {
+        state.viewMode = "summary";
+        renderGameView();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      el.dailyStepTracker.appendChild(resBtn);
+    }
   }
 
   function renderRevealCard(art, item) {
@@ -643,7 +677,7 @@
     if (state.mode === "daily") {
       const nextPending = findNextPendingIndex();
       if (nextPending === -1) {
-        el.nextArticleBtn.textContent = "Se oppsummering ↓";
+        el.nextArticleBtn.textContent = "Gå til resultat 📊 →";
       } else {
         el.nextArticleBtn.textContent = `Neste artikkel (${nextPending + 1}/10) →`;
       }
@@ -789,10 +823,14 @@
     const nextIdx = findNextPendingIndex();
     if (nextIdx !== -1) {
       state.currentIndex = nextIdx;
+      state.viewMode = "game";
       saveDailyProgress();
       renderGameView();
     } else {
-      el.summaryCard.scrollIntoView({ behavior: "smooth" });
+      state.viewMode = "summary";
+      saveDailyProgress();
+      renderGameView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
@@ -827,7 +865,9 @@
         if (Array.isArray(data.articles) && data.articles.length) {
           state.articles = data.articles;
         }
-        renderSummaryCard();
+        if (state.viewMode === "summary") {
+          renderSummaryCard();
+        }
       }
     } catch (_) {}
   }
@@ -975,6 +1015,21 @@
           ? `${art.solvePct} % løste`
           : "";
       right.innerHTML = `<span>${pctText}</span> <strong>+${formatNoScore(p.score)}p</strong>`;
+
+      const inspectBtn = document.createElement("button");
+      inspectBtn.type = "button";
+      inspectBtn.className = "recap-inspect-btn";
+      inspectBtn.textContent = "🔍 Vis";
+      inspectBtn.title = `Gjennomgå artikkel ${idx + 1}`;
+      inspectBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.currentIndex = idx;
+        state.viewMode = "game";
+        saveDailyProgress();
+        renderGameView();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      right.appendChild(inspectBtn);
 
       row.appendChild(left);
       row.appendChild(right);
