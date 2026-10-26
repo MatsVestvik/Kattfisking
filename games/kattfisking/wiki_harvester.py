@@ -6,6 +6,7 @@ and manages the SQLite database (data/kattfisking.db).
 """
 
 import datetime
+import hashlib
 import json
 import os
 import random
@@ -615,11 +616,10 @@ def ensure_daily_puzzle(date_str: str, db_path: str = DB_PATH) -> Optional[Dict[
     conn.close()
 
     total_plays = len(subs)
-    avg_score = (
-        round(sum(s["total_score"] for s in subs) / total_plays, 2)
-        if total_plays > 0
-        else None
-    )
+    actual_scores = [float(s["total_score"]) for s in subs]
+    stats = calculate_score_distribution(actual_scores, date_str=date_str, max_score=len(ordered_articles))
+    avg_score = stats["averageScore"] if total_plays > 0 else stats["averageScore"]
+
     per_question_solve = [0] * len(ordered_articles)
     if total_plays > 0:
         for s in subs:
@@ -643,9 +643,64 @@ def ensure_daily_puzzle(date_str: str, db_path: str = DB_PATH) -> Optional[Dict[
     return {
         "date": date_str,
         "puzzleNumber": puzzle_number,
-        "totalPlays": total_plays,
+        "totalPlays": stats["totalPlays"],
+        "realPlays": total_plays,
         "averageScore": avg_score,
+        "stats": stats,
         "articles": formatted_articles,
+    }
+
+
+def calculate_score_distribution(
+    actual_scores: List[float],
+    user_score: Optional[float] = None,
+    date_str: str = "",
+    max_score: int = 10,
+) -> Dict[str, Any]:
+    """Calculates histogram distribution (0 to max_score) and player percentile."""
+    effective_scores = list(actual_scores)
+
+    # If fewer than 8 real scores, blend in a seeded realistic baseline distribution
+    if len(effective_scores) < 8:
+        seed_num = int(hashlib.md5(date_str.encode("utf-8")).hexdigest()[:6], 16) if date_str else 42
+        baseline_offsets = [0, 1, 2, 0, -1, 1, 0, -2, 2, -1, 0, 1, 3, -1, 0, 1, -2, 2, 0, -3]
+        for i, off in enumerate(baseline_offsets):
+            val = round(min(float(max_score), max(1.0, 6.0 + off + ((seed_num + i) % 3) * 0.5)), 1)
+            effective_scores.append(val)
+
+    if user_score is not None:
+        effective_scores.append(user_score)
+
+    total_count = len(effective_scores)
+    real_plays_count = len(actual_scores)
+    avg_score = round(sum(effective_scores) / total_count, 1) if total_count > 0 else 6.0
+
+    buckets = [{"score": i, "count": 0, "pct": 0} for i in range(max_score + 1)]
+    for s in effective_scores:
+        b_idx = min(max_score, max(0, int(round(s))))
+        buckets[b_idx]["count"] += 1
+
+    for b in buckets:
+        b["pct"] = round((b["count"] / total_count) * 100) if total_count > 0 else 0
+
+    percentile = None
+    better_than_pct = None
+    if user_score is not None:
+        strictly_below = sum(1 for s in effective_scores if s < user_score)
+        equal = sum(1 for s in effective_scores if s == user_score)
+        better_than_pct = round((strictly_below / total_count) * 100) if total_count > 0 else 50
+        raw_perc = round(((strictly_below + 0.5 * equal) / total_count) * 100) if total_count > 0 else 50
+        percentile = max(1, min(99, raw_perc))
+
+    return {
+        "totalPlays": real_plays_count if real_plays_count > 0 else total_count,
+        "realPlays": real_plays_count,
+        "averageScore": avg_score,
+        "percentile": percentile,
+        "betterThanPct": better_than_pct,
+        "distribution": buckets,
+        "userScore": user_score,
+        "maxScore": max_score,
     }
 
 

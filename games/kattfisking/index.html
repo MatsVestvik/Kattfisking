@@ -250,8 +250,32 @@
               <strong class="stat-num" id="statServerAvg">–</strong>
             </div>
             <div class="stat-box">
-              <span class="stat-label">Antall runder spilt</span>
+              <span class="stat-label">Antall spillere</span>
               <strong class="stat-num" id="statTotalPlays">1</strong>
+            </div>
+          </div>
+
+          <!-- Score Distribution Graph & Comparison -->
+          <div class="community-graph-card" id="kattfiskingGraphCard">
+            <div class="graph-header">
+              <div class="graph-title-wrap">
+                <span class="graph-badge">📊 SPILLERSTATISTIKK</span>
+                <h3 class="graph-title">Slik gjorde du det i forhold til andre</h3>
+              </div>
+              <div class="graph-comparison-pill" id="kattfiskingPercentilePill">
+                <span class="comparison-icon">🏆</span>
+                <span id="kattfiskingPercentileText">Beregner plassering…</span>
+              </div>
+            </div>
+
+            <!-- Visual Histogram Bar Chart -->
+            <div class="distribution-chart-wrap">
+              <div class="distribution-bars-container" id="kattfiskingChartBars"></div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-color-box user-color"></span> Ditt resultat</span>
+                <span class="legend-item"><span class="legend-color-box other-color"></span> Andre spillere</span>
+                <span class="legend-item avg-indicator" id="kattfiskingAvgIndicator">Gjennomsnitt: –</span>
+              </div>
             </div>
           </div>
 

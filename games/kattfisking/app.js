@@ -42,6 +42,12 @@
 
     // Pending "Did you mean?" candidate
     dymCandidate: null,
+
+    // Community comparison & distribution
+    percentile: null,
+    betterThanPct: null,
+    distribution: null,
+    stats: null,
   };
 
   // DOM Elements
@@ -121,6 +127,11 @@
     statPlayerScore: document.getElementById("statPlayerScore"),
     statServerAvg: document.getElementById("statServerAvg"),
     statTotalPlays: document.getElementById("statTotalPlays"),
+    kattfiskingGraphCard: document.getElementById("kattfiskingGraphCard"),
+    kattfiskingPercentilePill: document.getElementById("kattfiskingPercentilePill"),
+    kattfiskingPercentileText: document.getElementById("kattfiskingPercentileText"),
+    kattfiskingChartBars: document.getElementById("kattfiskingChartBars"),
+    kattfiskingAvgIndicator: document.getElementById("kattfiskingAvgIndicator"),
     summaryRecapList: document.getElementById("summaryRecapList"),
     summaryToArchiveBtn: document.getElementById("summaryToArchiveBtn"),
     summaryToPracticeBtn: document.getElementById("summaryToPracticeBtn"),
@@ -375,6 +386,10 @@
       state.totalPlays = data.totalPlays || 0;
       state.averageScore = data.averageScore;
       state.articles = data.articles || [];
+      if (data.stats) {
+        state.distribution = data.stats.distribution;
+        state.stats = data.stats;
+      }
 
       const saved = loadDailyProgress(state.activeDate, state.articles.length);
       if (saved) {
@@ -805,6 +820,10 @@
       if (data.ok) {
         state.totalPlays = data.totalPlays;
         state.averageScore = data.averageScore;
+        state.percentile = data.percentile;
+        state.betterThanPct = data.betterThanPct;
+        state.distribution = data.distribution;
+        state.stats = data.stats;
         if (Array.isArray(data.articles) && data.articles.length) {
           state.articles = data.articles;
         }
@@ -830,6 +849,42 @@
     const row1 = symbols.slice(0, 5).join(" ");
     const row2 = symbols.slice(5, 10).join(" ");
     return `${row1}\n${row2}`;
+  }
+
+  function renderDistributionGraph(container, distribution, userScore, avgScore, maxScore = 10) {
+    if (!container || !Array.isArray(distribution) || !distribution.length) return;
+    container.innerHTML = "";
+
+    const maxPct = Math.max(...distribution.map((d) => d.pct || 0), 10);
+    const roundedUserScore = userScore !== null && userScore !== undefined ? Math.round(userScore) : null;
+
+    distribution.forEach((item) => {
+      const isUser = roundedUserScore !== null && item.score === roundedUserScore;
+      const heightPct = Math.max(5, Math.round(((item.pct || 0) / maxPct) * 100));
+
+      const col = document.createElement("div");
+      col.className = `chart-col ${isUser ? "is-user" : ""}`;
+      col.title = `${item.score} poeng: ${item.pct}% (${item.count} spillere)`;
+
+      col.innerHTML = `
+        <span class="col-pct">${item.pct}%</span>
+        <div class="col-bar-wrap">
+          <div class="col-bar" style="height: 0%">
+            ${isUser ? `<span class="user-pin">DEG (${userScore}p)</span>` : ""}
+          </div>
+        </div>
+        <span class="col-label">${item.score}</span>
+      `;
+      container.appendChild(col);
+
+      // Smooth height animation
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const bar = col.querySelector(".col-bar");
+          if (bar) bar.style.height = `${heightPct}%`;
+        }, 60);
+      });
+    });
   }
 
   function renderSummaryCard() {
@@ -861,6 +916,41 @@
     el.statServerAvg.textContent =
       state.averageScore !== null ? `${formatNoScore(state.averageScore)} / 10` : "–";
     el.statTotalPlays.textContent = String(state.totalPlays || 1);
+
+    // Render Community Distribution Graph & Percentile Comparison
+    const distData = state.distribution || (state.stats && state.stats.distribution);
+    if (distData && el.kattfiskingChartBars) {
+      renderDistributionGraph(
+        el.kattfiskingChartBars,
+        distData,
+        totalScore,
+        state.averageScore,
+        10
+      );
+    }
+
+    if (el.kattfiskingPercentileText) {
+      const betterPct =
+        state.betterThanPct !== null && state.betterThanPct !== undefined
+          ? state.betterThanPct
+          : (state.stats && state.stats.betterThanPct);
+
+      if (betterPct !== null && betterPct !== undefined) {
+        if (betterPct >= 75) {
+          el.kattfiskingPercentileText.textContent = `Du slo ${betterPct} % av dagens spillere! 🌟`;
+        } else if (betterPct >= 40) {
+          el.kattfiskingPercentileText.textContent = `Du slo ${betterPct} % av dagens spillere! 👏`;
+        } else {
+          el.kattfiskingPercentileText.textContent = `Fullført! Bedre enn ${betterPct} % av spillere 💪`;
+        }
+      } else {
+        el.kattfiskingPercentileText.textContent = `Dagens spill registrert! 🎯`;
+      }
+    }
+
+    if (el.kattfiskingAvgIndicator && state.averageScore !== null) {
+      el.kattfiskingAvgIndicator.textContent = `Gjennomsnitt: ${formatNoScore(state.averageScore)} poeng`;
+    }
 
     el.summaryRecapList.innerHTML = "";
     state.articles.forEach((art, idx) => {

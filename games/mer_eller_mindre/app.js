@@ -40,6 +40,12 @@
     results: [], // Array of all 25 duels
     isLocked: false,
     inIntermission: false,
+    distribution: null,
+    brackets: null,
+    averageScore: null,
+    totalPlays: 0,
+    betterThanPct: null,
+    percentile: null,
   };
 
   let autoAdvanceTimer = null;
@@ -95,6 +101,14 @@
     summaryModeBadge: document.getElementById("summaryModeBadge"),
     bigScore: document.getElementById("bigScore"),
     scorePraise: document.getElementById("scorePraise"),
+    merEllerMindreGraphCard: document.getElementById("merEllerMindreGraphCard"),
+    merEllerMindrePercentilePill: document.getElementById("merEllerMindrePercentilePill"),
+    merEllerMindrePercentileText: document.getElementById("merEllerMindrePercentileText"),
+    graphUserScore: document.getElementById("graphUserScore"),
+    graphAvgScore: document.getElementById("graphAvgScore"),
+    graphTotalPlays: document.getElementById("graphTotalPlays"),
+    merEllerMindreChartBars: document.getElementById("merEllerMindreChartBars"),
+    merEllerMindreAvgIndicator: document.getElementById("merEllerMindreAvgIndicator"),
     categoryBreakdownList: document.getElementById("categoryBreakdownList"),
     emojiGrid: document.getElementById("emojiGrid"),
     btnCopyResult: document.getElementById("btnCopyResult"),
@@ -165,6 +179,12 @@
 
       if (data.categories && data.categories.length === 5) {
         state.categories = data.categories;
+        if (data.stats) {
+          state.distribution = data.stats.distribution;
+          state.brackets = data.stats.brackets;
+          state.averageScore = data.stats.averageScore;
+          state.totalPlays = data.stats.totalPlays;
+        }
       } else {
         throw new Error("Ufullstendige kategorier i respons");
       }
@@ -527,6 +547,122 @@
 
   el.btnContinueCategory.addEventListener("click", continueToNextCategory);
 
+  function renderMerEllerMindreGraph(container, brackets, userScore) {
+    if (!container || !Array.isArray(brackets) || !brackets.length) return;
+    container.innerHTML = "";
+
+    const maxPct = Math.max(...brackets.map((b) => b.pct || 0), 10);
+    const numUserScore = userScore !== null && userScore !== undefined ? Number(userScore) : null;
+
+    brackets.forEach((item) => {
+      const isUser =
+        numUserScore !== null &&
+        numUserScore >= item.min &&
+        numUserScore <= item.max;
+
+      const heightPct = Math.max(6, Math.round(((item.pct || 0) / maxPct) * 100));
+
+      const col = document.createElement("div");
+      col.className = `chart-col ${isUser ? "is-user" : ""}`;
+      col.title = `${item.label} riktige: ${item.pct}% (${item.count} spillere)`;
+
+      col.innerHTML = `
+        <span class="col-pct">${item.pct}%</span>
+        <div class="col-bar-wrap">
+          <div class="col-bar" style="height: 0%">
+            ${isUser ? `<span class="user-pin">DEG (${userScore}p)</span>` : ""}
+          </div>
+        </div>
+        <span class="col-label">${item.label}</span>
+      `;
+      container.appendChild(col);
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const bar = col.querySelector(".col-bar");
+          if (bar) bar.style.height = `${heightPct}%`;
+        }, 60);
+      });
+    });
+  }
+
+  function updateGraphAndPercentileUI(userScore, data) {
+    if (!data) return;
+
+    if (el.graphUserScore) {
+      el.graphUserScore.textContent = `${userScore} / 25`;
+    }
+    if (el.graphAvgScore && data.averageScore !== undefined && data.averageScore !== null) {
+      el.graphAvgScore.textContent = `${data.averageScore} / 25`;
+    }
+    if (el.graphTotalPlays && data.totalPlays) {
+      el.graphTotalPlays.textContent = `${data.totalPlays} ${data.totalPlays === 1 ? "spiller" : "spillere"}`;
+    }
+    if (el.merEllerMindreAvgIndicator && data.averageScore !== undefined && data.averageScore !== null) {
+      el.merEllerMindreAvgIndicator.textContent = `Gjennomsnitt: ${data.averageScore} / 25`;
+    }
+
+    if (el.merEllerMindrePercentileText) {
+      const betterPct = data.betterThanPct;
+      if (betterPct !== null && betterPct !== undefined) {
+        if (betterPct >= 75) {
+          el.merEllerMindrePercentileText.textContent = `Du slo ${betterPct} % av dagens spillere! 🌟`;
+        } else if (betterPct >= 50) {
+          el.merEllerMindrePercentileText.textContent = `Bedre enn ${betterPct} % av dagens spillere! 🔥`;
+        } else if (betterPct > 0) {
+          el.merEllerMindrePercentileText.textContent = `Bedre enn ${betterPct} % av dagens spillere! 💪`;
+        } else {
+          el.merEllerMindrePercentileText.textContent = `Flott gjennomført runde! 👏`;
+        }
+      } else {
+        el.merEllerMindrePercentileText.textContent = `Dagens snitt: ${data.averageScore} / 25 📊`;
+      }
+    }
+
+    const brackets = data.brackets || state.brackets;
+    if (brackets && el.merEllerMindreChartBars) {
+      renderMerEllerMindreGraph(el.merEllerMindreChartBars, brackets, userScore);
+    }
+  }
+
+  async function submitGameResults(score) {
+    try {
+      const res = await fetch("/api/mer-eller-mindre/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: state.todayStr,
+          score: score,
+          categoryScores: state.categoryScores,
+          results: state.results.map((r) => r.won),
+        }),
+      });
+      if (!res.ok) throw new Error("Kunne ikke registrere resultat på server");
+      const data = await res.json();
+      if (data) {
+        state.totalPlays = data.totalPlays || state.totalPlays;
+        state.averageScore = data.averageScore !== undefined ? data.averageScore : state.averageScore;
+        state.betterThanPct = data.betterThanPct;
+        state.percentile = data.percentile;
+        if (data.brackets) state.brackets = data.brackets;
+        if (data.distribution) state.distribution = data.distribution;
+
+        updateGraphAndPercentileUI(score, data);
+      }
+    } catch (err) {
+      console.warn("Kunne ikke sende score til server, henter dagsstatistikk:", err);
+      try {
+        const statsRes = await fetch(`/api/mer-eller-mindre/stats?date=${encodeURIComponent(state.todayStr)}`);
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          updateGraphAndPercentileUI(score, statsData);
+        }
+      } catch (e) {
+        console.warn("Kunne ikke hente dagsstatistikk:", e);
+      }
+    }
+  }
+
   function finishGame() {
     if (autoAdvanceTimer) {
       clearTimeout(autoAdvanceTimer);
@@ -559,6 +695,26 @@
     else if (state.score >= 13) praise = "Over halvparten riktig, godt levert gjennom 25 tøffe runder! 👍";
     else praise = "25 tøffe dueller i dag! Prøv en ny runde i frispill! 💪";
     el.scorePraise.textContent = praise;
+
+    // Initialize comparison strip
+    if (el.graphUserScore) el.graphUserScore.textContent = `${state.score} / 25`;
+    if (el.graphAvgScore && state.averageScore !== null && state.averageScore !== undefined) {
+      el.graphAvgScore.textContent = `${state.averageScore} / 25`;
+    }
+    if (el.graphTotalPlays && state.totalPlays) {
+      el.graphTotalPlays.textContent = `${state.totalPlays} ${state.totalPlays === 1 ? "spiller" : "spillere"}`;
+    }
+    if (el.merEllerMindreAvgIndicator && state.averageScore !== null && state.averageScore !== undefined) {
+      el.merEllerMindreAvgIndicator.textContent = `Gjennomsnitt: ${state.averageScore} / 25`;
+    }
+
+    // Render immediate distribution if brackets are already loaded
+    if (state.brackets && el.merEllerMindreChartBars) {
+      renderMerEllerMindreGraph(el.merEllerMindreChartBars, state.brackets, state.score);
+    }
+
+    // Asynchronously submit score & receive updated community percentile
+    submitGameResults(state.score);
 
     // Build Category Scorecard Breakdown
     if (el.categoryBreakdownList) {

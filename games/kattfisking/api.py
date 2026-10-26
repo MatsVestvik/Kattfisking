@@ -171,11 +171,27 @@ class KattfiskingAPI:
                 )
             conn.close()
 
+            conn = harvester.get_db_connection()
+            subs = conn.execute(
+                "SELECT total_score FROM puzzle_submissions WHERE date = ?",
+                (date_str,),
+            ).fetchall()
+            conn.close()
+            actual_scores = [float(s["total_score"]) for s in subs]
+            stats = harvester.calculate_score_distribution(
+                actual_scores, user_score=total_score, date_str=date_str, max_score=10
+            )
+
             puzzle = harvester.ensure_daily_puzzle(date_str)
             return 200, {
                 "ok": True,
-                "totalPlays": puzzle["totalPlays"] if puzzle else 1,
-                "averageScore": puzzle["averageScore"] if puzzle else total_score,
+                "totalPlays": stats["totalPlays"],
+                "averageScore": stats["averageScore"],
+                "percentile": stats["percentile"],
+                "betterThanPct": stats["betterThanPct"],
+                "distribution": stats["distribution"],
+                "userScore": total_score,
+                "stats": stats,
                 "articles": puzzle["articles"] if puzzle else [],
             }
 

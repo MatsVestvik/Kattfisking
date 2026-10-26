@@ -286,10 +286,12 @@ const server = http.createServer(async (req, res) => {
       req.method === "GET" &&
       (pathname === "/api/mer-eller-mindre/daily" ||
         pathname === "/api/mer-eller-mindre/practice" ||
-        pathname === "/api/mer-eller-mindre/status")
+        pathname === "/api/mer-eller-mindre/status" ||
+        pathname === "/api/mer-eller-mindre/stats")
     ) {
       const date = parsedUrl.searchParams.get("date") || "";
       const isDaily = pathname.includes("daily");
+      const isStats = pathname.includes("stats");
       const script = `
 import sys, json, os
 sys.path.insert(0, ${JSON.stringify(path.join(GAMES_DIR, "mer_eller_mindre"))})
@@ -300,11 +302,15 @@ if action == "daily":
     pack = api.generate_game_pack(seed_str=f"mer_eller_mindre_{sys.argv[2]}")
     pack["date"] = sys.argv[2]
     pack["isDaily"] = True
+    pack["stats"] = api.calculate_mer_eller_mindre_stats(sys.argv[2])
     print(json.dumps(pack, ensure_ascii=False))
 elif action == "practice":
     pack = api.generate_game_pack()
     pack["isDaily"] = False
     print(json.dumps(pack, ensure_ascii=False))
+elif action == "stats":
+    stats = api.calculate_mer_eller_mindre_stats(sys.argv[2])
+    print(json.dumps(stats, ensure_ascii=False))
 else:
     print(json.dumps({"ok": True, "game": "mer-eller-mindre"}))
 `;
@@ -313,9 +319,31 @@ else:
         [
           "-c",
           script,
-          isDaily ? "daily" : pathname.includes("status") ? "status" : "practice",
+          isDaily ? "daily" : isStats ? "stats" : pathname.includes("status") ? "status" : "practice",
           date || new Date().toISOString().split("T")[0],
         ],
+        { encoding: "utf-8" }
+      );
+      return sendJson(res, JSON.parse(out.trim()));
+    }
+
+    if (
+      req.method === "POST" &&
+      pathname === "/api/mer-eller-mindre/submit"
+    ) {
+      const body = await readJsonBody(req);
+      const script = `
+import sys, json, os
+sys.path.insert(0, ${JSON.stringify(path.join(GAMES_DIR, "mer_eller_mindre"))})
+import api
+
+payload = json.loads(sys.argv[1])
+code, res = api.MerEllerMindreAPI.handle_post("/api/submit", payload)
+print(json.dumps(res, ensure_ascii=False))
+`;
+      const out = execFileSync(
+        "python3",
+        ["-c", script, JSON.stringify(body)],
         { encoding: "utf-8" }
       );
       return sendJson(res, JSON.parse(out.trim()));

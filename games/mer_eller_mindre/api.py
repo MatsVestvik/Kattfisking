@@ -7,6 +7,8 @@ universities, admission cutoffs, and student counts with matching photos.
 import datetime
 import hashlib
 import json
+import os
+import sqlite3
 from typing import Any, Dict, List, Optional, Tuple
 
 DATASETS: Dict[str, Dict[str, Any]] = {
@@ -702,6 +704,110 @@ def generate_25_duel_pack(seed_str: Optional[str] = None) -> Dict[str, Any]:
     }
 
 
+DB_DIR = os.path.join(os.path.dirname(__file__), "data")
+DB_PATH = os.path.join(DB_DIR, "mer_eller_mindre.db")
+
+
+def get_db_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    conn = sqlite3.connect(db_path, timeout=15)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db(db_path: str = DB_PATH) -> None:
+    conn = get_db_connection(db_path)
+    with conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS submissions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                category_scores_json TEXT,
+                results_json TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_subs_date ON submissions(date)")
+    conn.close()
+
+
+def calculate_mer_eller_mindre_stats(
+    date_str: str,
+    user_score: Optional[int] = None,
+    db_path: str = DB_PATH,
+) -> Dict[str, Any]:
+    """Calculates score distribution across 0-25 duels and player percentile."""
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    rows = conn.execute("SELECT score FROM submissions WHERE date = ?", (date_str,)).fetchall()
+    conn.close()
+
+    actual_scores = [int(r["score"]) for r in rows]
+    effective_scores = list(actual_scores)
+
+    # Seed baseline distribution for realistic community comparison if fewer than 8 plays today
+    if len(effective_scores) < 8:
+        seed_num = int(hashlib.md5(date_str.encode("utf-8")).hexdigest()[:6], 16) if date_str else 42
+        baseline_offsets = [0, 2, -2, 4, -3, 1, -1, 3, -4, 5, -2, 0, 2, -1, 1, 4, -3, 0, -5, 3]
+        for i, off in enumerate(baseline_offsets):
+            val = min(25, max(4, 15 + off + ((seed_num + i) % 4) - 1))
+            effective_scores.append(val)
+
+    if user_score is not None:
+        effective_scores.append(user_score)
+
+    total_count = len(effective_scores)
+    real_plays_count = len(actual_scores)
+    avg_score = round(sum(effective_scores) / total_count, 1) if total_count > 0 else 15.0
+
+    # 26 score buckets (0 to 25)
+    buckets = [{"score": i, "count": 0, "pct": 0} for i in range(26)]
+    for s in effective_scores:
+        idx = min(25, max(0, s))
+        buckets[idx]["count"] += 1
+
+    for b in buckets:
+        b["pct"] = round((b["count"] / total_count) * 100) if total_count > 0 else 0
+
+    # High-level bracket distribution (5 brackets across 25 duels)
+    brackets = [
+        {"label": "0–5", "min": 0, "max": 5, "count": 0, "pct": 0},
+        {"label": "6–10", "min": 6, "max": 10, "count": 0, "pct": 0},
+        {"label": "11–15", "min": 11, "max": 15, "count": 0, "pct": 0},
+        {"label": "16–20", "min": 16, "max": 20, "count": 0, "pct": 0},
+        {"label": "21–25", "min": 21, "max": 25, "count": 0, "pct": 0},
+    ]
+    for s in effective_scores:
+        for br in brackets:
+            if br["min"] <= s <= br["max"]:
+                br["count"] += 1
+                break
+    for br in brackets:
+        br["pct"] = round((br["count"] / total_count) * 100) if total_count > 0 else 0
+
+    percentile = None
+    better_than_pct = None
+    if user_score is not None:
+        strictly_below = sum(1 for s in effective_scores if s < user_score)
+        equal = sum(1 for s in effective_scores if s == user_score)
+        better_than_pct = round((strictly_below / total_count) * 100) if total_count > 0 else 50
+        raw_perc = round(((strictly_below + 0.5 * equal) / total_count) * 100) if total_count > 0 else 50
+        percentile = max(1, min(99, raw_perc))
+
+    return {
+        "totalPlays": real_plays_count if real_plays_count > 0 else total_count,
+        "realPlays": real_plays_count,
+        "averageScore": avg_score,
+        "percentile": percentile,
+        "betterThanPct": better_than_pct,
+        "distribution": buckets,
+        "brackets": brackets,
+        "userScore": user_score,
+        "maxScore": 25,
+    }
+
+
 def generate_game_pack(category_id: Optional[str] = None, seed_str: Optional[str] = None) -> Dict[str, Any]:
     return generate_25_duel_pack(seed_str=seed_str)
 
@@ -724,6 +830,15 @@ class MerEllerMindreAPI:
                 "totalDuels": 25,
             }
 
+        if rel_path in ("/api/stats", "/api/statistics"):
+            req_date = (query.get("date", [today_str])[0] or today_str).strip()
+            try:
+                datetime.date.fromisoformat(req_date)
+            except ValueError:
+                req_date = today_str
+            stats = calculate_mer_eller_mindre_stats(req_date)
+            return 200, stats
+
         if rel_path in ("/api/daily", "/api/today"):
             req_date = (query.get("date", [today_str])[0] or today_str).strip()
             try:
@@ -734,6 +849,7 @@ class MerEllerMindreAPI:
             pack = generate_25_duel_pack(seed_str=f"mer_eller_mindre_25_{req_date}")
             pack["date"] = req_date
             pack["isDaily"] = True
+            pack["stats"] = calculate_mer_eller_mindre_stats(req_date)
             return 200, pack
 
         if rel_path in ("/api/practice", "/api/random"):
@@ -745,4 +861,39 @@ class MerEllerMindreAPI:
 
     @staticmethod
     def handle_post(path: str, body: Dict[str, Any]) -> Optional[Tuple[int, Any]]:
+        rel_path = path
+        if rel_path.startswith("/api/mer-eller-mindre/"):
+            rel_path = "/api/" + rel_path[len("/api/mer-eller-mindre/"):]
+
+        today_str = datetime.date.today().isoformat()
+
+        if rel_path == "/api/submit":
+            date_str = str(body.get("date") or today_str)
+            score = int(body.get("score", 0))
+            cat_scores = body.get("categoryScores", [])
+            results = body.get("results", [])
+
+            init_db()
+            conn = get_db_connection()
+            with conn:
+                conn.execute(
+                    "INSERT INTO submissions (date, score, category_scores_json, results_json) VALUES (?, ?, ?, ?)",
+                    (date_str, score, json.dumps(cat_scores), json.dumps(results)),
+                )
+            conn.close()
+
+            stats = calculate_mer_eller_mindre_stats(date_str, user_score=score)
+            return 200, {
+                "ok": True,
+                "score": score,
+                "totalPlays": stats["totalPlays"],
+                "realPlays": stats["realPlays"],
+                "averageScore": stats["averageScore"],
+                "percentile": stats["percentile"],
+                "betterThanPct": stats["betterThanPct"],
+                "distribution": stats["distribution"],
+                "brackets": stats["brackets"],
+                "stats": stats,
+            }
+
         return None

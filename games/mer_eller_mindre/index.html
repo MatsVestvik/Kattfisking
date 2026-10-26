@@ -190,6 +190,46 @@
           <div class="score-praise" id="scorePraise">Fantastisk spilt! 👏</div>
         </div>
 
+        <!-- Player Distribution Graph & Comparison -->
+        <div class="community-graph-card" id="merEllerMindreGraphCard">
+          <div class="graph-header">
+            <div class="graph-title-wrap">
+              <span class="graph-badge">📊 SPILLERSTATISTIKK</span>
+              <h3 class="graph-title">Slik gjorde du det i forhold til andre</h3>
+            </div>
+            <div class="graph-comparison-pill" id="merEllerMindrePercentilePill">
+              <span class="comparison-icon">🏆</span>
+              <span id="merEllerMindrePercentileText">Beregner plassering…</span>
+            </div>
+          </div>
+
+          <!-- Summary comparison stats strip -->
+          <div class="graph-stats-row">
+            <div class="graph-stat-item">
+              <span class="graph-stat-label">Din poengsum</span>
+              <strong class="graph-stat-val user-stat" id="graphUserScore">-- / 25</strong>
+            </div>
+            <div class="graph-stat-item">
+              <span class="graph-stat-label">Dagens snitt</span>
+              <strong class="graph-stat-val" id="graphAvgScore">-- / 25</strong>
+            </div>
+            <div class="graph-stat-item">
+              <span class="graph-stat-label">Spillere i dag</span>
+              <strong class="graph-stat-val" id="graphTotalPlays">--</strong>
+            </div>
+          </div>
+
+          <!-- Visual Distribution Histogram -->
+          <div class="distribution-chart-wrap">
+            <div class="distribution-bars-container" id="merEllerMindreChartBars"></div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-color-box user-color"></span> Ditt resultat</span>
+              <span class="legend-item"><span class="legend-color-box other-color"></span> Andre spillere</span>
+              <span class="legend-item avg-indicator" id="merEllerMindreAvgIndicator">Gjennomsnitt: –</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Category Scorecard Breakdown -->
         <div class="category-breakdown-card">
           <h3 class="breakdown-heading">Resultat per kategori:</h3>
