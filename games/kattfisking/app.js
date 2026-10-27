@@ -610,13 +610,13 @@
 
       if (p.status === "solved") {
         btn.classList.add("done-full");
-        btn.innerHTML = '<img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon step-pixel-icon" />';
+        btn.innerHTML = '<img src="assets/cat.png?v=2" alt="Katt" class="pixel-icon step-pixel-icon" />';
       } else if (p.status === "half") {
         btn.classList.add("done-half");
-        btn.innerHTML = '<img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon step-pixel-icon" />';
+        btn.innerHTML = '<img src="assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon step-pixel-icon" />';
       } else if (p.status === "gaveup") {
         btn.classList.add("done-zero");
-        btn.innerHTML = '<img src="/assets/fish.png?v=2" alt="Fisk" class="pixel-icon step-pixel-icon" />';
+        btn.innerHTML = '<img src="assets/fish.png?v=2" alt="Fisk" class="pixel-icon step-pixel-icon" />';
       } else {
         btn.textContent = String(idx + 1);
       }
@@ -652,7 +652,7 @@
 
     if (item.status === "solved") {
       el.revealBanner.classList.add("status-full");
-      el.revealIcon.innerHTML = '<img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon reveal-pixel-icon" />';
+      el.revealIcon.innerHTML = '<img src="assets/cat.png?v=2" alt="Katt" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Fulltreff! (+1 poeng)";
       const lastGuess = item.guesses[item.guesses.length - 1];
       el.revealGuessSub.textContent = lastGuess
@@ -661,13 +661,13 @@
       el.closeEnoughBtn.classList.add("hidden");
     } else if (item.status === "half") {
       el.revealBanner.classList.add("status-half");
-      el.revealIcon.innerHTML = '<img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon reveal-pixel-icon" />';
+      el.revealIcon.innerHTML = '<img src="assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Nære nok! (+0,5 poeng)";
       el.revealGuessSub.textContent = "Du ga deg selv 0,5 poeng for å være nære.";
       el.closeEnoughBtn.classList.add("hidden");
     } else {
       el.revealBanner.classList.add("status-zero");
-      el.revealIcon.innerHTML = '<img src="/assets/fish.png?v=2" alt="Fisk" class="pixel-icon reveal-pixel-icon" />';
+      el.revealIcon.innerHTML = '<img src="assets/fish.png?v=2" alt="Fisk" class="pixel-icon reveal-pixel-icon" />';
       el.revealStatusTitle.textContent = "Feil svar (0 poeng)";
       const lastGuess = item.guesses[item.guesses.length - 1];
       el.revealGuessSub.textContent = lastGuess
@@ -876,9 +876,9 @@
   }
 
   function getRankComment(score) {
-    if (score >= 9.5) return '<img src="/assets/cat.png?v=2" class="pixel-icon inline-pixel-icon" alt="" /> Leksikalsk mesterkatt! Helt suverent!';
-    if (score >= 7.5) return '<img src="/assets/cat.png?v=2" class="pixel-icon inline-pixel-icon" alt="" /> Skarp kattepus! Du kan ditt norske leksikon!';
-    if (score >= 5.0) return '<img src="/assets/fish.png?v=2" class="pixel-icon inline-pixel-icon" alt="" /> Solid fangst ved fiskedammen!';
+    if (score >= 9.5) return '<img src="assets/cat.png?v=2" class="pixel-icon inline-pixel-icon" alt="" /> Leksikalsk mesterkatt! Helt suverent!';
+    if (score >= 7.5) return '<img src="assets/cat.png?v=2" class="pixel-icon inline-pixel-icon" alt="" /> Skarp kattepus! Du kan ditt norske leksikon!';
+    if (score >= 5.0) return '<img src="assets/fish.png?v=2" class="pixel-icon inline-pixel-icon" alt="" /> Solid fangst ved fiskedammen!';
     if (score >= 3.0) return "Godt forsøk – noen vriene kategorier i dag!";
     return "Krevende sett i dag – ny sjanse i morgen!";
   }
@@ -943,13 +943,13 @@
       const img = document.createElement("img");
       img.className = "pixel-icon grid-pixel-icon";
       if (p.status === "solved") {
-        img.src = "/assets/cat.png?v=2";
+        img.src = "assets/cat.png?v=2";
         img.alt = "Katt (1p)";
       } else if (p.status === "half") {
-        img.src = "/assets/catfish.png?v=2";
+        img.src = "assets/catfish.png?v=2";
         img.alt = "Kattfisk (0.5p)";
       } else {
-        img.src = "/assets/fish.png?v=2";
+        img.src = "assets/fish.png?v=2";
         img.alt = "Fisk (0p)";
       }
       el.summaryEmojiGrid.appendChild(img);
@@ -1000,10 +1000,10 @@
       const p = state.progress[idx];
       const icon =
         p.status === "solved"
-          ? '<img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon recap-pixel-icon" />'
+          ? '<img src="assets/cat.png?v=2" alt="Katt" class="pixel-icon recap-pixel-icon" />'
           : p.status === "half"
-            ? '<img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon recap-pixel-icon" />'
-            : '<img src="/assets/fish.png?v=2" alt="Fisk" class="pixel-icon recap-pixel-icon" />';
+            ? '<img src="assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon recap-pixel-icon" />'
+            : '<img src="assets/fish.png?v=2" alt="Fisk" class="pixel-icon recap-pixel-icon" />';
       const row = document.createElement("div");
       row.className = "recap-row";
 
@@ -1082,7 +1082,7 @@
           </div>
           <div class="archive-bottom">
             <span>${isDone
-            ? `<img src="/assets/cat.png?v=2" alt="" class="pixel-icon inline-pixel-icon" /> Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
+            ? `<img src="assets/cat.png?v=2" alt="" class="pixel-icon inline-pixel-icon" /> Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
             : saved
               ? "Påbegynt"
               : "Ikke spilt ennå"

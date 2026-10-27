@@ -52,6 +52,8 @@
     btnStartTegnOgGjett: document.getElementById("btnStartTegnOgGjett"),
     selectTimerDraw: document.getElementById("selectTimerDraw"),
     selectRoundsDraw: document.getElementById("selectRoundsDraw"),
+    btnStartSjakk: document.getElementById("btnStartSjakk"),
+    selectTimerSjakk: document.getElementById("selectTimerSjakk"),
     btnLeaveRoom: document.getElementById("btnLeaveRoom"),
     connStatusText: document.getElementById("connStatusText"),
   };
@@ -287,6 +289,13 @@
             window.location.href = target;
             return;
           }
+
+          if (data.currentGame === "sjakk") {
+            // Redirect to Sjakk in room mode!
+            const target = `/sjakk/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
+            window.location.href = target;
+            return;
+          }
         }
       } catch (err) {
         console.warn("Poll connection hiccup:", err);
@@ -340,7 +349,7 @@
     el.btnStartOrdbombe.disabled = true;
     el.btnStartOrdbombe.textContent = "Starter spill…";
 
-    const turnDuration = parseFloat(el.selectTimerParty.value) || 9.0;
+    const turnDuration = parseFloat(el.selectTimerParty.value) || 6.0;
     const difficulty = el.selectDiffParty.value || "medium";
 
     try {
@@ -417,6 +426,49 @@
         alert("Feil ved start av spill.");
         el.btnStartTegnOgGjett.disabled = false;
         el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett 🎨";
+      }
+    });
+  }
+
+  // Host launches Sjakk
+  if (el.btnStartSjakk) {
+    el.btnStartSjakk.addEventListener("click", async () => {
+      if (!state.isHost || !state.hostToken) return;
+
+      el.btnStartSjakk.disabled = true;
+      el.btnStartSjakk.textContent = "Starter spill…";
+
+      const timeControl = parseInt(el.selectTimerSjakk?.value || "300", 10);
+
+      try {
+        const resp = await fetch("/api/party/select-game", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            hostToken: state.hostToken,
+            gameId: "sjakk",
+            settings: {
+              timeControl: timeControl,
+            },
+          }),
+        });
+
+        const data = await resp.json();
+        if (!data.ok) {
+          alert(data.error || "Kunne ikke starte Sjakk.");
+          el.btnStartSjakk.disabled = false;
+          el.btnStartSjakk.textContent = "Start Sjakk ♟️";
+          return;
+        }
+
+        // Transition self immediately
+        window.location.href = `/sjakk/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
+      } catch (err) {
+        console.error(err);
+        alert("Feil ved start av spill.");
+        el.btnStartSjakk.disabled = false;
+        el.btnStartSjakk.textContent = "Start Sjakk ♟️";
       }
     });
   }

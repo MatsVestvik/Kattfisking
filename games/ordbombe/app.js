@@ -271,12 +271,12 @@
   const state = {
     mode: "party", // "party" | "solo"
     difficulty: "medium", // "easy" | "medium" | "hard"
-    turnDuration: 9, // seconds
+    turnDuration: 6, // seconds
     players: [],
     activePlayerIndex: 0,
     currentPrompt: "BIL",
     usedWords: new Set(),
-    timerRemaining: 9.0,
+    timerRemaining: 6.0,
     timerInterval: null,
     isExploding: false,
     soloScore: 0,
@@ -506,8 +506,8 @@
     const total = list.length;
     if (total === 0) return;
 
-    // 42% radius puts player nodes comfortably along the outer circular ring (84% diameter)
-    const radiusPct = total === 1 ? 0 : 42;
+    // 38% radius puts player nodes comfortably along the outer circular ring with ample room for bubbles
+    const radiusPct = total === 1 ? 0 : 38;
 
     list.forEach((p, idx) => {
       const isActive = typeof activeIndexOrId === "number"
@@ -518,9 +518,9 @@
       const angleDeg = total === 1 ? 0 : (idx / total) * 360;
       const angleRad = (angleDeg - 90) * (Math.PI / 180);
 
-      // In Solo mode, single player is pinned at top center (50%, 8%)
+      // In Solo mode, single player is pinned at top center (50%, 14%)
       const leftPct = total === 1 ? 50 : 50 + radiusPct * Math.cos(angleRad);
-      const topPct = total === 1 ? 8 : 50 + radiusPct * Math.sin(angleRad);
+      const topPct = total === 1 ? 14 : 50 + radiusPct * Math.sin(angleRad);
 
       const node = document.createElement("div");
       node.className = `circle-player-node ${isActive ? "is-active-turn" : ""} ${p.eliminated ? "is-eliminated" : ""}`;
@@ -533,10 +533,14 @@
       const lives = Math.max(0, p.lives ?? 3);
       const heartsStr = "❤️".repeat(lives) + "🖤".repeat(Math.max(0, 3 - lives));
 
+      const isMeInNode = state.isRoomMode
+        ? (p.id === state.playerId)
+        : (state.mode === "party" ? isActive : true);
+
       node.innerHTML = `
         <div class="cp-typing-bubble ${isActive && !p.eliminated ? 'is-active' : ''}" style="${isActive && !p.eliminated ? '' : 'display:none;'}">
-          <span class="cp-typing-text"></span>
-          <span class="cp-typing-cursor"></span>
+          <span class="cp-typing-text">${isActive && isMeInNode ? '<span class="cp-placeholder">Tast inn ord...</span>' : ''}</span>
+          ${isActive && isMeInNode ? '<span class="cp-typing-cursor"></span>' : ''}
         </div>
         <div class="cp-avatar-wrap">
           <span class="cp-avatar-emoji">${avatar}</span>
@@ -588,37 +592,45 @@
       let bubble = activeNode.querySelector(".cp-typing-bubble");
       if (!bubble) {
         bubble = document.createElement("div");
-        bubble.className = "cp-typing-bubble";
+        bubble.className = "cp-typing-bubble is-active";
         bubble.innerHTML = '<span class="cp-typing-text"></span><span class="cp-typing-cursor"></span>';
         activeNode.prepend(bubble);
       }
+
+      if (hasMatch && clean) {
+        bubble.classList.add("has-match");
+      } else {
+        bubble.classList.remove("has-match");
+      }
+
       const textEl = bubble.querySelector(".cp-typing-text");
+      let cursorEl = bubble.querySelector(".cp-typing-cursor");
+
       if (textEl) {
         if (clean) {
           textEl.innerHTML = formatPromptMatchHtml(clean.toUpperCase(), upperPrompt);
+        } else if (isMyTurn) {
+          textEl.innerHTML = '<span class="cp-placeholder">Tast inn ord...</span>';
         } else {
           textEl.innerHTML = '<span class="cp-dots"><span>•</span><span>•</span><span>•</span></span>';
         }
       }
+
+      if (!cursorEl && isMyTurn) {
+        cursorEl = document.createElement("span");
+        cursorEl.className = "cp-typing-cursor";
+        bubble.appendChild(cursorEl);
+      } else if (cursorEl && !isMyTurn) {
+        cursorEl.remove();
+      }
+
       bubble.style.display = "";
     }
 
-    // 2. Real-time visual match indicator on the active input field
-    if (el.wordInput && isMyTurn) {
-      if (hasMatch && clean) {
-        el.wordInput.classList.add("has-match");
-      } else {
-        el.wordInput.classList.remove("has-match");
-      }
-    }
-
-    // 3. For spectators, make sure their input stays clean and disabled
+    // 2. Spectator handling
     if (!isMyTurn && el.wordInput) {
       el.wordInput.value = "";
-      el.wordInput.classList.remove("spectator-view");
       el.wordInput.disabled = true;
-    } else if (isMyTurn && el.wordInput) {
-      el.wordInput.classList.remove("spectator-view");
     }
   }
 
@@ -686,7 +698,7 @@
 
     // Mode-specific initialization
     if (state.mode === "party") {
-      state.turnDuration = parseFloat(el.selectTimerDifficulty.value) || 9;
+      state.turnDuration = parseFloat(el.selectTimerDifficulty.value) || 6;
       state.difficulty = el.selectPromptDifficulty.value || "medium";
 
       const inputs = el.playersInputsList.querySelectorAll(".player-name-input");
@@ -742,6 +754,28 @@
     startTurn();
   }
 
+  function ensureInputFocus() {
+    if (el.helpModal && !el.helpModal.classList.contains("hidden")) return;
+    if (el.gameOverCard && !el.gameOverCard.classList.contains("hidden")) return;
+    if (el.gameArena && el.gameArena.classList.contains("hidden")) return;
+    if (!state.isPlaying) return;
+
+    const isMyTurn = state.isRoomMode
+      ? (state.lastRoomState?.status === "playing" && state.lastRoomState?.active_player_id === state.playerId)
+      : (state.mode === "party" ? !state.players[state.activePlayerIndex]?.eliminated : true);
+
+    if (isMyTurn && el.wordInput) {
+      if (el.wordInput.disabled) el.wordInput.disabled = false;
+      if (document.activeElement !== el.wordInput) {
+        try {
+          el.wordInput.focus({ preventScroll: true });
+        } catch (e) {
+          el.wordInput.focus();
+        }
+      }
+    }
+  }
+
   // Start a turn
   function startTurn() {
     if (state.timerInterval) {
@@ -786,8 +820,8 @@
     el.wordInput.disabled = false;
     if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
     el.wordInput.value = "";
-    el.wordInput.className = "word-input";
-    el.wordInput.focus();
+    el.wordInput.className = "word-input-headless";
+    ensureInputFocus();
     state.currentTyping = "";
     updateTypingUI(
       "",
@@ -931,10 +965,43 @@
     }
   }
 
+  let feedbackTimer = null;
   function showFeedback(text, type = "ok") {
+    if (!el.inputFeedback) return;
+    if (feedbackTimer) clearTimeout(feedbackTimer);
     el.inputFeedback.textContent = text;
-    el.inputFeedback.className = `input-feedback ${type}`;
+    el.inputFeedback.className = `arena-feedback-pill ${type}`;
     el.inputFeedback.classList.remove("hidden");
+    feedbackTimer = setTimeout(() => {
+      if (el.inputFeedback) el.inputFeedback.classList.add("hidden");
+    }, 2800);
+  }
+
+  function triggerBubbleError(msg) {
+    sfx.error();
+    const activeNode = el.circlePlayersContainer?.querySelector(".circle-player-node.is-active-turn");
+    const bubble = activeNode?.querySelector(".cp-typing-bubble");
+    if (bubble) {
+      bubble.classList.remove("shake", "success");
+      void bubble.offsetWidth; // Force CSS reflow to re-trigger animation
+      bubble.classList.add("shake");
+      setTimeout(() => bubble.classList.remove("shake"), 450);
+    }
+    if (msg) showFeedback(msg, "error");
+    ensureInputFocus();
+  }
+
+  function triggerBubbleSuccess(msg) {
+    sfx.success();
+    const activeNode = el.circlePlayersContainer?.querySelector(".circle-player-node.is-active-turn");
+    const bubble = activeNode?.querySelector(".cp-typing-bubble");
+    if (bubble) {
+      bubble.classList.remove("shake", "success");
+      void bubble.offsetWidth;
+      bubble.classList.add("success");
+      setTimeout(() => bubble.classList.remove("success"), 500);
+    }
+    if (msg) showFeedback(msg, "ok");
   }
 
   // Handle word submission
@@ -942,30 +1009,21 @@
     if (e) e.preventDefault();
     if (state.isExploding || state.timerRemaining <= 0) return;
 
-    const rawWord = el.wordInput.value.trim().toLowerCase();
-    const prompt = state.currentPrompt.toLowerCase();
+    const rawWord = (el.wordInput.value || "").trim().toLowerCase();
+    const prompt = (state.currentPrompt || "").toLowerCase();
 
     if (!rawWord) {
-      el.wordInput.classList.add("shake");
-      setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+      triggerBubbleError("");
       return;
     }
 
     if (rawWord.length < 2) {
-      sfx.error();
-      el.wordInput.classList.add("shake");
-      el.wordInput.select();
-      showFeedback("Ordet må ha minst 2 bokstaver", "error");
-      setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+      triggerBubbleError("Ordet må ha minst 2 bokstaver");
       return;
     }
 
     if (!rawWord.includes(prompt)) {
-      sfx.error();
-      el.wordInput.classList.add("shake");
-      el.wordInput.select();
-      showFeedback(`Ordet må inneholde «${state.currentPrompt}»!`, "error");
-      setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+      triggerBubbleError(`Ordet må inneholde «${state.currentPrompt}»!`);
       return;
     }
 
@@ -983,31 +1041,22 @@
         });
         const res = await resp.json();
         if (res.ok && res.valid) {
-          sfx.success();
-          showFeedback(`✓ Godkjent: «${rawWord}»!`, "ok");
+          triggerBubbleSuccess(`✓ Godkjent: «${rawWord}»!`);
           el.wordInput.value = "";
           state.currentTyping = "";
           updateTypingUI("", state.currentPrompt, false);
           sendTypingToServer("");
         } else {
-          sfx.error();
-          el.wordInput.classList.add("shake");
-          el.wordInput.select();
-          showFeedback(res.reason || res.error || "Ugyldig ord", "error");
-          setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+          triggerBubbleError(res.reason || res.error || "Ugyldig ord");
         }
       } catch (err) {
-        showFeedback("Nettverksfeil", "error");
+        triggerBubbleError("Nettverksfeil");
       }
       return;
     }
 
     if (state.usedWords.has(rawWord)) {
-      sfx.error();
-      el.wordInput.classList.add("shake");
-      el.wordInput.select();
-      showFeedback(`«${rawWord}» er allerede brukt i denne runden!`, "error");
-      setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+      triggerBubbleError(`«${rawWord}» er allerede brukt i denne runden!`);
       return;
     }
 
@@ -1022,11 +1071,7 @@
         isValid = data.valid;
         matchHighlight = data.highlight;
         if (!isValid) {
-          sfx.error();
-          el.wordInput.classList.add("shake");
-          el.wordInput.select();
-          showFeedback(data.reason || `«${rawWord}» finnes ikke i den norske ordboka`, "error");
-          setTimeout(() => el.wordInput.classList.remove("shake"), 400);
+          triggerBubbleError(data.reason || `«${rawWord}» finnes ikke i den norske ordboka`);
           return;
         }
       } else {
@@ -1043,11 +1088,9 @@
     clearInterval(state.timerInterval);
     state.timerInterval = null;
 
-    sfx.success();
-    el.wordInput.classList.add("success");
+    triggerBubbleSuccess(`✓ «${rawWord}» godkjent!`);
     el.wordInput.value = "";
     state.currentTyping = "";
-    showFeedback(`✓ «${rawWord}» godkjent!`, "ok");
 
     // Add to used words list
     state.usedWords.add(rawWord);
@@ -1236,7 +1279,7 @@
               action: "restart",
               settings: {
                 difficulty: "medium",
-                turnDuration: 9.0,
+                turnDuration: 6.0,
               },
             }),
           });
@@ -1267,19 +1310,45 @@
   });
 
   window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !el.helpModal.classList.contains("hidden")) {
-      el.helpModal.classList.add("hidden");
+    if (el.helpModal && !el.helpModal.classList.contains("hidden")) {
+      if (e.key === "Escape") el.helpModal.classList.add("hidden");
+      return;
+    }
+    if (el.gameArena && el.gameArena.classList.contains("hidden")) return;
+    if (e.key === "Escape") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    ensureInputFocus();
+
+    if (e.key === "Enter" && document.activeElement !== el.wordInput) {
+      submitWord(e);
     }
   });
 
-  // Keep word input focused during active game
+  // Keep word input ALWAYS focused and selected during active game (Desktop & Mobile)
   document.addEventListener("click", (e) => {
-    if (!el.gameArena.classList.contains("hidden") && !el.wordInput.disabled) {
-      if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop")) {
-        el.wordInput.focus();
+    if (!el.gameArena.classList.contains("hidden")) {
+      if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop") && !e.target.closest("select") && !e.target.closest("input:not(#wordInput)")) {
+        ensureInputFocus();
       }
     }
   });
+
+  document.addEventListener("touchstart", (e) => {
+    if (!el.gameArena.classList.contains("hidden")) {
+      if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop") && !e.target.closest("select") && !e.target.closest("input:not(#wordInput)")) {
+        ensureInputFocus();
+      }
+    }
+  }, { passive: true });
+
+  if (el.wordInput) {
+    el.wordInput.addEventListener("blur", () => {
+      setTimeout(() => {
+        ensureInputFocus();
+      }, 60);
+    });
+  }
 
   // --- MULTI-DEVICE ROOM SYNC ---
   async function pollRoomState() {
@@ -1363,11 +1432,9 @@
 
       if (isMyTurn && gs.status === "playing") {
         el.wordInput.disabled = false;
-        el.btnSubmitWord.disabled = false;
+        if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
         setTimeout(() => {
-          if (el.wordInput && !el.wordInput.disabled) {
-            el.wordInput.focus();
-          }
+          ensureInputFocus();
         }, 50);
       }
     }
@@ -1393,17 +1460,17 @@
       el.turnOverline.textContent = "💣 DET ER DIN TUR!";
       el.wordInput.disabled = (gs.status !== "playing");
       el.wordInput.placeholder = `Skriv et ord med ${state.currentPrompt}...`;
-      el.btnSubmitWord.disabled = (gs.status !== "playing");
+      if (el.btnSubmitWord) el.btnSubmitWord.disabled = (gs.status !== "playing");
       el.appShell.classList.add("my-turn-active");
-      if (gs.status === "playing" && document.activeElement !== el.wordInput) {
-        el.wordInput.focus();
+      if (gs.status === "playing") {
+        ensureInputFocus();
       }
     } else {
       el.turnOverline.textContent = `${gs.active_player_name || 'En annen spiller'} har bomben:`;
       el.wordInput.disabled = true;
       el.wordInput.value = "";
       el.wordInput.placeholder = liveTypingText ? `✍️ ${liveTypingText}` : `Venter på at ${gs.active_player_name || 'spilleren'} skal svare...`;
-      el.btnSubmitWord.disabled = true;
+      if (el.btnSubmitWord) el.btnSubmitWord.disabled = true;
       el.appShell.classList.remove("my-turn-active");
     }
 

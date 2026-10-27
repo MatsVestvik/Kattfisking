@@ -1,6 +1,6 @@
 /**
- * Spillhjørnet – Dynamic Multilayered Parallax Engine
- * Drives smooth 3D parallax depth, ambient idle breathing, and drifting autumn leaves
+ * Spillhjørnet – Dynamic Multilayered Parallax Engine (Prison Theme)
+ * Continuous downward infinite scroll with 3D dynamic mouse parallax
  */
 
 (() => {
@@ -10,12 +10,45 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const isSeabed = Boolean(document.querySelector(".dynamic-parallax-bg.theme-seabed"));
+  const isPrison = !isSeabed;
 
   const layers = [
-    { el: document.getElementById("plSky") || document.getElementById("plSeabed1"), depthX: 12, depthY: 8, scrollRatio: 0.03 },
-    { el: document.getElementById("plFjord") || document.getElementById("plSeabed2"), depthX: 28, depthY: 16, scrollRatio: 0.08 },
-    { el: document.getElementById("plCampus") || document.getElementById("plSeabed3"), depthX: 52, depthY: 28, scrollRatio: 0.16 },
-    { el: document.getElementById("plLawn") || document.getElementById("plSeabed4"), depthX: 84, depthY: 42, scrollRatio: 0.28 },
+    {
+      id: "wall",
+      el: document.getElementById("plSky") || document.getElementById("plSeabed1"),
+      depthX: 14,
+      depthY: 10,
+      scrollRatio: 0.03,
+      speedY: 18, // continuous downward speed (px/sec) for deep stone wall
+      offsetY: 0,
+    },
+    {
+      id: "chains",
+      el: document.getElementById("plFjord") || document.getElementById("plSeabed2"),
+      depthX: 30,
+      depthY: 18,
+      scrollRatio: 0.08,
+      speedY: 36, // medium speed for hanging chains
+      offsetY: 0,
+    },
+    {
+      id: "gate",
+      el: document.getElementById("plCampus") || document.getElementById("plSeabed3"),
+      depthX: 56,
+      depthY: 30,
+      scrollRatio: 0.16,
+      speedY: 48, // downward speed for occasional gate/bars
+      offsetY: 180, // initial offset so it enters near top on first load
+    },
+    {
+      id: "overlay",
+      el: document.getElementById("plLawn") || document.getElementById("plSeabed4"),
+      depthX: 84,
+      depthY: 42,
+      scrollRatio: 0.28,
+      speedY: 0, // non-scrolling, non-tiling atmospheric light ray
+      offsetY: 0,
+    },
   ].filter(l => l.el !== null);
 
   if (layers.length === 0) return;
@@ -52,11 +85,11 @@
     }, { passive: true });
   }
 
-  // --- Ambient Canvas Particles (Autumn Leaves, Fireflies or Underwater Bubbles) ---
+  // --- Ambient Canvas Particles (Dungeon Sparks, Embers or Underwater Bubbles) ---
   const canvas = document.getElementById("ambientSparklesCanvas");
   let ctx = null;
   let particles = [];
-  const PARTICLE_COUNT = isSeabed ? 28 : 24;
+  const PARTICLE_COUNT = isSeabed ? 28 : 32;
 
   const PARTICLE_PALETTE = isSeabed
     ? [
@@ -66,10 +99,11 @@
       "rgba(255, 209, 102, 0.60)",  // glowing catfish ember
     ]
     : [
-      "rgba(255, 209, 102, 0.75)", // gold
-      "rgba(247, 127, 0, 0.65)",   // amber
-      "rgba(231, 111, 81, 0.60)",  // rust/autumn
-      "rgba(252, 191, 73, 0.70)",  // warm yellow
+      "rgba(255, 140, 45, 0.80)",  // fiery orange torch spark
+      "rgba(255, 195, 75, 0.88)",  // golden flame spark
+      "rgba(230, 80, 30, 0.70)",   // deep ember
+      "rgba(175, 190, 215, 0.45)", // subtle dungeon dust mote
+      "rgba(255, 120, 40, 0.75)",  // floating hot ember
     ];
 
   function resizeCanvas() {
@@ -88,12 +122,11 @@
       particles.push({
         x: Math.random() * (canvas.width || 800),
         y: Math.random() * (canvas.height || 600),
-        size: Math.random() < 0.6 ? 3 : (Math.random() < 0.8 ? 2 : 4),
-        vx: (Math.random() - 0.45) * 0.35,
-        vy: isSeabed ? -(0.25 + Math.random() * 0.45) : (0.25 + Math.random() * 0.5),
+        size: Math.random() < 0.65 ? 2 : (Math.random() < 0.88 ? 3 : 4),
+        vx: (Math.random() - 0.48) * 0.4,
+        vy: isSeabed ? -(0.25 + Math.random() * 0.45) : (0.35 + Math.random() * 0.6),
         color: PARTICLE_PALETTE[Math.floor(Math.random() * PARTICLE_PALETTE.length)],
         oscillationSpeed: 0.0015 + Math.random() * 0.002,
-        oscillationAmplitude: 15 + Math.random() * 25,
         phase: Math.random() * Math.PI * 2,
       });
     }
@@ -108,7 +141,7 @@
 
       // Update position
       p.y += p.vy;
-      p.x += p.vx + Math.sin(now * p.oscillationSpeed + p.phase) * 0.25;
+      p.x += p.vx + Math.sin(now * p.oscillationSpeed + p.phase) * 0.28;
 
       // Wrap around bounds
       if (isSeabed) {
@@ -137,11 +170,17 @@
     isPageVisible = !document.hidden;
   });
 
+  let lastTime = performance.now();
+
   function render(time) {
     if (!isPageVisible) {
+      lastTime = time;
       requestAnimationFrame(render);
       return;
     }
+
+    const delta = Math.min((time - lastTime) / 1000, 0.1);
+    lastTime = time;
 
     if (!prefersReducedMotion) {
       // Smooth interpolation for mouse movement (lerp)
@@ -156,7 +195,7 @@
       const combinedNormX = currentMouseX + ambientX;
       const combinedNormY = currentMouseY + ambientY;
 
-      // Apply transformations to each layer based on depth
+      // Apply transformations to each layer based on depth & downward continuous movement
       for (let i = 0; i < layers.length; i++) {
         const layer = layers[i];
         // Invert X slightly so looking right shifts background left (realistic 3D parallax)
@@ -164,6 +203,31 @@
         const transY = -combinedNormY * layer.depthY - (currentScrollY * layer.scrollRatio);
 
         layer.el.style.transform = `translate3d(${transX.toFixed(2)}px, ${transY.toFixed(2)}px, 0)`;
+
+        if (isPrison) {
+          if (layer.id === "gate") {
+            layer.offsetY += layer.speedY * delta;
+            const gateH = window.innerWidth >= 900 ? 512 : 384;
+            const viewH = (window.innerHeight || 900) + 120;
+            // Generous gap between gate spawns:
+            // ~2.2x screen height (minimum 2400px), giving ~45-55s of clear view between passes
+            const gap = Math.max(viewH * 2.2, 2400);
+            const cycle = viewH + gateH + gap;
+            const currentY = (layer.offsetY % cycle) - gateH;
+            layer.el.style.backgroundPositionY = `${currentY.toFixed(2)}px`;
+          } else if (layer.id === "overlay") {
+            // 3_layer: diagonal atmospheric light beam
+            // Non-scrolling and non-tiling; only 3D mouse parallax transform applies.
+          } else {
+            // Continuous infinite downward scroll for wall (0_layer) and chains (1_layer)
+            layer.offsetY += layer.speedY * delta;
+            // 1536px is an exact common multiple of 128, 256, 384, 512px for seamless loop
+            if (layer.offsetY >= 153600) {
+              layer.offsetY %= 1536;
+            }
+            layer.el.style.backgroundPositionY = `${(layer.offsetY % 1536).toFixed(2)}px`;
+          }
+        }
       }
 
       // Update and draw floating particles

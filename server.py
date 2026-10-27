@@ -18,6 +18,7 @@ from games.mer_eller_mindre import MerEllerMindreAPI
 from games.geoguesser import GeoguesserAPI
 from games.ordbombe import OrdbombeAPI
 from games.party import PartyAPI
+from games.sjakk import SjakkAPI
 
 PORT = int(os.environ.get("PORT", "3000"))
 HOST = os.environ.get("HOST", "0.0.0.0")
@@ -102,7 +103,13 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                 if res:
                     return self._send_json(res[1], status=res[0])
 
-            # 6. Static files
+            # 6. Check Sjakk API
+            if path.startswith("/api/sjakk/"):
+                res = SjakkAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 7. Static files
             self.serve_static(path, head_only=head_only)
 
         except Exception as exc:
@@ -147,6 +154,12 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
             # 5. Check Party & Tegn og Gjett API
             if path.startswith("/api/party/") or path.startswith("/api/tegn-og-gjett/"):
                 res = PartyAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 6. Check Sjakk API
+            if path.startswith("/api/sjakk/"):
+                res = SjakkAPI.handle_post(path, body)
                 if res:
                     return self._send_json(res[1], status=res[0])
 
@@ -211,7 +224,7 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
 
             if os.path.isfile(candidate):
                 full_path = candidate
-            elif safe_rel.startswith("background/") or safe_rel.startswith("seabed/"):
+            elif safe_rel.startswith("background/") or safe_rel.startswith("seabed/") or safe_rel.startswith("prison/"):
                 asset_cand = os.path.join(HUB_DIR, "assets", safe_rel)
                 if os.path.isfile(asset_cand):
                     full_path = asset_cand

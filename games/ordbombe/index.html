@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ordbombe – Norsk Word Bomb Partyspill | NTNU Games</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-  <link rel="icon" type="image/png" href="/assets/icons/ordbombe.png" />
-  <link rel="apple-touch-icon" href="/assets/icons/ordbombe.png" />
-  <link rel="stylesheet" href="/ordbombe/styles.css?v=1.0" />
-  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
+  <link rel="icon" type="image/png" href="assets/icon.png?v=2.0" />
+  <link rel="apple-touch-icon" href="assets/icon.png?v=2.0" />
+  <link rel="stylesheet" href="/ordbombe/styles.css?v=2.2" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=2.1" />
 </head>
 
 <body>
@@ -29,7 +29,7 @@
       <div class="header-left">
         <a href="/" class="back-link" id="headerBackLink" title="Tilbake til Hub">‹ Hub</a>
         <div class="game-brand">
-          <img src="/assets/icons/ordbombe.png" alt="Ordbombe" class="game-icon-mini" />
+          <img src="assets/icon.png?v=2.0" alt="Ordbombe" class="game-icon-mini" />
           <div class="game-brand-text">
             <h1 class="game-title">Ordbombe</h1>
             <span class="game-category-badge" id="headerRoomBadge">💣 Partyspill</span>
@@ -49,7 +49,7 @@
       <!-- 1. SETUP CARD (Shown before starting game) -->
       <section class="card setup-card" id="setupCard" aria-labelledby="setupHeading">
         <div class="setup-hero">
-          <img src="/assets/icons/ordbombe.png" alt="Ordbombe logo" class="setup-bomb-icon" />
+          <img src="assets/icon.png?v=2.0" alt="Ordbombe logo" class="setup-bomb-icon" />
           <h2 class="setup-title" id="setupHeading">Ordbombe</h2>
           <p class="setup-subtitle">Lynraskt norsk ordspill inspirert av <em>Word Bomb</em>. Tast inn et gyldig norsk
             ord som inneholder bokstavene før lunta brenner ut!</p>
@@ -104,8 +104,8 @@
               <label class="setting-label" for="selectTimerDifficulty">Tid per tur:</label>
               <select class="custom-select" id="selectTimerDifficulty">
                 <option value="12">Avslappet (12 sekunder)</option>
-                <option value="9" selected>Standard (9 sekunder)</option>
-                <option value="6">Panikk (6 sekunder) 🔥</option>
+                <option value="9">Rolig (9 sekunder)</option>
+                <option value="6" selected>Standard (6 sekunder) 🔥</option>
               </select>
             </div>
 
@@ -239,17 +239,15 @@
         </div>
 
 
-        <!-- Word Input Form -->
-        <form class="word-form" id="wordForm" autocomplete="off">
-          <div class="word-input-wrap">
-            <input type="text" id="wordInput" class="word-input" placeholder="Skriv et norsk ord..."
-              autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Skriv inn norsk ord" />
-            <button type="submit" class="btn-submit-word" id="btnSubmitWord">
-              Gjett ⏎
-            </button>
-          </div>
-          <div class="input-feedback hidden" id="inputFeedback"></div>
+        <!-- Headless Input (Captures desktop & mobile keyboard keystrokes directly into bubble) -->
+        <form class="word-form-headless" id="wordForm" autocomplete="off" action="javascript:void(0);">
+          <input type="text" id="wordInput" class="word-input-headless"
+            autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="search"
+            enterkeyhint="go" aria-label="Skriv inn norsk ord" />
         </form>
+
+        <!-- Dynamic In-Arena Feedback Pill (Appears when guess is rejected/accepted) -->
+        <div class="arena-feedback-pill hidden" id="inputFeedback" role="status" aria-live="polite"></div>
 
         <!-- Used words history ticker -->
         <div class="used-words-container" id="usedWordsContainer">
@@ -314,7 +312,7 @@
       <div class="rules-card">
         <div class="rules-header">
           <h2 class="rules-title" id="helpModalTitle">
-            <img src="/assets/icons/ordbombe.png" alt="" class="modal-icon-mini" /> Slik spiller du Ordbombe
+            <img src="assets/icon.png?v=2.0" alt="" class="modal-icon-mini" /> Slik spiller du Ordbombe
           </h2>
           <button type="button" class="close-btn" id="btnCloseHelp" aria-label="Lukk">×</button>
         </div>
@@ -364,8 +362,8 @@
     </footer>
   </div>
 
-  <script src="/ordbombe/app.js?v=1.0"></script>
-  <script src="/parallax-bg.js?v=1.0"></script>
+  <script src="/ordbombe/app.js?v=2.2"></script>
+  <script src="/parallax-bg.js?v=2.1"></script>
 </body>
 
 </html>

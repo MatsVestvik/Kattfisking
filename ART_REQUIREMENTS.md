@@ -49,8 +49,8 @@ NTNU Games skal ikke føles som en samling tilfeldige, AI-genererte webmaler. Pl
 | `catfish.png` | **Kattfisking** | Pikslet yin-yang sirkel: Gylden katt som sover mot en turkis ørret. | Eksisterer (64×64) |
 | `moreorless.png` | **Mer eller Mindre** | To pikslede duell-piler (grønn pil opp, rød pil ned) med svart kant. | Eksisterer (64×64) |
 | `ntnu_guesser.png` | **NTNU guesser** | Antikk pikslet campus-kompass i messing med rød/blå kompassnål. | Eksisterer (64×64) |
-| `ordbombe.png` | **Ordbombe** | **NYTT BEHOV:** Klassisk rund, kullsvart tegneserie-bombe med tent, gnistrende lunte. **Må ha gjennomsiktig bakgrunn** (ikke firkantet mørk boks). | Trenger oppdatering |
-| `tegn_og_gjett.png` | **Tegn & Gjett** | **NYTT BEHOV:** Pikslet staffeli i tre med fargeklatt-palett og malerpensel med fargesprut. **Må ha gjennomsiktig bakgrunn**. | Trenger oppdatering |
+| `ordbombe.png` | **Ordbombe** | Klassisk rund, kullsvart tegneserie-bombe med tent, gnistrende lunte. Gjennomsiktig bakgrunn. | Eksisterer (64×64) |
+| `tegn_og_gjett.png` | **Tegn & Gjett** | Pikslet staffeli i tre med fargeklatt-palett og malerpensel med fargesprut. Gjennomsiktig bakgrunn. | Eksisterer (64×64) |
 
 ---
 

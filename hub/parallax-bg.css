@@ -1,10 +1,10 @@
 /**
- * Spillhjørnet – Dynamic Multilayered Parallax Background
- * 4 Layers:
- *   Layer 1 (Sky, Sun & Clouds): /background/1.jpeg
- *   Layer 2 (Fjord & Distant Mountains): /background/2.png
- *   Layer 3 (NTNU Gløshaugen Hovedbygningen): /background/3.png
- *   Layer 4 (Campus Lawn, Stairs & Students): /background/4.png
+ * Spillhjørnet – Dynamic Multilayered Parallax Background (Prison Theme)
+ * 4 Infinite Scrolling Layers in /assets/prison/:
+ *   Layer 1 (Deep Stone / Brick Wall): /assets/prison/0_layer.png
+ *   Layer 2 (Hanging Chains & Iron Links): /assets/prison/1_layer.png
+ *   Layer 3 (Foreground Prison Bars & Grates): /assets/prison/2_layer.png
+ *   Layer 4 (Moody Shadow & Atmospheric Tint): /assets/prison/3_layer.png
  */
 
 .dynamic-parallax-bg {
@@ -19,7 +19,7 @@
   pointer-events: none;
   z-index: 0;
   user-select: none;
-  background-color: #0b0f19;
+  background-color: #080b12;
 }
 
 .parallax-layer {
@@ -28,10 +28,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  background-size: cover;
-  will-change: transform;
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: 576px 384px;
+  will-change: transform, background-position;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
@@ -39,52 +39,44 @@
   pointer-events: none;
 }
 
-/* Layer 1: Sky, Sun & Clouds */
-.parallax-layer.layer-1-sky {
-  background-image: url("/assets/background/1.jpeg");
+@media (min-width: 900px) {
+  .parallax-layer {
+    background-size: 768px 512px;
+  }
+}
+
+/* Layer 1: Deep Stone / Brick Wall (0_layer.png) */
+.parallax-layer.layer-1-sky,
+.parallax-layer.layer-1-prison {
+  background-image: url("/assets/prison/0_layer.png");
   z-index: 1;
-  animation: skyGlowPulse 12s ease-in-out infinite alternate;
 }
 
-@keyframes skyGlowPulse {
-  0% {
-    filter: brightness(0.96) saturate(1);
-  }
-
-  100% {
-    filter: brightness(1.06) saturate(1.08);
-  }
-}
-
-/* Layer 2: Fjord & Distant Hills with Evening Shoreline Lights */
-.parallax-layer.layer-2-fjord {
-  background-image: url("/assets/background/2.png");
+/* Layer 2: Hanging Chains & Iron Links (1_layer.png) */
+.parallax-layer.layer-2-fjord,
+.parallax-layer.layer-2-prison {
+  background-image: url("/assets/prison/1_layer.png");
   z-index: 2;
-  animation: fjordLightsShimmer 6s ease-in-out infinite alternate;
 }
 
-@keyframes fjordLightsShimmer {
-
-  0%,
-  100% {
-    filter: brightness(1) contrast(1);
-  }
-
-  50% {
-    filter: brightness(1.12) contrast(1.04) drop-shadow(0 0 8px rgba(255, 209, 102, 0.4));
-  }
-}
-
-/* Layer 3: NTNU Gløshaugen Hovedbygningen */
-.parallax-layer.layer-3-campus {
-  background-image: url("/assets/background/3.png");
+/* Layer 3: Foreground Prison Bars & Grates (2_layer.png) - Spawns with gaps */
+.parallax-layer.layer-3-campus,
+.parallax-layer.layer-3-prison {
+  background-image: url("/assets/prison/2_layer.png");
+  background-repeat: repeat-x !important;
+  background-position: center -1400px;
   z-index: 3;
 }
 
-/* Layer 4: Foreground Lawn, Stairs, Lampposts & Students */
-.parallax-layer.layer-4-lawn {
-  background-image: url("/assets/background/4.png");
+/* Layer 4: Diagonal Light Beam & Atmospheric Tint (3_layer.png) - NON-TILING */
+.parallax-layer.layer-4-lawn,
+.parallax-layer.layer-4-prison {
+  background-image: url("/assets/prison/3_layer.png");
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-position: center center !important;
   z-index: 4;
+  opacity: 0.82;
 }
 
 /* ==========================================================================
@@ -98,6 +90,12 @@
 
 .dynamic-parallax-bg.theme-seabed {
   background-color: #040c18;
+}
+
+.dynamic-parallax-bg.theme-seabed .parallax-layer {
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
 }
 
 .dynamic-parallax-bg.theme-seabed .layer-1-sky,

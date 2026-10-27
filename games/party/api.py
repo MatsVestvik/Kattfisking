@@ -112,7 +112,7 @@ class PartyRoom:
         with self.lock:
             self.current_game = "ordbombe"
             diff = (settings.get("difficulty") or "medium").lower()
-            turn_sec = float(settings.get("turnDuration") or 9.0)
+            turn_sec = float(settings.get("turnDuration") or 6.0)
 
             prompts_cache = get_prompts_cache()
             pool = prompts_cache.get(diff) or prompts_cache.get("medium") or ["BIL"]
@@ -250,7 +250,7 @@ class PartyRoom:
 
         if status == "playing":
             elapsed = now - self.game_state.get("turn_start_time", now)
-            duration = self.game_state.get("turn_duration", 9.0)
+            duration = self.game_state.get("turn_duration", 6.0)
             remaining = max(0.0, duration - elapsed)
             self.game_state["time_remaining"] = round(remaining, 1)
 
@@ -1021,6 +1021,27 @@ class PartyAPI:
                     room.start_ordbombe(settings)
                 elif game_id == "tegn_og_gjett":
                     room.start_tegn_og_gjett(settings)
+                elif game_id == "sjakk":
+                    room.current_game = "sjakk"
+                    room.game_state = {"settings": settings}
+                    try:
+                        from games.sjakk.api import _rooms as sjakk_rooms, SjakkRoom
+                        with _rooms_lock:
+                            if code not in sjakk_rooms:
+                                host_player = room.players.get(room.host_id, {})
+                                time_ctrl = int(settings.get("timeControl", 300))
+                                s_room = SjakkRoom(
+                                    code=code,
+                                    host_name=host_player.get("name", "Hvit"),
+                                    host_avatar=host_player.get("avatar", "👑"),
+                                    time_control=time_ctrl
+                                )
+                                s_room.host_id = room.host_id
+                                s_room.white_player["id"] = room.host_id
+                                sjakk_rooms[code] = s_room
+                    except Exception as err:
+                        print("Error creating sjakk party room bridge:", err)
+                    room.bump()
                 elif game_id is None:
                     # Return to lobby
                     room.current_game = None

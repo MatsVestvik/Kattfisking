@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sjakk – NTNU Games (2 Spillere)</title>
+  <meta name="description" content="Klassisk 2-spillers retro piksel-sjakk for NTNU Games. Spill på samme enhet eller i partyrom over nett!" />
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <link rel="apple-touch-icon" href="assets/icon.png" />
+
+  <link rel="stylesheet" href="/sjakk/styles.css?v=1.0" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=2.1" />
+</head>
+
+<body>
+  <!-- Dynamic Multilayered Parallax Background -->
+  <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
+    <div class="parallax-layer layer-1-sky" id="plSky" data-depth="0.04"></div>
+    <div class="parallax-layer layer-2-fjord" id="plFjord" data-depth="0.12"></div>
+    <div class="parallax-layer layer-3-campus" id="plCampus" data-depth="0.26"></div>
+    <div class="parallax-layer layer-4-lawn" id="plLawn" data-depth="0.50"></div>
+    <canvas class="ambient-sparkles-canvas" id="ambientSparklesCanvas"></canvas>
+    <div class="parallax-vignette-overlay"></div>
+  </div>
+
+  <div class="sjakk-shell">
+    <!-- Header -->
+    <header class="sjakk-header">
+      <div class="header-left">
+        <a href="/" class="icon-btn text-btn-link" title="Tilbake til NTNU Games">‹ NTNU GAMES</a>
+        <div class="brand-wrap">
+          <img src="assets/icon.png" alt="Sjakk logo" class="header-pixel-icon" />
+          <div class="game-branding">
+            <h1 class="game-title">Sjakk</h1>
+            <span class="game-subtitle">2 spillere • Pikselduell</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" class="btn btn-subtle btn-icon" id="btnSoundToggle" title="Lydeffekter på/av">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button type="button" class="btn btn-subtle btn-icon" id="btnFlipBoard" title="Snu brettet 180°">
+          <span>🔄</span>
+        </button>
+        <button type="button" class="btn btn-subtle btn-icon" id="btnHelp" title="Regler og tips">
+          <span>❓</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mode Selector & Party Banner -->
+    <div class="mode-bar">
+      <div class="mode-tabs">
+        <button type="button" class="mode-tab active" id="tabLocal">📱 1 Enhet (Pass &amp; Play)</button>
+        <button type="button" class="mode-tab" id="tabRoom">🌐 Party Rom (2 Enheter)</button>
+      </div>
+
+      <!-- Room status pill (visible in room mode) -->
+      <div class="room-pill hidden" id="roomPill">
+        <span class="room-pill-label">ROM:</span>
+        <strong class="room-pill-code" id="roomPillCode">----</strong>
+        <button type="button" class="room-copy-btn" id="btnCopyRoomLink" title="Kopier lenke">📋</button>
+      </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <main class="sjakk-main">
+      <div class="sjakk-layout">
+
+        <!-- Top Player Card (Default Black) -->
+        <div class="player-card" id="topPlayerCard">
+          <div class="player-info">
+            <div class="player-avatar-wrap">
+              <div class="player-avatar" id="topAvatar">♟️</div>
+              <span class="player-color-indicator black" id="topColorDot"></span>
+            </div>
+            <div class="player-meta">
+              <div class="player-name-row">
+                <span class="player-name" id="topPlayerName">Svart</span>
+                <span class="turn-badge hidden" id="topTurnBadge">TREKK</span>
+              </div>
+              <div class="captured-tray" id="topCapturedTray"></div>
+            </div>
+          </div>
+          <div class="player-right">
+            <div class="material-lead" id="topMaterialLead"></div>
+            <div class="chess-clock" id="topClock">05:00</div>
+          </div>
+        </div>
+
+        <!-- Center: Chessboard Area -->
+        <div class="board-wrapper">
+          <div class="board-frame" id="boardFrame">
+            <!-- 8x8 Grid squares positioned within whiteboard/blackboard 9px border -->
+            <div class="chess-grid" id="chessGrid"></div>
+            <!-- Check indicator overlay -->
+            <div class="check-banner hidden" id="checkBanner">SJAKK!</div>
+          </div>
+        </div>
+
+        <!-- Bottom Player Card (Default White) -->
+        <div class="player-card" id="bottomPlayerCard">
+          <div class="player-info">
+            <div class="player-avatar-wrap">
+              <div class="player-avatar" id="bottomAvatar">👑</div>
+              <span class="player-color-indicator white" id="bottomColorDot"></span>
+            </div>
+            <div class="player-meta">
+              <div class="player-name-row">
+                <span class="player-name" id="bottomPlayerName">Hvit</span>
+                <span class="turn-badge hidden" id="bottomTurnBadge">TREKK</span>
+              </div>
+              <div class="captured-tray" id="bottomCapturedTray"></div>
+            </div>
+          </div>
+          <div class="player-right">
+            <div class="material-lead" id="bottomMaterialLead"></div>
+            <div class="chess-clock active" id="bottomClock">05:00</div>
+          </div>
+        </div>
+
+        <!-- Move History Ticker -->
+        <div class="move-ticker-card">
+          <div class="ticker-header">
+            <span class="ticker-title">📜 Trekklogg</span>
+            <span class="ticker-status" id="gameStatusText">Hvits trekk</span>
+          </div>
+          <div class="move-history-scroll" id="moveHistoryList">
+            <span class="move-empty-hint">Trekkene vises her etterhvert som dere spiller...</span>
+          </div>
+        </div>
+
+        <!-- Action Controls Bar -->
+        <div class="actions-card">
+          <div class="action-buttons-group">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnUndo" title="Angre forrige trekk (i lokal modus)">
+              ↩️ Angre
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDrawOffer" title="Tilby remis">
+              🤝 Remis
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnResign" title="Gi opp partiet">
+              🏳️ Gi opp
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnNewGame" title="Start nytt parti">
+              ✨ Nytt parti
+            </button>
+          </div>
+
+          <div class="settings-inline-row">
+            <label class="setting-label">
+              <span>Tid:</span>
+              <select id="selectTimeControl" class="sjakk-select">
+                <option value="180">3 min (Lyn)</option>
+                <option value="300" selected>5 min (Blitz)</option>
+                <option value="600">10 min (Hurtig)</option>
+                <option value="60">1 min (Bullet)</option>
+                <option value="0">Ingen tid (Koseparti)</option>
+              </select>
+            </label>
+
+            <label class="setting-label checkbox-label" id="labelAutoFlip">
+              <input type="checkbox" id="checkAutoFlip" />
+              <span>Snu brett automatisk</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- PROMOTION MODAL -->
+  <dialog class="sjakk-modal" id="modalPromotion">
+    <div class="modal-box">
+      <h3 class="modal-title">Velg forvandling</h3>
+      <p class="modal-subtitle">Bonden nådde enden av brettet!</p>
+      <div class="promotion-choices" id="promotionChoices">
+        <!-- Rendered via JS with Queen, Rook, Bishop, Knight sprites -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- GAME OVER / VICTORY MODAL -->
+  <dialog class="sjakk-modal" id="modalGameOver">
+    <div class="modal-box text-center">
+      <div class="gameover-trophy" id="gameOverTrophy">🏆</div>
+      <h2 class="gameover-title" id="gameOverTitle">Sjakkmatt!</h2>
+      <p class="gameover-reason" id="gameOverReason">Hvit vinner partiet.</p>
+
+      <div class="gameover-actions">
+        <button type="button" class="btn btn-primary btn-large btn-full-width" id="btnGameOverRematch">
+          Spill omkamp 🔄
+        </button>
+        <button type="button" class="btn btn-secondary btn-full-width" id="btnGameOverClose">
+          Se brettet 🔍
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- PARTY ROOM MODAL (Create / Join) -->
+  <dialog class="sjakk-modal" id="modalRoomSetup">
+    <div class="modal-box">
+      <div class="modal-header-row">
+        <h3 class="modal-title">Party Rom for Sjakk</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseRoomModal">×</button>
+      </div>
+
+      <div class="room-setup-tabs">
+        <button type="button" class="room-tab active" id="tabCreateRoom">Opprett rom</button>
+        <button type="button" class="room-tab" id="tabJoinRoom">Bli med</button>
+      </div>
+
+      <div class="room-setup-body" id="bodyCreateRoom">
+        <p class="modal-subtitle">Opprett et rom og del lenken eller koden med en venn!</p>
+        <div class="form-group">
+          <label for="inputHostName">Ditt navn</label>
+          <input type="text" id="inputHostName" class="form-input" maxlength="16" placeholder="F.eks. Magnus" value="Hvit" />
+        </div>
+        <button type="button" class="btn btn-primary btn-full-width" id="btnSubmitCreateRoom">
+          Opprett Sjakkrom 🚀
+        </button>
+      </div>
+
+      <div class="room-setup-body hidden" id="bodyJoinRoom">
+        <p class="modal-subtitle">Tast inn 4–5 bokstavers romkode fra vennen din.</p>
+        <div class="form-group">
+          <label for="inputRoomCode">Romkode</label>
+          <input type="text" id="inputRoomCode" class="form-input text-uppercase" maxlength="8" placeholder="SJAKK" />
+        </div>
+        <div class="form-group">
+          <label for="inputJoinName">Ditt navn</label>
+          <input type="text" id="inputJoinName" class="form-input" maxlength="16" placeholder="F.eks. Hikaru" value="Svart" />
+        </div>
+        <button type="button" class="btn btn-primary btn-full-width" id="btnSubmitJoinRoom">
+          Bli med i partiet ♟️
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- RULES / HELP MODAL -->
+  <dialog class="sjakk-modal" id="modalHelp">
+    <div class="modal-box">
+      <div class="modal-header-row">
+        <h3 class="modal-title">❓ Slik spiller du Sjakk</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseHelpModal">×</button>
+      </div>
+      <div class="modal-body-scroll">
+        <div class="help-section">
+          <h4>🎯 Mål</h4>
+          <p>Sett motstanderens konge i <strong>sjakkmatt</strong> (kongen trues og kan ikke unnslippe).</p>
+        </div>
+        <div class="help-section">
+          <h4>📱 2 Spillemåter</h4>
+          <ul>
+            <li><strong>1 Enhet (Pass &amp; Play):</strong> Spill sammen på samme mobil, nettbrett eller laptop. Slå gjerne på <em>«Snu brett automatisk»</em> hvis dere sitter overfor hverandre!</li>
+            <li><strong>Party Rom:</strong> Koble sammen to telefoner via romkode. Begge ser brettet fra sin egen vinkel i sanntid!</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h4>♟️ Spesialtrekk støttes fullt ut:</h4>
+          <ul>
+            <li><strong>Rokade:</strong> Flytt kongen to felt mot tårnet.</li>
+            <li><strong>En passant:</strong> Slå en motstanders bonde som nettopp hoppet to felt forbi din.</li>
+            <li><strong>Forvandling:</strong> Når bonden når siste rad velger du Dronning, Tårn, Løper eller Hest.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="/sjakk/app.js?v=1.0"></script>
+  <script src="/parallax-bg.js?v=2.1"></script>
+</body>
+
+</html>

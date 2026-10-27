@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/favicon.png" />
   <link rel="stylesheet" href="/party/styles.css?v=1.0" />
-  <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
+  <link rel="stylesheet" href="/parallax-bg.css?v=2.1" />
 </head>
 
 <body>
@@ -144,7 +144,7 @@
           <!-- Game 1: Ordbombe -->
           <div class="lobby-game-card active-playable" id="gameCardOrdbombe">
             <div class="lg-card-left">
-              <img src="/assets/icons/ordbombe.png" alt="Ordbombe" class="lg-card-icon" />
+              <img src="/ordbombe/assets/icon.png?v=2.0" alt="Ordbombe" class="lg-card-icon" />
               <div>
                 <div class="lg-card-title-row">
                   <h4 class="lg-card-title">Ordbombe</h4>
@@ -165,9 +165,9 @@
                 <label>
                   <span>Tid:</span>
                   <select id="selectTimerParty" class="lg-select">
-                    <option value="9">Normal (9s)</option>
-                    <option value="12">Rolig (12s)</option>
-                    <option value="6">Kaos (6s)</option>
+                    <option value="6" selected>Standard (6s) 🔥</option>
+                    <option value="9">Rolig (9s)</option>
+                    <option value="12">Avslappet (12s)</option>
                   </select>
                 </label>
                 <label>
@@ -189,7 +189,7 @@
           <!-- Game 2: Tegn & Gjett (Aktivt flerspillerspill) -->
           <div class="lobby-game-card active-playable" id="gameCardTegnOgGjett">
             <div class="lg-card-left">
-              <img src="/assets/icons/tegn_og_gjett.png" alt="Tegn og Gjett" class="lg-card-icon" />
+              <img src="/tegn-og-gjett/assets/icon.png" alt="Tegn og Gjett" class="lg-card-icon" />
               <div>
                 <div class="lg-card-title-row">
                   <h4 class="lg-card-title">Tegn & Gjett</h4>
@@ -231,6 +231,44 @@
               </button>
             </div>
           </div>
+
+          <!-- Game 3: Sjakk (Aktivt 2-spillerspill) -->
+          <div class="lobby-game-card active-playable" id="gameCardSjakk">
+            <div class="lg-card-left">
+              <img src="/sjakk/assets/icon.png" alt="Sjakk" class="lg-card-icon" />
+              <div>
+                <div class="lg-card-title-row">
+                  <h4 class="lg-card-title">Sjakk</h4>
+                  <span class="lg-card-badge badge-ready">Klar til spill</span>
+                </div>
+                <p class="lg-card-desc">
+                  Klassisk 2-spillers sjakkduell i retro pikselstil. De to første spillerne styrer Hvit og Svart, resten ser på!
+                </p>
+                <div class="lg-card-meta">
+                  <span>👥 2 spillere + tilskuere</span> • <span>⏱️ 3–10 min klokke</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg-card-right">
+              <div class="lg-settings-inline">
+                <label>
+                  <span>Tid:</span>
+                  <select id="selectTimerSjakk" class="lg-select">
+                    <option value="180">3 min (Lyn)</option>
+                    <option value="300" selected>5 min (Blitz)</option>
+                    <option value="600">10 min (Hurtig)</option>
+                    <option value="0">Ubegrenset</option>
+                  </select>
+                </label>
+              </div>
+
+              <button type="button" class="party-btn start-game-btn" id="btnStartSjakk"
+                style="background: linear-gradient(135deg, #7209b7, #3a0ca3);">
+                Start Sjakk ♟️
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -260,7 +298,7 @@
   </div>
 
   <script src="/party/app.js?v=1.0"></script>
-  <script src="/parallax-bg.js?v=1.0"></script>
+  <script src="/parallax-bg.js?v=2.1"></script>
 </body>
 
 </html>
