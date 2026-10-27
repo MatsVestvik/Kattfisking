@@ -52,19 +52,17 @@
   z-index: 1;
 }
 
-/* Layer 2: Hanging Chains & Iron Links (1_layer.png) */
+/* Layer 2: Stone Pillar with Torch (1_layer.png) */
 .parallax-layer.layer-2-fjord,
 .parallax-layer.layer-2-prison {
   background-image: url("/assets/prison/1_layer.png");
   z-index: 2;
 }
 
-/* Layer 3: Foreground Prison Bars & Grates (2_layer.png) - Spawns with gaps */
+/* Layer 3: Hanging Chains & Iron Links (2_layer.png) */
 .parallax-layer.layer-3-campus,
 .parallax-layer.layer-3-prison {
   background-image: url("/assets/prison/2_layer.png");
-  background-repeat: repeat-x !important;
-  background-position: center -1400px;
   z-index: 3;
 }
 

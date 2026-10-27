@@ -224,7 +224,7 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
 
             if os.path.isfile(candidate):
                 full_path = candidate
-            elif safe_rel.startswith("background/") or safe_rel.startswith("seabed/") or safe_rel.startswith("prison/"):
+            elif safe_rel.startswith("background/") or safe_rel.startswith("seabed/") or safe_rel.startswith("prison/") or safe_rel.startswith("mons/"):
                 asset_cand = os.path.join(HUB_DIR, "assets", safe_rel)
                 if os.path.isfile(asset_cand):
                     full_path = asset_cand

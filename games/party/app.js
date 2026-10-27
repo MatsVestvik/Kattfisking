@@ -5,7 +5,26 @@
 (() => {
   "use strict";
 
-  const AVATARS = ["👑", "🚀", "🦁", "🐱", "🦊", "🍕", "🍺", "🐼", "🐸", "🔥", "⚡", "🎉"];
+  const MONS = [
+    { id: "charbear", name: "Charbear", img: "/assets/mons/charbear.png" },
+    { id: "jormundgandr", name: "Jørmungandr", img: "/assets/mons/jormundgandr.png" },
+    { id: "pixiu", name: "Pixiu", img: "/assets/mons/pixiu.png" },
+    { id: "squitonkey", name: "Squitonkey", img: "/assets/mons/squitonkey.png" },
+    { id: "tanuki", name: "Tanuki", img: "/assets/mons/tanuki.png" },
+    { id: "totter", name: "Totter", img: "/assets/mons/totter.png" },
+  ];
+
+  function getMonImg(avatar) {
+    if (!avatar) return "/assets/mons/charbear.png";
+    if (avatar.startsWith("/") || avatar.startsWith("data:") || avatar.endsWith(".png")) return avatar;
+    const found = MONS.find(m => m.id === avatar);
+    return found ? found.img : `/assets/mons/${avatar}.png`;
+  }
+
+  function renderAvatarHtml(avatar, extraClass = "") {
+    const src = getMonImg(avatar);
+    return `<img src="${src}" alt="Monster" class="player-mon-img ${extraClass}" />`;
+  }
 
   // State
   const state = {
@@ -13,7 +32,7 @@
     hostToken: null,
     playerId: null,
     playerName: null,
-    avatar: "👑",
+    avatar: "charbear",
     isHost: false,
     version: 0,
     pollTimer: null,
@@ -60,23 +79,25 @@
 
   // Render Avatar pickers
   function renderAvatarPicker(container, selectedAvatar, onSelect) {
+    if (!container) return;
     container.innerHTML = "";
-    AVATARS.forEach(av => {
+    MONS.forEach(mon => {
       const chip = document.createElement("button");
       chip.type = "button";
-      chip.className = `avatar-chip ${av === selectedAvatar ? "selected" : ""}`;
-      chip.textContent = av;
+      chip.className = `avatar-chip ${mon.id === selectedAvatar ? "selected" : ""}`;
+      chip.title = mon.name;
+      chip.innerHTML = `<img src="${mon.img}" alt="${mon.name}" class="mon-picker-img" />`;
       chip.addEventListener("click", () => {
         container.querySelectorAll(".avatar-chip").forEach(c => c.classList.remove("selected"));
         chip.classList.add("selected");
-        onSelect(av);
+        onSelect(mon.id);
       });
       container.appendChild(chip);
     });
   }
 
-  let selectedJoinAvatar = "🚀";
-  let selectedCreateAvatar = "👑";
+  let selectedJoinAvatar = "jormundgandr";
+  let selectedCreateAvatar = "charbear";
 
   renderAvatarPicker(el.avatarPickerJoin, selectedJoinAvatar, av => selectedJoinAvatar = av);
   renderAvatarPicker(el.avatarPickerCreate, selectedCreateAvatar, av => selectedCreateAvatar = av);
@@ -218,7 +239,7 @@
       state.roomCode = code;
       state.playerId = pId;
       state.playerName = pName || "Spiller";
-      state.avatar = av || "👤";
+      state.avatar = av || "charbear";
       state.hostToken = hToken || null;
       state.isHost = !!hToken;
       return true;
@@ -327,7 +348,7 @@
       tile.className = `player-tile ${p.isHost ? "is-host" : ""}`;
       tile.innerHTML = `
         ${p.isHost ? '<span class="player-crown-badge">VERT</span>' : ''}
-        <div class="player-avatar-circle" style="border-color: ${p.color || '#3b5080'}">${p.avatar || '👤'}</div>
+        <div class="player-avatar-circle" style="border-color: ${p.color || '#3b5080'}">${renderAvatarHtml(p.avatar)}</div>
         <div class="player-name-text">${escapeHtml(p.name)}</div>
       `;
       el.playersGrid.appendChild(tile);

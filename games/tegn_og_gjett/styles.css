@@ -383,6 +383,16 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
+  overflow: hidden;
+}
+
+.player-mon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
 }
 
 .player-status-badge {

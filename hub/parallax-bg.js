@@ -19,26 +19,26 @@
       depthX: 14,
       depthY: 10,
       scrollRatio: 0.03,
-      speedY: 18, // continuous downward speed (px/sec) for deep stone wall
+      speedY: 18, // continuous downward speed (px/sec) for deep stone wall (0_layer.png)
+      offsetY: 0,
+    },
+    {
+      id: "torch",
+      el: document.getElementById("plFjord") || document.getElementById("plSeabed2"),
+      depthX: 24,
+      depthY: 16,
+      scrollRatio: 0.06,
+      speedY: 28, // continuous downward speed for stone pillar with torch (1_layer.png)
       offsetY: 0,
     },
     {
       id: "chains",
-      el: document.getElementById("plFjord") || document.getElementById("plSeabed2"),
-      depthX: 30,
-      depthY: 18,
-      scrollRatio: 0.08,
-      speedY: 36, // medium speed for hanging chains
-      offsetY: 0,
-    },
-    {
-      id: "gate",
       el: document.getElementById("plCampus") || document.getElementById("plSeabed3"),
-      depthX: 56,
-      depthY: 30,
-      scrollRatio: 0.16,
-      speedY: 48, // downward speed for occasional gate/bars
-      offsetY: 180, // initial offset so it enters near top on first load
+      depthX: 42,
+      depthY: 26,
+      scrollRatio: 0.12,
+      speedY: 42, // medium-fast speed for hanging chains (2_layer.png)
+      offsetY: 0,
     },
     {
       id: "overlay",
@@ -46,7 +46,7 @@
       depthX: 84,
       depthY: 42,
       scrollRatio: 0.28,
-      speedY: 0, // non-scrolling, non-tiling atmospheric light ray
+      speedY: 0, // non-scrolling, non-tiling atmospheric light ray (3_layer.png)
       offsetY: 0,
     },
   ].filter(l => l.el !== null);
@@ -205,21 +205,11 @@
         layer.el.style.transform = `translate3d(${transX.toFixed(2)}px, ${transY.toFixed(2)}px, 0)`;
 
         if (isPrison) {
-          if (layer.id === "gate") {
-            layer.offsetY += layer.speedY * delta;
-            const gateH = window.innerWidth >= 900 ? 512 : 384;
-            const viewH = (window.innerHeight || 900) + 120;
-            // Generous gap between gate spawns:
-            // ~2.2x screen height (minimum 2400px), giving ~45-55s of clear view between passes
-            const gap = Math.max(viewH * 2.2, 2400);
-            const cycle = viewH + gateH + gap;
-            const currentY = (layer.offsetY % cycle) - gateH;
-            layer.el.style.backgroundPositionY = `${currentY.toFixed(2)}px`;
-          } else if (layer.id === "overlay") {
+          if (layer.id === "overlay") {
             // 3_layer: diagonal atmospheric light beam
             // Non-scrolling and non-tiling; only 3D mouse parallax transform applies.
           } else {
-            // Continuous infinite downward scroll for wall (0_layer) and chains (1_layer)
+            // Continuous infinite downward scroll for wall (0_layer), torch pillar (1_layer), and chains (2_layer)
             layer.offsetY += layer.speedY * delta;
             // 1536px is an exact common multiple of 128, 256, 384, 512px for seamless loop
             if (layer.offsetY >= 153600) {

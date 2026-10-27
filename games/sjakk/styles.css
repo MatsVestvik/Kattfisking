@@ -311,6 +311,16 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
+  overflow: hidden;
+}
+
+.player-mon-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
 }
 
 .player-color-indicator {

@@ -407,7 +407,7 @@ print(json.dumps(res, ensure_ascii=False))
 
       if (fs.existsSync(candidate)) {
         fullPath = candidate;
-      } else if (safeRel.startsWith("background/") || safeRel.startsWith("seabed/") || safeRel.startsWith("prison/")) {
+      } else if (safeRel.startsWith("background/") || safeRel.startsWith("seabed/") || safeRel.startsWith("prison/") || safeRel.startsWith("mons/")) {
         const assetCand = path.join(HUB_DIR, "assets", safeRel);
         if (fs.existsSync(assetCand)) {
           fullPath = assetCand;

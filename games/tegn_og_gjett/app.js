@@ -920,7 +920,7 @@
       step.className = `podium-step ${item.rankClass}`;
       if (item.p) {
         step.innerHTML = `
-          <div style="font-size: 2rem; margin-bottom: 0.25rem;">${item.p.avatar || "👤"}</div>
+          <div style="font-size: 2rem; margin-bottom: 0.25rem;">${renderAvatarHtml(item.p.avatar)}</div>
           <div class="podium-pillar">${item.rankNum}</div>
           <div class="podium-player-name">${escapeHtml(item.p.name)}</div>
           <div class="podium-score">${item.p.score || 0} p</div>
@@ -970,7 +970,7 @@
       row.innerHTML = `
         <span class="player-rank">#${idx + 1}</span>
         <div class="player-avatar-wrap">
-          <div class="player-avatar" style="border-color: ${p.color || '#3b82f6'};">${p.avatar || '👤'}</div>
+          <div class="player-avatar" style="border-color: ${p.color || '#3b82f6'};">${renderAvatarHtml(p.avatar)}</div>
           ${badgeHtml}
         </div>
         <div class="player-info">
@@ -1069,6 +1069,15 @@
     return String(str || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
     })[m]);
+  }
+
+  function renderAvatarHtml(avatar) {
+    const monIds = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
+    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png"))) {
+      const src = avatar.endsWith(".png") ? avatar : `/assets/mons/${avatar}.png`;
+      return `<img src="${src}" alt="Monster" class="player-mon-img" />`;
+    }
+    return `<span class="avatar-fallback">${avatar || "👤"}</span>`;
   }
 
   // =========================================================================

@@ -344,7 +344,7 @@ class SjakkAPI:
 
         if path == "/api/sjakk/create":
             host_name = str(body.get("hostName", "Hvit spiller")).strip()[:18]
-            host_avatar = str(body.get("avatar", "👑")).strip()[:4]
+            host_avatar = str(body.get("avatar", "charbear")).strip()[:64]
             time_control = int(body.get("timeControl", 300))  # seconds (default 5 min)
             increment = int(body.get("increment", 0))
 
@@ -376,7 +376,7 @@ class SjakkAPI:
         elif path == "/api/sjakk/join":
             code = str(body.get("roomCode", "")).strip().upper()
             player_name = str(body.get("playerName", "Svart spiller")).strip()[:18]
-            player_avatar = str(body.get("avatar", "♟️")).strip()[:4]
+            player_avatar = str(body.get("avatar", "jormundgandr")).strip()[:64]
 
             with _rooms_lock:
                 room = _rooms.get(code)
@@ -392,7 +392,7 @@ class SjakkAPI:
                     room.black_player = {
                         "id": player_id,
                         "name": player_name or "Svart spiller",
-                        "avatar": player_avatar or "♟️",
+                        "avatar": player_avatar or "jormundgandr",
                         "color": "b",
                         "isHost": False,
                         "lastSeen": time.time(),

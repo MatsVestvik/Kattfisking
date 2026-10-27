@@ -269,6 +269,7 @@
 
   // State
   const state = {
+    isPlaying: false,
     mode: "party", // "party" | "solo"
     difficulty: "medium", // "easy" | "medium" | "hard"
     turnDuration: 6, // seconds
@@ -474,7 +475,18 @@
   }
 
   // --- CIRCULAR ARENA & ARROW POINTER SYSTEM ---
-  const DEFAULT_AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐸", "🐙", "🦄", "🐶", "🐱"];
+  const DEFAULT_AVATARS = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
+
+  function renderAvatarHtml(avatar) {
+    if (avatar === "💀") return `<span class="skull-emoji">💀</span>`;
+    const monIds = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
+    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png"))) {
+      const src = avatar.endsWith(".png") ? avatar : `/assets/mons/${avatar}.png`;
+      return `<img src="${src}" alt="Monster" class="player-mon-img" />`;
+    }
+    return `<span class="avatar-fallback">${avatar || "👤"}</span>`;
+  }
+
   let currentArrowAngle = 0;
 
   function setArrowAngle(targetDeg) {
@@ -500,7 +512,7 @@
     el.circlePlayersContainer.innerHTML = "";
 
     const list = playersList || (state.mode === "party" ? state.players : [
-      { name: state.soloName, lives: state.players[0]?.lives ?? 3, eliminated: false, avatar: "👤" }
+      { name: state.soloName, lives: state.players[0]?.lives ?? 3, eliminated: false, avatar: "charbear" }
     ]);
 
     const total = list.length;
@@ -543,7 +555,7 @@
           ${isActive && isMeInNode ? '<span class="cp-typing-cursor"></span>' : ''}
         </div>
         <div class="cp-avatar-wrap">
-          <span class="cp-avatar-emoji">${avatar}</span>
+          ${renderAvatarHtml(avatar)}
           ${isActive && !p.eliminated ? '<span class="cp-bomb-indicator" title="Har bomben!">💣</span>' : ""}
         </div>
         <div class="cp-info">
@@ -731,7 +743,7 @@
         lives: 3,
         eliminated: false,
         wordsCount: 0,
-        avatar: "👤",
+        avatar: "charbear",
       }];
       state.activePlayerIndex = 0;
 
@@ -749,6 +761,7 @@
     el.setupCard.classList.add("hidden");
     el.gameOverCard.classList.add("hidden");
     el.gameArena.classList.remove("hidden");
+    state.isPlaying = true;
 
     await fetchNewPrompt();
     startTurn();
@@ -800,14 +813,14 @@
     if (state.mode === "party") {
       el.turnPlayerName.textContent = curPlayer.name;
       el.turnOverline.textContent = "Pil peker på:";
-      el.turnAvatar.textContent = curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length];
+      el.turnAvatar.innerHTML = renderAvatarHtml(curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]);
       renderHearts(el.activeHeartsBox, curPlayer.lives);
       renderCircularPlayers();
       rotateArrowToActive();
     } else {
       el.turnPlayerName.textContent = state.soloName;
       el.turnOverline.textContent = "Solomodus:";
-      el.turnAvatar.textContent = "👤";
+      el.turnAvatar.innerHTML = renderAvatarHtml("charbear");
       renderHearts(el.activeHeartsBox, curPlayer.lives);
       renderCircularPlayers();
       rotateArrowToActive();
@@ -828,7 +841,7 @@
       state.currentPrompt,
       true,
       state.mode === "party" ? curPlayer.name : state.soloName,
-      state.mode === "party" ? (curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "👤"
+      state.mode === "party" ? (curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "charbear"
     );
 
     // Tick loop every 100ms
@@ -1149,6 +1162,7 @@
 
   // Finish Game (Victory or Solo game over)
   function finishGame() {
+    state.isPlaying = false;
     if (state.timerInterval) {
       clearInterval(state.timerInterval);
       state.timerInterval = null;
@@ -1256,10 +1270,10 @@
     } else if (state.mode === "party") {
       const cur = state.players[state.activePlayerIndex];
       activeName = cur ? cur.name : "Spiller";
-      activeAvatar = cur ? (cur.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "👤";
+      activeAvatar = cur ? (cur.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "charbear";
     } else {
       activeName = state.soloName || "Spiller 1";
-      activeAvatar = "👤";
+      activeAvatar = "charbear";
     }
 
     updateTypingUI(val, state.currentPrompt, true, activeName, activeAvatar);
@@ -1315,19 +1329,39 @@
       return;
     }
     if (el.gameArena && el.gameArena.classList.contains("hidden")) return;
+    if (!state.isPlaying) return;
     if (e.key === "Escape") return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    ensureInputFocus();
+    const isMyTurn = state.isRoomMode
+      ? (state.lastRoomState?.status === "playing" && state.lastRoomState?.active_player_id === state.playerId)
+      : (state.mode === "party" ? !state.players[state.activePlayerIndex]?.eliminated : true);
 
-    if (e.key === "Enter" && document.activeElement !== el.wordInput) {
+    if (!isMyTurn) return;
+
+    if (e.key === "Enter") {
+      e.preventDefault();
       submitWord(e);
+      return;
+    }
+
+    if (document.activeElement !== el.wordInput && el.wordInput) {
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        el.wordInput.value = el.wordInput.value.slice(0, -1);
+        el.wordInput.dispatchEvent(new Event("input", { bubbles: true }));
+      } else if (e.key.length === 1) {
+        e.preventDefault();
+        el.wordInput.value += e.key;
+        el.wordInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      ensureInputFocus();
     }
   });
 
   // Keep word input ALWAYS focused and selected during active game (Desktop & Mobile)
   document.addEventListener("click", (e) => {
-    if (!el.gameArena.classList.contains("hidden")) {
+    if (!el.gameArena.classList.contains("hidden") && state.isPlaying) {
       if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop") && !e.target.closest("select") && !e.target.closest("input:not(#wordInput)")) {
         ensureInputFocus();
       }
@@ -1335,7 +1369,7 @@
   });
 
   document.addEventListener("touchstart", (e) => {
-    if (!el.gameArena.classList.contains("hidden")) {
+    if (!el.gameArena.classList.contains("hidden") && state.isPlaying) {
       if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop") && !e.target.closest("select") && !e.target.closest("input:not(#wordInput)")) {
         ensureInputFocus();
       }
@@ -1439,8 +1473,14 @@
       }
     }
 
+    if (gs.status === "playing") {
+      state.isPlaying = true;
+    } else if (gs.status === "game_over") {
+      state.isPlaying = false;
+    }
+
     el.turnPlayerName.textContent = activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller");
-    el.turnAvatar.textContent = activePlayer ? (activePlayer.avatar || "👤") : "👤";
+    el.turnAvatar.innerHTML = renderAvatarHtml(activePlayer ? activePlayer.avatar : "charbear");
 
     // Render Circular Arena and point arrow
     renderCircularPlayers(data.players || [], gs.active_player_id);
@@ -1453,7 +1493,7 @@
       state.currentPrompt,
       isMyTurn,
       activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller"),
-      activePlayer ? (activePlayer.avatar || "👤") : "👤"
+      activePlayer ? (activePlayer.avatar || "charbear") : "charbear"
     );
 
     if (isMyTurn) {
@@ -1517,6 +1557,7 @@
   }
 
   function showRoomGameOver(data) {
+    state.isPlaying = false;
     const gs = data.gameState;
     const winner = gs.winner;
 
@@ -1537,7 +1578,7 @@
       row.className = `standings-row ${p.id === (winner ? winner.id : '') ? 'is-winner' : ''}`;
       row.innerHTML = `
         <div class="standing-player">
-          <span class="standing-avatar">${p.avatar || '👤'}</span>
+          <span class="standing-avatar">${renderAvatarHtml(p.avatar)}</span>
           <strong>${p.name}</strong>
         </div>
         <div class="standing-badge">

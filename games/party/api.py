@@ -45,7 +45,7 @@ class PartyRoom:
         self.players[host_id] = {
             "id": host_id,
             "name": host_name[:18].strip() or "Vert",
-            "avatar": host_avatar or "👑",
+            "avatar": host_avatar or "charbear",
             "color": "#fb8500",
             "is_host": True,
             "is_ready": True,
@@ -924,7 +924,7 @@ class PartyAPI:
 
         if rel_path == "/api/create":
             host_name = str(body.get("hostName") or "Vert").strip()[:18] or "Vert"
-            host_avatar = str(body.get("avatar") or "👑").strip()[:4] or "👑"
+            host_avatar = str(body.get("avatar") or "charbear").strip()[:64] or "charbear"
 
             with _rooms_lock:
                 # Pick unique memorable 4-letter word or random letters
@@ -956,7 +956,7 @@ class PartyAPI:
         if rel_path == "/api/join":
             code = str(body.get("roomCode") or "").strip().upper()
             player_name = str(body.get("playerName") or "Spiller").strip()[:18] or "Spiller"
-            avatar = str(body.get("avatar") or "👤").strip()[:4] or "👤"
+            avatar = str(body.get("avatar") or "charbear").strip()[:64] or "charbear"
 
             with _rooms_lock:
                 room = _rooms.get(code)
@@ -1033,7 +1033,7 @@ class PartyAPI:
                                 s_room = SjakkRoom(
                                     code=code,
                                     host_name=host_player.get("name", "Hvit"),
-                                    host_avatar=host_player.get("avatar", "👑"),
+                                    host_avatar=host_player.get("avatar", "charbear"),
                                     time_control=time_ctrl
                                 )
                                 s_room.host_id = room.host_id

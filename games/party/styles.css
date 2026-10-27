@@ -284,6 +284,24 @@ body {
   box-shadow: 0 0 12px rgba(251, 133, 0, 0.4);
 }
 
+.mon-picker-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+.player-mon-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
 .party-btn {
   font-family: var(--font-main);
   font-size: 1.05rem;

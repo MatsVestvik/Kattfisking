@@ -846,6 +846,15 @@
     btnCloseHelpModal: document.getElementById("btnCloseHelpModal"),
   };
 
+  function renderAvatarHtml(avatar) {
+    const monIds = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
+    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png"))) {
+      const src = avatar.endsWith(".png") ? avatar : `/assets/mons/${avatar}.png`;
+      return `<img src="${src}" alt="Monster" class="player-mon-img" />`;
+    }
+    return avatar || "👤";
+  }
+
   // --- Board Coordinate Conversion ---
   // If perspective is 'w', visual row 0 is rank 8 (matrix r=0), col 0 is file a (matrix c=0).
   // If perspective is 'b', visual row 0 is rank 1 (matrix r=7), col 0 is file h (matrix c=7).
@@ -977,8 +986,8 @@
     if (state.mode === "local") {
       el.bottomPlayerName.textContent = bottomColor === "w" ? "Hvit" : "Svart";
       el.topPlayerName.textContent = topColor === "w" ? "Hvit" : "Svart";
-      el.bottomAvatar.textContent = bottomColor === "w" ? "👑" : "♟️";
-      el.topAvatar.textContent = topColor === "w" ? "👑" : "♟️";
+      el.bottomAvatar.innerHTML = renderAvatarHtml(bottomColor === "w" ? "charbear" : "jormundgandr");
+      el.topAvatar.innerHTML = renderAvatarHtml(topColor === "w" ? "charbear" : "jormundgandr");
     }
 
     // Material difference
@@ -1314,7 +1323,7 @@
           const targetName = isBottom ? el.bottomPlayerName : el.topPlayerName;
           const targetAv = isBottom ? el.bottomAvatar : el.topAvatar;
           targetName.textContent = data.whitePlayer.name;
-          targetAv.textContent = data.whitePlayer.avatar;
+          targetAv.innerHTML = renderAvatarHtml(data.whitePlayer.avatar);
         }
 
         if (data.blackPlayer) {
@@ -1322,7 +1331,7 @@
           const targetName = isBottom ? el.bottomPlayerName : el.topPlayerName;
           const targetAv = isBottom ? el.bottomAvatar : el.topAvatar;
           targetName.textContent = data.blackPlayer.name;
-          targetAv.textContent = data.blackPlayer.avatar;
+          targetAv.innerHTML = renderAvatarHtml(data.blackPlayer.avatar);
         }
 
         // Sync times
