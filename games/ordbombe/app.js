@@ -1249,7 +1249,7 @@
               },
             }),
           });
-        } catch (e) {}
+        } catch (e) { }
       }
       return;
     }
@@ -1524,7 +1524,7 @@
                 action: "to_lobby",
               }),
             });
-          } catch (e) {}
+          } catch (e) { }
         }
         window.location.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
       }

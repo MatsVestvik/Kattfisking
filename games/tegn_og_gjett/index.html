@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="no" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Tegn & Gjett – Norsk Skribbl | NTNU Games</title>
-  <meta name="description" content="Klassisk skribbl-moro på mobilen! Én tegner hemmelig ord på mobilen, resten gjetter i lynrask sanntidschat." />
-  
+  <meta name="description"
+    content="Klassisk skribbl-moro på mobilen! Én tegner hemmelig ord på mobilen, resten gjetter i lynrask sanntidschat." />
+
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" href="/assets/icons/tegn_og_gjett.png" />
   <link rel="apple-touch-icon" href="/assets/icons/tegn_og_gjett.png" />
-  
+
   <link rel="stylesheet" href="/hub.css?v=2.1" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
   <link rel="stylesheet" href="/tegn-og-gjett/styles.css?v=1.0" />
 </head>
+
 <body>
   <!-- Ambient Parallax Landscape -->
   <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
@@ -80,7 +83,8 @@
           <div style="display: flex; gap: 0.4rem;">
             <button type="button" class="tool-action-btn" id="btnSoloNewWord">🎲 Nytt ord</button>
             <button type="button" class="tool-action-btn" id="btnSoloDownload">💾 Lagre bilde</button>
-            <a href="/party/" class="tool-action-btn" style="background: rgba(251, 133, 0, 0.25); border-color: #fb8500; color: #fb8500;">🎉 Flerspiller</a>
+            <a href="/party/" class="tool-action-btn"
+              style="background: rgba(251, 133, 0, 0.25); border-color: #fb8500; color: #fb8500;">🎉 Flerspiller</a>
           </div>
         </div>
 
@@ -153,14 +157,8 @@
         </div>
 
         <form class="chat-form" id="chatForm">
-          <input
-            type="text"
-            class="chat-input"
-            id="chatInput"
-            placeholder="Gjett ordet her…"
-            autocomplete="off"
-            maxlength="40"
-          />
+          <input type="text" class="chat-input" id="chatInput" placeholder="Gjett ordet her…" autocomplete="off"
+            maxlength="40" />
           <button type="submit" class="chat-send-btn" id="btnSendGuess">
             Send
           </button>
@@ -175,13 +173,14 @@
       <div style="font-size: 2.5rem; margin-bottom: 0.35rem;">🎨</div>
       <h2 class="modal-title">Velg et ord å tegne!</h2>
       <p class="modal-subtitle">Gjør et valg før tiden renner ut:</p>
-      
+
       <div class="word-choices-grid" id="wordChoicesGrid">
         <!-- Injected dynamically -->
       </div>
-      
+
       <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 700;">
-        Tid igjen til automatisk valg: <span id="choiceTimerText" style="color: #fb8500; font-size: 1.1rem; font-weight: 900;">15</span>s
+        Tid igjen til automatisk valg: <span id="choiceTimerText"
+          style="color: #fb8500; font-size: 1.1rem; font-weight: 900;">15</span>s
       </div>
     </div>
   </div>
@@ -211,4 +210,5 @@
   <script src="/parallax-bg.js?v=1.0"></script>
   <script src="/tegn-og-gjett/app.js?v=1.0"></script>
 </body>
+
 </html>

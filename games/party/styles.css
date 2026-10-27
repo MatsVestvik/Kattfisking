@@ -445,7 +445,7 @@ body {
   gap: 0.4rem;
   position: relative;
   transition: transform 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .player-tile:hover {
@@ -491,7 +491,7 @@ body {
   font-weight: 900;
   padding: 0.15rem 0.4rem;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Games Selector in Lobby */
@@ -688,9 +688,23 @@ body {
 }
 
 @keyframes pulseGlow {
-  0% { transform: scale(0.9); opacity: 0.5; box-shadow: 0 0 0 0 rgba(251, 133, 0, 0.7); }
-  70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 16px rgba(251, 133, 0, 0); }
-  100% { transform: scale(0.9); opacity: 0.5; box-shadow: 0 0 0 0 rgba(251, 133, 0, 0); }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.5;
+    box-shadow: 0 0 0 0 rgba(251, 133, 0, 0.7);
+  }
+
+  70% {
+    transform: scale(1.1);
+    opacity: 1;
+    box-shadow: 0 0 0 16px rgba(251, 133, 0, 0);
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 0.5;
+    box-shadow: 0 0 0 0 rgba(251, 133, 0, 0);
+  }
 }
 
 .cheer-buttons {

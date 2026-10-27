@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="no" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="/ordbombe/styles.css?v=1.0" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
+
 <body>
   <!-- Dynamic Multilayered Parallax Background -->
   <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
@@ -49,7 +51,8 @@
         <div class="setup-hero">
           <img src="/assets/icons/ordbombe.png" alt="Ordbombe logo" class="setup-bomb-icon" />
           <h2 class="setup-title" id="setupHeading">Ordbombe</h2>
-          <p class="setup-subtitle">Lynraskt norsk ordspill inspirert av <em>Word Bomb</em>. Tast inn et gyldig norsk ord som inneholder bokstavene før lunta brenner ut!</p>
+          <p class="setup-subtitle">Lynraskt norsk ordspill inspirert av <em>Word Bomb</em>. Tast inn et gyldig norsk
+            ord som inneholder bokstavene før lunta brenner ut!</p>
         </div>
 
         <!-- Multi-device Party Room banner -->
@@ -132,7 +135,8 @@
 
           <div class="setting-group">
             <label class="setting-label" for="inputSoloName">Ditt navn / kallenavn:</label>
-            <input type="text" class="custom-input" id="inputSoloName" placeholder="Ditt spillernavn..." maxlength="20" value="Spiller 1" />
+            <input type="text" class="custom-input" id="inputSoloName" placeholder="Ditt spillernavn..." maxlength="20"
+              value="Spiller 1" />
           </div>
 
           <div class="setting-group">
@@ -143,7 +147,8 @@
               <option value="hard">Ekspert (Korte tidsfrister og tøffe bokstaver)</option>
             </select>
           </div>
-          <p class="solo-tip-text">💡 <em>I solomodus starter timeren på 10 sekunder og blir gradvis kortere jo høyere streak du bygger! Du har 3 liv.</em></p>
+          <p class="solo-tip-text">💡 <em>I solomodus starter timeren på 10 sekunder og blir gradvis kortere jo høyere
+              streak du bygger! Du har 3 liv.</em></p>
         </div>
 
         <button type="button" class="btn-start-game" id="btnStartGame">
@@ -198,7 +203,8 @@
                   </filter>
                 </defs>
                 <!-- Main needle body -->
-                <path d="M 18 0 L 34 28 L 24 28 L 24 80 L 12 80 L 12 28 L 2 28 Z" fill="url(#arrowGrad)" filter="url(#arrowGlow)" stroke="#ffe8a1" stroke-width="1.2" />
+                <path d="M 18 0 L 34 28 L 24 28 L 24 80 L 12 80 L 12 28 L 2 28 Z" fill="url(#arrowGrad)"
+                  filter="url(#arrowGlow)" stroke="#ffe8a1" stroke-width="1.2" />
                 <!-- Left highlight facet -->
                 <path d="M 18 0 L 2 28 L 12 28 L 12 80 L 18 80 Z" fill="rgba(255, 255, 255, 0.28)" />
                 <!-- Right shadow facet -->
@@ -251,16 +257,8 @@
         <!-- Word Input Form -->
         <form class="word-form" id="wordForm" autocomplete="off">
           <div class="word-input-wrap">
-            <input
-              type="text"
-              id="wordInput"
-              class="word-input"
-              placeholder="Skriv et norsk ord..."
-              autocapitalize="none"
-              autocorrect="off"
-              spellcheck="false"
-              aria-label="Skriv inn norsk ord"
-            />
+            <input type="text" id="wordInput" class="word-input" placeholder="Skriv et norsk ord..."
+              autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Skriv inn norsk ord" />
             <button type="submit" class="btn-submit-word" id="btnSubmitWord">
               Gjett ⏎
             </button>
@@ -337,26 +335,35 @@
         </div>
         <div class="rules-body">
           <p>
-            <strong>Ordbombe</strong> er et heseblesende norsk partyspill inspirert av <em>Word Bomb</em> (og klassikeren <em>Pass the Bomb</em>).
+            <strong>Ordbombe</strong> er et heseblesende norsk partyspill inspirert av <em>Word Bomb</em> (og
+            klassikeren <em>Pass the Bomb</em>).
           </p>
           <ul class="rules-list">
             <li>
-              <strong>1. Følg med på bokstavene:</strong> I midten av bomben ser du en kombinasjon av 2–3 bokstaver (f.eks. <code>BIL</code>).
+              <strong>1. Følg med på bokstavene:</strong> I midten av bomben ser du en kombinasjon av 2–3 bokstaver
+              (f.eks. <code>BIL</code>).
             </li>
             <li>
-              <strong>2. Finn et norsk ord:</strong> Tast inn et hvilket som helst gyldig norsk ord som inneholder disse bokstavene i samme rekkefølge (f.eks. <em>billett</em>, <em>lastebil</em>, <em>bilde</em>, <em>stabilitet</em>).
+              <strong>2. Finn et norsk ord:</strong> Tast inn et hvilket som helst gyldig norsk ord som inneholder disse
+              bokstavene i samme rekkefølge (f.eks. <em>billett</em>, <em>lastebil</em>, <em>bilde</em>,
+              <em>stabilitet</em>).
             </li>
             <li>
-              <strong>3. Lunten brenner:</strong> Du må taste inn ordet før timeren når 0! Hvert sekund brenner lunta kortere og bomben tikker raskere.
+              <strong>3. Lunten brenner:</strong> Du må taste inn ordet før timeren når 0! Hvert sekund brenner lunta
+              kortere og bomben tikker raskere.
             </li>
             <li>
-              <strong>4. Partymodus (Send bomben videre):</strong> Så snart du har tastet et gyldig ord, tilbakestilles lunta og bomben sendes til neste spiller med en ny bokstavkombinasjon! Den som har bomben når den smeller, mister 1 hjerte ❤️. Siste spiller med liv igjen vinner!
+              <strong>4. Partymodus (Send bomben videre):</strong> Så snart du har tastet et gyldig ord, tilbakestilles
+              lunta og bomben sendes til neste spiller med en ny bokstavkombinasjon! Den som har bomben når den smeller,
+              mister 1 hjerte ❤️. Siste spiller med liv igjen vinner!
             </li>
             <li>
-              <strong>5. Solomodus (Overlev mot klokka):</strong> Hvor mange ord klarer du på rad før du mister alle 3 liv? Jo høyere streak, desto kortere tid får du per ord!
+              <strong>5. Solomodus (Overlev mot klokka):</strong> Hvor mange ord klarer du på rad før du mister alle 3
+              liv? Jo høyere streak, desto kortere tid får du per ord!
             </li>
             <li>
-              <strong>6. Ekte ordbok:</strong> Spillet bruker en massiv norsk ordbok med over 495 000 offisielle Bokmål-ord!
+              <strong>6. Ekte ordbok:</strong> Spillet bruker en massiv norsk ordbok med over 495 000 offisielle
+              Bokmål-ord!
             </li>
           </ul>
         </div>
@@ -366,7 +373,7 @@
     <!-- Footer -->
     <footer class="game-footer">
       <p>
-        <strong>Ordbombe</strong> • Del av <a href="/">NTNU Games</a> • 
+        <strong>Ordbombe</strong> • Del av <a href="/">NTNU Games</a> •
         Offisiell norsk ordbok (495 000+ ord)
       </p>
     </footer>
@@ -375,4 +382,5 @@
   <script src="/ordbombe/app.js?v=1.0"></script>
   <script src="/parallax-bg.js?v=1.0"></script>
 </body>
+
 </html>

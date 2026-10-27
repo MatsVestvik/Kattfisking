@@ -171,7 +171,7 @@
       gain.connect(ac.destination);
       osc.start();
       osc.stop(ac.currentTime + duration);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function playCorrectGuessSound() {
@@ -183,7 +183,7 @@
       notes.forEach((freq, idx) => {
         setTimeout(() => playTone(freq, 0.22, "triangle", 0.2), idx * 70);
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function playTickSound() {
@@ -206,7 +206,7 @@
           chord.forEach(f => playTone(f, 0.35, "triangle", 0.2));
         }, i * 150);
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function updateSoundButton() {
@@ -611,7 +611,7 @@
               action: "to_lobby",
             }),
           });
-        } catch (err) {}
+        } catch (err) { }
       }
       window.location.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
     });

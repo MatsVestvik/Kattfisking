@@ -1298,8 +1298,13 @@ a:hover {
 }
 
 @keyframes pulse-pin {
-  from { transform: translateX(-50%) scale(1); }
-  to { transform: translateX(-50%) scale(1.08); }
+  from {
+    transform: translateX(-50%) scale(1);
+  }
+
+  to {
+    transform: translateX(-50%) scale(1.08);
+  }
 }
 
 .col-label {
@@ -1648,30 +1653,37 @@ a:hover {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+
   .game-header,
   .site-header {
     flex-direction: column;
     align-items: stretch;
     gap: 0.85rem;
   }
+
   .header-left {
     justify-content: space-between;
   }
+
   .mode-nav {
     justify-content: center;
     overflow-x: auto;
   }
+
   .header-right,
   .header-actions {
     justify-content: flex-end;
   }
+
   .reveal-body {
     flex-direction: column;
   }
+
   .reveal-thumb {
     width: 100%;
     height: 190px;
   }
+
   .summary-stats-strip {
     grid-template-columns: 1fr;
   }

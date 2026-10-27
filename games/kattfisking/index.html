@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="no" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="/kattfisking/styles.css?v=6.0" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
+
 <body>
   <!-- Dynamic Multilayered Parallax Background (Seabed Theme) -->
   <div class="dynamic-parallax-bg theme-seabed" id="dynamicParallaxBg" aria-hidden="true">
@@ -51,7 +53,8 @@
       </nav>
 
       <div class="header-right">
-        <button type="button" class="icon-btn" id="helpModalBtn" title="Spilleregler og om Kattfisking" aria-label="Spilleregler">
+        <button type="button" class="icon-btn" id="helpModalBtn" title="Spilleregler og om Kattfisking"
+          aria-label="Spilleregler">
           ?
         </button>
       </div>
@@ -80,7 +83,8 @@
           <!-- Practice streak tracker (Practice mode) -->
           <div id="practiceTracker" class="practice-tracker hidden">
             <span class="streak-pill">Rekke: <strong id="practiceStreakVal">0</strong></span>
-            <span class="streak-pill">Poeng: <strong id="practiceScoreVal">0</strong> / <span id="practiceCountVal">0</span></span>
+            <span class="streak-pill">Poeng: <strong id="practiceScoreVal">0</strong> / <span
+                id="practiceCountVal">0</span></span>
           </div>
 
           <div class="score-pill-wrap" id="dailyScoreWrap">
@@ -100,10 +104,12 @@
               </p>
             </div>
             <div class="hint-controls" id="hintControls">
-              <button type="button" class="btn btn-ghost btn-sm" id="hintLettersBtn" title="Vis ordlengde og forbokstaver">
+              <button type="button" class="btn btn-ghost btn-sm" id="hintLettersBtn"
+                title="Vis ordlengde og forbokstaver">
                 Forbokstaver
               </button>
-              <button type="button" class="btn btn-ghost btn-sm" id="hintSentenceBtn" title="Vis første setning (sladdet)">
+              <button type="button" class="btn btn-ghost btn-sm" id="hintSentenceBtn"
+                title="Vis første setning (sladdet)">
                 Setningshint
               </button>
             </div>
@@ -148,13 +154,9 @@
           </div>
           <div class="input-row">
             <div class="autocomplete-wrapper">
-              <input
-                type="text"
-                id="guessInput"
-                class="guess-input"
+              <input type="text" id="guessInput" class="guess-input"
                 placeholder="Skriv navnet på Wikipedia-artikkelen (1 forsøk)…"
-                aria-label="Gjett Wikipedia-artikkel (1 forsøk)"
-              />
+                aria-label="Gjett Wikipedia-artikkel (1 forsøk)" />
               <ul id="autocompleteList" class="autocomplete-list hidden" role="listbox"></ul>
             </div>
             <button type="submit" class="btn btn-primary" id="submitGuessBtn">
@@ -319,12 +321,8 @@
         <form id="curateForm" class="curate-form" autocomplete="off">
           <div class="input-row">
             <div class="autocomplete-wrapper">
-              <input
-                type="text"
-                id="curateTitleInput"
-                class="guess-input"
-                placeholder="F.eks. Dovrefjell, A-ha, Brunost, Slaget på Stiklestad…"
-              />
+              <input type="text" id="curateTitleInput" class="guess-input"
+                placeholder="F.eks. Dovrefjell, A-ha, Brunost, Slaget på Stiklestad…" />
               <ul id="curateAutocompleteList" class="autocomplete-list hidden"></ul>
             </div>
             <button type="button" class="btn btn-secondary" id="curatePreviewBtn">
@@ -386,16 +384,21 @@
               Wikipedia. Kategorier som direkte røper svaret er automatisk sladdet bort.
             </li>
             <li>
-              <strong>Kun 1 gjett per artikkel:</strong> Du har kun ett forsøk per oppgave! Gjetter du riktig får du 1 poeng (<img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon inline-pixel-icon" />).
-              Gjetter du feil får du 0 poeng (<img src="/assets/fish.png?v=2" alt="Fisk" class="pixel-icon inline-pixel-icon" />).
+              <strong>Kun 1 gjett per artikkel:</strong> Du har kun ett forsøk per oppgave! Gjetter du riktig får du 1
+              poeng (<img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon inline-pixel-icon" />).
+              Gjetter du feil får du 0 poeng (<img src="/assets/fish.png?v=2" alt="Fisk"
+                class="pixel-icon inline-pixel-icon" />).
             </li>
             <li>
-              <strong><img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon inline-pixel-icon" /> 1 poeng for riktig svar:</strong> Små skrivefeil fanges opp av <em>«Mente du…?»</em>, og
+              <strong><img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon inline-pixel-icon" /> 1 poeng for
+                riktig svar:</strong> Små skrivefeil fanges opp av <em>«Mente du…?»</em>, og
               omdirigeringer/alternativer fra Wikipedia (f.eks. <em>Nidaros domkirke</em> for <em>Nidarosdomen</em>)
-              godkjennes automatisk! Parenteser som <code>(film)</code> eller <code>(band)</code> trenger du aldri skrive.
+              godkjennes automatisk! Parenteser som <code>(film)</code> eller <code>(band)</code> trenger du aldri
+              skrive.
             </li>
             <li>
-              <strong><img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon inline-pixel-icon" /> 0,5 poeng for «Nære nok»:</strong> Hvis du bommer eller gir opp, men ser at du gjettet nesten riktig
+              <strong><img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon inline-pixel-icon" /> 0,5
+                poeng for «Nære nok»:</strong> Hvis du bommer eller gir opp, men ser at du gjettet nesten riktig
               (eller tenkte på riktig person/verk med litt feil tittel), kan du trykke på
               <strong>«Nære nok? Gi meg 0,5p»</strong> – akkurat som i originalen catfishing.net!
             </li>
@@ -411,8 +414,8 @@
     <!-- Footer -->
     <footer class="game-footer">
       <p>
-        <strong>Kattfisking</strong> • Del av <a href="/">NTNU Games</a> • 
-        Innhold fra <a href="https://no.wikipedia.org" target="_blank" rel="noopener noreferrer">Norsk Wikipedia</a> • 
+        <strong>Kattfisking</strong> • Del av <a href="/">NTNU Games</a> •
+        Innhold fra <a href="https://no.wikipedia.org" target="_blank" rel="noopener noreferrer">Norsk Wikipedia</a> •
         Inspirert av <a href="https://catfishing.net" target="_blank" rel="noopener noreferrer">catfishing.net</a>
       </p>
     </footer>
@@ -421,4 +424,5 @@
   <script src="/kattfisking/app.js?v=5.2"></script>
   <script src="/parallax-bg.js?v=1.0"></script>
 </body>
+
 </html>

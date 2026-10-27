@@ -60,17 +60,17 @@
 
   const PARTICLE_PALETTE = isSeabed
     ? [
-        "rgba(0, 180, 216, 0.75)",   // cyan bubble
-        "rgba(144, 224, 239, 0.85)",  // light aqua
-        "rgba(72, 202, 228, 0.70)",  // bright water shimmer
-        "rgba(255, 209, 102, 0.60)",  // glowing catfish ember
-      ]
+      "rgba(0, 180, 216, 0.75)",   // cyan bubble
+      "rgba(144, 224, 239, 0.85)",  // light aqua
+      "rgba(72, 202, 228, 0.70)",  // bright water shimmer
+      "rgba(255, 209, 102, 0.60)",  // glowing catfish ember
+    ]
     : [
-        "rgba(255, 209, 102, 0.75)", // gold
-        "rgba(247, 127, 0, 0.65)",   // amber
-        "rgba(231, 111, 81, 0.60)",  // rust/autumn
-        "rgba(252, 191, 73, 0.70)",  // warm yellow
-      ];
+      "rgba(255, 209, 102, 0.75)", // gold
+      "rgba(247, 127, 0, 0.65)",   // amber
+      "rgba(231, 111, 81, 0.60)",  // rust/autumn
+      "rgba(252, 191, 73, 0.70)",  // warm yellow
+    ];
 
   function resizeCanvas() {
     if (!canvas) return;

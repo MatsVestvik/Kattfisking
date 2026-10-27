@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="no" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="/party/styles.css?v=1.0" />
   <link rel="stylesheet" href="/parallax-bg.css?v=1.0" />
 </head>
+
 <body>
   <!-- Dynamic Multilayered Background -->
   <div class="dynamic-parallax-bg" id="dynamicParallaxBg" aria-hidden="true">
@@ -53,12 +55,14 @@
         <form id="formJoin" class="auth-form">
           <div class="form-group">
             <label for="inputJoinCode">Romkode (4 bokstaver)</label>
-            <input type="text" id="inputJoinCode" class="input-code" maxlength="6" placeholder="FEST" autocomplete="off" required />
+            <input type="text" id="inputJoinCode" class="input-code" maxlength="6" placeholder="FEST" autocomplete="off"
+              required />
           </div>
 
           <div class="form-group">
             <label for="inputJoinName">Ditt kallenavn</label>
-            <input type="text" id="inputJoinName" class="input-text" maxlength="16" placeholder="F.eks. Henrik" required />
+            <input type="text" id="inputJoinName" class="input-text" maxlength="16" placeholder="F.eks. Henrik"
+              required />
           </div>
 
           <div class="form-group">
@@ -82,7 +86,8 @@
         <form id="formCreate" class="auth-form">
           <div class="form-group">
             <label for="inputCreateName">Vertens navn</label>
-            <input type="text" id="inputCreateName" class="input-text" maxlength="16" placeholder="F.eks. Mats (Vert)" required />
+            <input type="text" id="inputCreateName" class="input-text" maxlength="16" placeholder="F.eks. Mats (Vert)"
+              required />
           </div>
 
           <div class="form-group">
@@ -220,7 +225,8 @@
                 </label>
               </div>
 
-              <button type="button" class="party-btn start-game-btn" id="btnStartTegnOgGjett" style="background: linear-gradient(135deg, #00b4d8, #0077b6);">
+              <button type="button" class="party-btn start-game-btn" id="btnStartTegnOgGjett"
+                style="background: linear-gradient(135deg, #00b4d8, #0077b6);">
                 Start Tegn & Gjett 🎨
               </button>
             </div>
@@ -234,7 +240,8 @@
         <h4>Du er koblet til!</h4>
         <p>Venter på at romverten skal velge et spill på storskjermen...</p>
         <div class="cheer-buttons">
-          <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Send en hilsen til skjermen:</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Send en
+            hilsen til skjermen:</span>
           <button type="button" class="cheer-btn" data-emoji="🎉">🎉</button>
           <button type="button" class="cheer-btn" data-emoji="🍻">🍻</button>
           <button type="button" class="cheer-btn" data-emoji="💣">💣</button>
@@ -255,4 +262,5 @@
   <script src="/party/app.js?v=1.0"></script>
   <script src="/parallax-bg.js?v=1.0"></script>
 </body>
+
 </html>

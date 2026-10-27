@@ -50,6 +50,7 @@
   0% {
     filter: brightness(0.96) saturate(1);
   }
+
   100% {
     filter: brightness(1.06) saturate(1.08);
   }
@@ -63,9 +64,12 @@
 }
 
 @keyframes fjordLightsShimmer {
-  0%, 100% {
+
+  0%,
+  100% {
     filter: brightness(1) contrast(1);
   }
+
   50% {
     filter: brightness(1.12) contrast(1.04) drop-shadow(0 0 8px rgba(255, 209, 102, 0.4));
   }
@@ -130,22 +134,26 @@
   0% {
     filter: brightness(0.92) contrast(0.98);
   }
+
   100% {
     filter: brightness(1.08) contrast(1.05);
   }
 }
 
 @keyframes seabedCausticsShimmer {
-  0%, 100% {
+
+  0%,
+  100% {
     filter: brightness(0.96) drop-shadow(0 0 4px rgba(0, 180, 216, 0.2));
   }
+
   50% {
     filter: brightness(1.14) drop-shadow(0 0 12px rgba(0, 180, 216, 0.45));
   }
 }
 
 .dynamic-parallax-bg.theme-seabed .parallax-vignette-overlay {
-  background: 
+  background:
     radial-gradient(circle at 50% 38%, rgba(4, 12, 24, 0.28) 0%, rgba(4, 12, 24, 0.65) 65%, rgba(4, 12, 24, 0.92) 100%),
     linear-gradient(to bottom, rgba(4, 12, 24, 0.35) 0%, transparent 35%, rgba(4, 12, 24, 0.85) 100%);
 }
@@ -168,14 +176,14 @@
   inset: 0;
   z-index: 6;
   pointer-events: none;
-  background: 
+  background:
     radial-gradient(circle at 50% 38%, rgba(10, 14, 23, 0.3) 0%, rgba(10, 14, 23, 0.65) 65%, rgba(10, 14, 23, 0.9) 100%),
     linear-gradient(to bottom, rgba(10, 14, 23, 0.4) 0%, transparent 35%, rgba(10, 14, 23, 0.8) 100%);
   transition: background 0.3s ease;
 }
 
 [data-theme="light"] .parallax-vignette-overlay {
-  background: 
+  background:
     radial-gradient(circle at 50% 38%, rgba(245, 247, 251, 0.35) 0%, rgba(245, 247, 251, 0.72) 65%, rgba(245, 247, 251, 0.94) 100%),
     linear-gradient(to bottom, rgba(245, 247, 251, 0.45) 0%, transparent 35%, rgba(245, 247, 251, 0.88) 100%);
 }
@@ -192,6 +200,7 @@
     animation: none !important;
     transform: translate3d(0, 0, 0) !important;
   }
+
   .ambient-sparkles-canvas {
     display: none;
   }

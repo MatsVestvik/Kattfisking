@@ -319,7 +319,7 @@
         STORAGE_PREFIX + state.activeDate,
         JSON.stringify(payload)
       );
-    } catch (_) {}
+    } catch (_) { }
   }
 
   function loadDailyProgress(dateStr, count) {
@@ -330,7 +330,7 @@
       if (Array.isArray(data.progress) && data.progress.length === count) {
         return data;
       }
-    } catch (_) {}
+    } catch (_) { }
     return null;
   }
 
@@ -869,7 +869,7 @@
           renderSummaryCard();
         }
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   function getRankComment(score) {
@@ -999,8 +999,8 @@
         p.status === "solved"
           ? '<img src="/assets/cat.png?v=2" alt="Katt" class="pixel-icon recap-pixel-icon" />'
           : p.status === "half"
-          ? '<img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon recap-pixel-icon" />'
-          : '<img src="/assets/fish.png?v=2" alt="Fisk" class="pixel-icon recap-pixel-icon" />';
+            ? '<img src="/assets/catfish.png?v=2" alt="Kattfisk" class="pixel-icon recap-pixel-icon" />'
+            : '<img src="/assets/fish.png?v=2" alt="Fisk" class="pixel-icon recap-pixel-icon" />';
       const row = document.createElement("div");
       row.className = "recap-row";
 
@@ -1078,13 +1078,12 @@
             <span class="archive-date">${p.date === data.today ? "I dag (" + p.date + ")" : p.date}</span>
           </div>
           <div class="archive-bottom">
-            <span>${
-              isDone
-                ? `<img src="/assets/cat.png?v=2" alt="" class="pixel-icon inline-pixel-icon" /> Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
-                : saved
-                ? "Påbegynt"
-                : "Ikke spilt ennå"
-            }</span>
+            <span>${isDone
+            ? `<img src="/assets/cat.png?v=2" alt="" class="pixel-icon inline-pixel-icon" /> Din score: <strong>${formatNoScore(myScore)} / 10</strong>`
+            : saved
+              ? "Påbegynt"
+              : "Ikke spilt ennå"
+          }</span>
             <span class="muted-text">Snitt: ${formatNoScore(p.averageScore)}</span>
           </div>
         `;
@@ -1109,7 +1108,7 @@
       const res = await fetch("/api/stats");
       const s = await res.json();
       el.dbStatsText.textContent = `Totalt ${s.totalArticles} norske Wikipedia-artikler i databasen (${s.unusedArticles} ubrukte til kommende dager) • ${s.totalPuzzles} dagsutfordringer • ${s.totalPlays} runder spilt.`;
-    } catch (_) {}
+    } catch (_) { }
   }
 
   async function submitCurateArticle(previewOnly) {

@@ -447,7 +447,7 @@
             playerId: state.playerId,
           }),
         });
-      } catch (e) {}
+      } catch (e) { }
     }
 
     sessionStorage.clear();
