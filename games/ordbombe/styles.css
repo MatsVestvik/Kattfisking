@@ -1019,123 +1019,10 @@ body {
   }
 }
 
-/* Live Typing Stream Banner for All Players & Spectators */
-.live-typing-stream-box {
-  max-width: 480px;
-  margin: 0 auto 0.85rem;
-  background: rgba(14, 20, 36, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(251, 133, 0, 0.35);
-  border-radius: 14px;
-  padding: 0.75rem 1rem;
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.live-typing-stream-box.has-match {
-  border-color: #06d6a0;
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.6),
-    0 0 18px rgba(6, 214, 160, 0.25);
-}
-
-.stream-user-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.4rem;
-}
-
-.stream-user-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.88rem;
-}
-
-.stream-avatar {
-  font-size: 1.15rem;
-  line-height: 1;
-}
-
-.stream-name {
-  color: #ffd166;
-  font-weight: 800;
-}
-
-.stream-status {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.stream-match-badge {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.18rem 0.55rem;
-  border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 0.2s ease;
-}
-
-.stream-match-badge.waiting {
-  background: rgba(255, 159, 28, 0.12);
-  color: #ffd166;
-  border: 1px solid rgba(255, 159, 28, 0.35);
-}
-
-.stream-match-badge.matched {
-  background: rgba(6, 214, 160, 0.18);
-  color: #06d6a0;
-  border: 1px solid #06d6a0;
-  box-shadow: 0 0 12px rgba(6, 214, 160, 0.4);
-  animation: matchPulse 1.4s infinite alternate;
-}
-
-@keyframes matchPulse {
-  0% {
-    transform: scale(1);
-  }
-
-  100% {
-    transform: scale(1.04);
-  }
-}
-
-.stream-word-bubble {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.3rem;
-  background: rgba(8, 12, 22, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 9px;
-  padding: 0.35rem 0.85rem;
-}
-
-.stream-word-content {
-  font-family: var(--font-mono);
-  font-size: 1.35rem;
-  font-weight: 900;
-  color: #ffffff;
-  letter-spacing: 0.12em;
-  text-align: center;
-  word-break: break-all;
-}
-
-.stream-word-content.placeholder {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  font-style: italic;
-  letter-spacing: normal;
-  font-weight: 600;
+/* Real-time Syllable Match Highlight on Active Input */
+.word-input.has-match {
+  border-color: #06d6a0 !important;
+  box-shadow: 0 0 22px rgba(6, 214, 160, 0.4) !important;
 }
 
 .prompt-match-highlight {
@@ -1145,26 +1032,6 @@ body {
   padding: 0 2px;
   border-radius: 3px;
   text-shadow: 0 0 10px rgba(6, 214, 160, 0.7);
-}
-
-.stream-cursor {
-  display: inline-block;
-  width: 2.5px;
-  height: 1.3rem;
-  background: #fb8500;
-  margin-left: 4px;
-  animation: blinkCursor 0.7s infinite alternate;
-  border-radius: 1px;
-}
-
-@keyframes blinkCursor {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
 }
 
 .word-input.spectator-view {

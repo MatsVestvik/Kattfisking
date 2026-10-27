@@ -44,7 +44,10 @@
         const solved = (data.progress || []).filter(p => p.status === "solved" || p.status === "half").length;
         const total = (data.progress || []).length || 5;
 
-        if (cardKattfisking) cardKattfisking.classList.add("daily-played");
+        if (cardKattfisking) {
+          cardKattfisking.classList.add("daily-played");
+          cardKattfisking.href = "/kattfisking/?result=1";
+        }
         if (kattfiskingPlayedBadge) {
           kattfiskingPlayedBadge.classList.remove("hidden");
           if (kattfiskingScoreBadge) kattfiskingScoreBadge.textContent = `${solved}/${total}`;
@@ -77,7 +80,10 @@
         const maxScore = dataMM.total || 25;
         const score = dataMM.score;
 
-        if (cardMerMindre) cardMerMindre.classList.add("daily-played");
+        if (cardMerMindre) {
+          cardMerMindre.classList.add("daily-played");
+          cardMerMindre.href = "/mer-eller-mindre/?result=1";
+        }
         if (merMindrePlayedBadge) {
           merMindrePlayedBadge.classList.remove("hidden");
           if (merMindreScoreBadge) merMindreScoreBadge.textContent = `${score}/${maxScore}`;

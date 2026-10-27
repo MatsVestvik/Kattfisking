@@ -298,6 +298,8 @@
     lastTypingSentTime: 0,
     lastRoomPlayers: [],
     currentRoomStatus: "idle",
+    lastRoomActivePlayerId: null,
+    lastRoomPrompt: null,
   };
 
   // DOM Elements
@@ -354,16 +356,6 @@
     usedWordsContainer: document.getElementById("usedWordsContainer"),
     usedWordsCount: document.getElementById("usedWordsCount"),
     usedWordsList: document.getElementById("usedWordsList"),
-
-    // Live Typing Stream Elements
-    liveTypingStreamBox: document.getElementById("liveTypingStreamBox"),
-    streamAvatar: document.getElementById("streamAvatar"),
-    streamName: document.getElementById("streamName"),
-    streamStatus: document.getElementById("streamStatus"),
-    streamMatchBadge: document.getElementById("streamMatchBadge"),
-    streamWordBubble: document.getElementById("streamWordBubble"),
-    streamWordText: document.getElementById("streamWordText"),
-    streamCursor: document.getElementById("streamCursor"),
 
     // Game Over Card
     gameOverCard: document.getElementById("gameOverCard"),
@@ -611,47 +603,20 @@
       bubble.style.display = "";
     }
 
-    // 2. Update Live Stream Box
-    if (el.liveTypingStreamBox) {
-      if (el.streamAvatar) el.streamAvatar.textContent = activeAvatar || "👤";
-      if (el.streamName) el.streamName.textContent = isMyTurn ? "Du" : (activeName || "Spiller");
-      if (el.streamStatus) el.streamStatus.textContent = isMyTurn ? "(taster):" : "skriver:";
-
-      if (el.streamWordText) {
-        if (clean) {
-          el.streamWordText.classList.remove("placeholder");
-          el.streamWordText.innerHTML = formatPromptMatchHtml(clean.toUpperCase(), upperPrompt);
-        } else {
-          el.streamWordText.classList.add("placeholder");
-          el.streamWordText.textContent = isMyTurn ? `Skriv et ord med ${upperPrompt}...` : "Venter på første bokstav...";
-        }
-      }
-
-      if (el.streamMatchBadge) {
-        if (hasMatch) {
-          el.streamMatchBadge.className = "stream-match-badge matched";
-          el.streamMatchBadge.textContent = `✓ Inneholder ${upperPrompt}!`;
-        } else {
-          el.streamMatchBadge.className = "stream-match-badge waiting";
-          el.streamMatchBadge.textContent = `Mangler ${upperPrompt}`;
-        }
-      }
-
-      if (hasMatch) {
-        el.liveTypingStreamBox.classList.add("has-match");
+    // 2. Real-time visual match indicator on the active input field
+    if (el.wordInput && isMyTurn) {
+      if (hasMatch && clean) {
+        el.wordInput.classList.add("has-match");
       } else {
-        el.liveTypingStreamBox.classList.remove("has-match");
+        el.wordInput.classList.remove("has-match");
       }
     }
 
-    // 3. For spectator, mirror typing into wordInput
+    // 3. For spectators, make sure their input stays clean and disabled
     if (!isMyTurn && el.wordInput) {
-      el.wordInput.classList.add("spectator-view");
-      if (clean) {
-        el.wordInput.value = clean.toUpperCase();
-      } else {
-        el.wordInput.value = "";
-      }
+      el.wordInput.value = "";
+      el.wordInput.classList.remove("spectator-view");
+      el.wordInput.disabled = true;
     } else if (isMyTurn && el.wordInput) {
       el.wordInput.classList.remove("spectator-view");
     }
@@ -818,6 +783,8 @@
     sparks.start();
 
     // Focus input
+    el.wordInput.disabled = false;
+    if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
     el.wordInput.value = "";
     el.wordInput.className = "word-input";
     el.wordInput.focus();
@@ -875,6 +842,14 @@
     if (state.isExploding) return;
     state.isExploding = true;
 
+    const curPlayer = state.players[state.activePlayerIndex] || {
+      name: state.soloName || "Spiller",
+      avatar: "👤",
+      lives: 3,
+      wordsCount: 0,
+      eliminated: false,
+    };
+
     sparks.stop();
     sparks.explode(60);
     sfx.explosion();
@@ -885,10 +860,17 @@
       setTimeout(() => el.bombCenterHub.classList.remove("exploding"), 1200);
     }
     el.wordInput.disabled = true;
+    if (el.btnSubmitWord) el.btnSubmitWord.disabled = true;
+    el.wordInput.value = "";
     state.currentTyping = "";
-    updateTypingUI("💥 BOOM!", state.currentPrompt, false, curPlayer ? curPlayer.name : "Spiller", curPlayer ? curPlayer.avatar : "👤");
+    updateTypingUI(
+      "💥 BOOM!",
+      state.currentPrompt,
+      false,
+      curPlayer.name,
+      curPlayer.avatar || "👤"
+    );
 
-    const curPlayer = state.players[state.activePlayerIndex];
     curPlayer.lives--;
 
     if (state.mode === "party") {
@@ -912,6 +894,7 @@
       advanceToNextPlayer();
       setTimeout(async () => {
         el.wordInput.disabled = false;
+        if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
         await fetchNewPrompt();
         startTurn();
       }, 1600);
@@ -930,6 +913,7 @@
 
       setTimeout(async () => {
         el.wordInput.disabled = false;
+        if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
         await fetchNewPrompt();
         startTurn();
       }, 1500);
@@ -970,6 +954,7 @@
     if (rawWord.length < 2) {
       sfx.error();
       el.wordInput.classList.add("shake");
+      el.wordInput.select();
       showFeedback("Ordet må ha minst 2 bokstaver", "error");
       setTimeout(() => el.wordInput.classList.remove("shake"), 400);
       return;
@@ -978,6 +963,7 @@
     if (!rawWord.includes(prompt)) {
       sfx.error();
       el.wordInput.classList.add("shake");
+      el.wordInput.select();
       showFeedback(`Ordet må inneholde «${state.currentPrompt}»!`, "error");
       setTimeout(() => el.wordInput.classList.remove("shake"), 400);
       return;
@@ -1006,6 +992,7 @@
         } else {
           sfx.error();
           el.wordInput.classList.add("shake");
+          el.wordInput.select();
           showFeedback(res.reason || res.error || "Ugyldig ord", "error");
           setTimeout(() => el.wordInput.classList.remove("shake"), 400);
         }
@@ -1018,6 +1005,7 @@
     if (state.usedWords.has(rawWord)) {
       sfx.error();
       el.wordInput.classList.add("shake");
+      el.wordInput.select();
       showFeedback(`«${rawWord}» er allerede brukt i denne runden!`, "error");
       setTimeout(() => el.wordInput.classList.remove("shake"), 400);
       return;
@@ -1036,6 +1024,7 @@
         if (!isValid) {
           sfx.error();
           el.wordInput.classList.add("shake");
+          el.wordInput.select();
           showFeedback(data.reason || `«${rawWord}» finnes ikke i den norske ordboka`, "error");
           setTimeout(() => el.wordInput.classList.remove("shake"), 400);
           return;
@@ -1056,6 +1045,8 @@
 
     sfx.success();
     el.wordInput.classList.add("success");
+    el.wordInput.value = "";
+    state.currentTyping = "";
     showFeedback(`✓ «${rawWord}» godkjent!`, "ok");
 
     // Add to used words list
@@ -1360,6 +1351,27 @@
     const isMyTurn = gs.active_player_id === state.playerId;
     const activePlayer = data.players.find(p => p.id === gs.active_player_id);
 
+    // Detect turn or active player transitions and reset inputs cleanly
+    const activePlayerChanged = (state.lastRoomActivePlayerId !== gs.active_player_id);
+    const promptChanged = (state.lastRoomPrompt !== state.currentPrompt);
+
+    if (activePlayerChanged || promptChanged) {
+      state.lastRoomActivePlayerId = gs.active_player_id;
+      state.lastRoomPrompt = state.currentPrompt;
+      el.wordInput.value = "";
+      state.currentTyping = "";
+
+      if (isMyTurn && gs.status === "playing") {
+        el.wordInput.disabled = false;
+        el.btnSubmitWord.disabled = false;
+        setTimeout(() => {
+          if (el.wordInput && !el.wordInput.disabled) {
+            el.wordInput.focus();
+          }
+        }, 50);
+      }
+    }
+
     el.turnPlayerName.textContent = activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller");
     el.turnAvatar.textContent = activePlayer ? (activePlayer.avatar || "👤") : "👤";
 
@@ -1389,6 +1401,7 @@
     } else {
       el.turnOverline.textContent = `${gs.active_player_name || 'En annen spiller'} har bomben:`;
       el.wordInput.disabled = true;
+      el.wordInput.value = "";
       el.wordInput.placeholder = liveTypingText ? `✍️ ${liveTypingText}` : `Venter på at ${gs.active_player_name || 'spilleren'} skal svare...`;
       el.btnSubmitWord.disabled = true;
       el.appShell.classList.remove("my-turn-active");

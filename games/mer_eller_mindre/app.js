@@ -65,6 +65,8 @@
     scoreDisplay: document.getElementById("scoreDisplay"),
     catBadge: document.getElementById("catBadge"),
     catDesc: document.getElementById("catDesc"),
+    catSourceBadge: document.getElementById("catSourceBadge"),
+    catSourceText: document.getElementById("catSourceText"),
 
     // Card A
     cardA: document.getElementById("cardA"),
@@ -92,6 +94,8 @@
     transIcon: document.getElementById("transIcon"),
     transTitle: document.getElementById("transTitle"),
     transDesc: document.getElementById("transDesc"),
+    transSourceWrap: document.getElementById("transSourceWrap"),
+    transSourceText: document.getElementById("transSourceText"),
     transMeterFill: document.getElementById("transMeterFill"),
 
     // Duel Arena & In-game Sections
@@ -148,6 +152,138 @@
     requestAnimationFrame(update);
   }
 
+  function getScorePraise(score) {
+    if (score === 25) return "Helt uvirkelig! 25 av 25 riktige! Du er uovervinnelig! 👑⭐";
+    if (score >= 21) return "Fantastisk spilt! Du kjenner hele utdannings-Norge inn og ut! 🎓🔥";
+    if (score >= 17) return "Meget imponerende resultat! Solid kunnskap i alle kategorier! 👏";
+    if (score >= 13) return "Over halvparten riktig, godt levert gjennom 25 tøffe runder! 👍";
+    return "25 tøffe dueller i dag! Prøv en ny runde i frispill! 💪";
+  }
+
+  function showCompletedDailySummary(dailyData) {
+    if (!dailyData) return;
+
+    state.mode = "daily";
+    state.score = typeof dailyData.score === "number" ? dailyData.score : 0;
+    state.categoryScores = Array.isArray(dailyData.categoryScores) ? dailyData.categoryScores : [0, 0, 0, 0, 0];
+    state.results = Array.isArray(dailyData.results) ? dailyData.results : [];
+
+    // Ensure categoryResults has 5 arrays for the 5x5 emoji grid
+    if (Array.isArray(dailyData.categoryResults) && dailyData.categoryResults.length === 5) {
+      state.categoryResults = dailyData.categoryResults;
+    } else if (Array.isArray(dailyData.results) && dailyData.results.length === 25) {
+      state.categoryResults = [];
+      for (let i = 0; i < 5; i++) {
+        const chunk = dailyData.results.slice(i * 5, (i + 1) * 5);
+        state.categoryResults.push(chunk.map(r => typeof r === "object" ? r : { won: Boolean(r) }));
+      }
+    } else {
+      state.categoryResults = [[], [], [], [], []];
+    }
+
+    if (Array.isArray(dailyData.categories) && dailyData.categories.length === 5) {
+      state.categories = dailyData.categories;
+    }
+
+    el.btnModeDaily.classList.add("active");
+    el.btnModePractice.classList.remove("active");
+
+    if (el.catTransitionBox) {
+      el.catTransitionBox.classList.add("hidden");
+      el.catTransitionBox.classList.remove("anim-out");
+    }
+    if (el.categoryTabsNav) el.categoryTabsNav.classList.add("hidden");
+    if (el.progressSection) el.progressSection.classList.add("hidden");
+    if (el.categoryBanner) el.categoryBanner.classList.add("hidden");
+    if (el.duelContainer) el.duelContainer.classList.add("hidden");
+    if (el.summaryCard) el.summaryCard.classList.remove("hidden");
+
+    if (el.summaryModeBadge) {
+      el.summaryModeBadge.textContent = `DAGENS 25-DUELLER (${dailyData.date || state.todayStr})`;
+    }
+    if (el.bigScore) {
+      el.bigScore.textContent = `${state.score} / 25`;
+    }
+    if (el.scorePraise) {
+      el.scorePraise.textContent = getScorePraise(state.score);
+    }
+
+    if (el.graphUserScore) el.graphUserScore.textContent = `${state.score} / 25`;
+    if (el.graphAvgScore && state.averageScore !== null && state.averageScore !== undefined) {
+      el.graphAvgScore.textContent = `${state.averageScore} / 25`;
+    }
+    if (el.graphTotalPlays && state.totalPlays) {
+      el.graphTotalPlays.textContent = `${state.totalPlays} ${state.totalPlays === 1 ? "spiller" : "spillere"}`;
+    }
+    if (el.merEllerMindreAvgIndicator && state.averageScore !== null && state.averageScore !== undefined) {
+      el.merEllerMindreAvgIndicator.textContent = `Gjennomsnitt: ${state.averageScore} / 25`;
+    }
+
+    if (state.brackets && el.merEllerMindreChartBars) {
+      renderMerEllerMindreGraph(el.merEllerMindreChartBars, state.brackets, state.score);
+    }
+
+    // Category scorecard breakdown
+    if (el.categoryBreakdownList && state.categories && state.categories.length === 5) {
+      el.categoryBreakdownList.innerHTML = "";
+      state.categories.forEach((cat, idx) => {
+        const catScore = state.categoryScores[idx] || 0;
+        const yearStr = cat.source_year ? ` (${cat.source_year})` : "";
+        const sourceHtml = cat.source
+          ? `<span class="breakdown-cat-source" title="${cat.source_detail || ''}">📚 Kilde: ${cat.source}${yearStr}</span>`
+          : "";
+        const row = document.createElement("div");
+        row.className = "breakdown-row";
+        row.innerHTML = `
+          <div class="breakdown-cat-name">
+            <span class="breakdown-cat-icon">${cat.icon || "📌"}</span>
+            <div class="breakdown-cat-info">
+              <strong>${cat.title}</strong>
+              ${sourceHtml}
+            </div>
+          </div>
+          <div class="breakdown-cat-score">${catScore} / 5</div>
+        `;
+        el.categoryBreakdownList.appendChild(row);
+      });
+    }
+
+    // Build 5x5 emoji grid
+    const emojiRows = state.categoryResults.map(catRes => {
+      return catRes.map(r => (r && r.won ? "🟩" : "🟥")).join(" ");
+    });
+    if (el.emojiGrid) {
+      el.emojiGrid.textContent = emojiRows.join("\n");
+    }
+
+    // Detailed Review List (if full duel items available)
+    if (el.reviewList) {
+      el.reviewList.innerHTML = "";
+      if (state.results && state.results.length > 0 && state.results[0].itemA) {
+        state.results.forEach((r, idx) => {
+          const chosenItem = r.chosen === "A" ? r.itemA : r.itemB;
+          const winItem = r.actualWinner === "A" ? r.itemA : r.itemB;
+          const thumbSrc = (winItem && winItem.image) || (r.itemB && r.itemB.image) || FALLBACK_IMG;
+
+          const li = document.createElement("li");
+          li.className = `review-item ${r.won ? "correct" : "wrong"}`;
+          li.innerHTML = `
+            <img src="${thumbSrc}" alt="${winItem ? winItem.title : ''}" class="review-thumb" onerror="this.src='${FALLBACK_IMG}'" />
+            <div class="review-details">
+              <div class="review-names">#${idx + 1} (${r.categoryTitle || ''}): ${r.itemA.title} vs ${r.itemB.title}</div>
+              <div class="review-vals">Du valgte: <strong>${chosenItem.title}</strong> • Fasit: <strong>${winItem.title}</strong> (${formatNumber(winItem.val)} ${r.unit})</div>
+            </div>
+            <div class="review-mark">${r.won ? "✅" : "❌"}</div>
+          `;
+          el.reviewList.appendChild(li);
+        });
+      }
+    }
+
+    submitGameResults(state.score);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   // Load 25-pack game from backend API
   async function loadGame(mode = "daily") {
     if (autoAdvanceTimer) {
@@ -159,8 +295,44 @@
       intermissionTimer = null;
     }
 
-    state.mode = mode;
     state.todayStr = getLocalDateString();
+
+    // If daily mode, check if player has already completed today's daily 25 pack
+    if (mode === "daily") {
+      const savedRaw = localStorage.getItem(DAILY_PREFIX + state.todayStr) || localStorage.getItem("mer_eller_mindre_daily_" + state.todayStr);
+      if (savedRaw) {
+        try {
+          const savedData = JSON.parse(savedRaw);
+          if (savedData && typeof savedData.score === "number") {
+            try {
+              const res = await fetch(`/api/mer-eller-mindre/daily?date=${state.todayStr}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.categories && data.categories.length === 5) {
+                  state.categories = data.categories;
+                  if (!savedData.categories) savedData.categories = data.categories;
+                }
+                if (data.stats) {
+                  state.distribution = data.stats.distribution;
+                  state.brackets = data.stats.brackets;
+                  state.averageScore = data.stats.averageScore;
+                  state.totalPlays = data.stats.totalPlays;
+                }
+              }
+            } catch (e) {
+              console.warn("Kunne ikke hente oppdatert statistikk for resultatvisning:", e);
+            }
+
+            showCompletedDailySummary(savedData);
+            return;
+          }
+        } catch (e) {
+          console.warn("Kunne ikke lese lagret daglig spill:", e);
+        }
+      }
+    }
+
+    state.mode = mode;
     state.currentCatIndex = 0;
     state.currentDuelInCat = 0;
     state.score = 0;
@@ -260,6 +432,18 @@
     if (!curCat) return;
 
     el.catBadge.textContent = `${curCat.icon || "🎓"} ${curCat.title.toUpperCase()} • KATEGORI ${state.currentCatIndex + 1}/5`;
+    if (el.catSourceBadge && curCat.source) {
+      const yearStr = curCat.source_year ? ` (${curCat.source_year})` : "";
+      if (el.catSourceText) {
+        el.catSourceText.textContent = `Kilde: ${curCat.source}${yearStr}`;
+      }
+      if (curCat.source_detail) {
+        el.catSourceBadge.title = `${curCat.source_detail} – ${curCat.source}${yearStr}`;
+      }
+      el.catSourceBadge.classList.remove("hidden");
+    } else if (el.catSourceBadge) {
+      el.catSourceBadge.classList.add("hidden");
+    }
     el.catDesc.textContent = `${curCat.description} (${curCat.subtitle})`;
     el.unitA.textContent = curCat.unit;
     el.unitB.textContent = curCat.unit;
@@ -576,6 +760,19 @@
       el.transDesc.textContent = `${desc}${sub}`;
     }
 
+    if (el.transSourceWrap && nextCat.source) {
+      const yearStr = nextCat.source_year ? ` (${nextCat.source_year})` : "";
+      if (el.transSourceText) {
+        el.transSourceText.textContent = `${nextCat.source}${yearStr}`;
+      }
+      if (nextCat.source_detail) {
+        el.transSourceWrap.title = `${nextCat.source_detail} – ${nextCat.source}${yearStr}`;
+      }
+      el.transSourceWrap.classList.remove("hidden");
+    } else if (el.transSourceWrap) {
+      el.transSourceWrap.classList.add("hidden");
+    }
+
     // Trigger meter animation
     if (el.transMeterFill) {
       el.transMeterFill.style.animation = "none";
@@ -764,7 +961,16 @@
         total: 25,
         date: state.todayStr,
         categoryScores: state.categoryScores,
-        results: state.results.map(r => r.won),
+        categoryResults: state.categoryResults,
+        results: state.results,
+        categories: state.categories.map(c => ({
+          title: c.title,
+          icon: c.icon,
+          source: c.source,
+          source_year: c.source_year,
+          source_detail: c.source_detail,
+        })),
+        completed: true,
       };
       localStorage.setItem(DAILY_PREFIX + state.todayStr, JSON.stringify(dailyData));
     }
@@ -781,12 +987,7 @@
       el.bigScore.textContent = `${state.score} / 25`;
     }
 
-    let praise = "God innsats!";
-    if (state.score === 25) praise = "Helt uvirkelig! 25 av 25 riktige! Du er uovervinnelig! 👑⭐";
-    else if (state.score >= 21) praise = "Fantastisk spilt! Du kjenner hele utdannings-Norge inn og ut! 🎓🔥";
-    else if (state.score >= 17) praise = "Meget imponerende resultat! Solid kunnskap i alle kategorier! 👏";
-    else if (state.score >= 13) praise = "Over halvparten riktig, godt levert gjennom 25 tøffe runder! 👍";
-    else praise = "25 tøffe dueller i dag! Prøv en ny runde i frispill! 💪";
+    const praise = getScorePraise(state.score);
     if (el.scorePraise) {
       el.scorePraise.textContent = praise;
     }
@@ -816,12 +1017,19 @@
       el.categoryBreakdownList.innerHTML = "";
       state.categories.forEach((cat, idx) => {
         const catScore = state.categoryScores[idx] || 0;
+        const yearStr = cat.source_year ? ` (${cat.source_year})` : "";
+        const sourceHtml = cat.source
+          ? `<span class="breakdown-cat-source" title="${cat.source_detail || ''}">📚 Kilde: ${cat.source}${yearStr}</span>`
+          : "";
         const row = document.createElement("div");
         row.className = "breakdown-row";
         row.innerHTML = `
           <div class="breakdown-cat-name">
-            <span>${cat.icon || "📌"}</span>
-            <strong>${cat.title}</strong>
+            <span class="breakdown-cat-icon">${cat.icon || "📌"}</span>
+            <div class="breakdown-cat-info">
+              <strong>${cat.title}</strong>
+              ${sourceHtml}
+            </div>
           </div>
           <div class="breakdown-cat-score">${catScore} / 5</div>
         `;

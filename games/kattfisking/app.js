@@ -406,11 +406,14 @@
         state.submittedToServer = false;
       }
 
-      // If all articles are finished, show the summary results page directly
+      // If all articles are finished, submitted, or URL requested results, show summary directly
+      const urlParams = new URLSearchParams(window.location.search);
+      const wantsResult = urlParams.has("result") || urlParams.has("results");
+
       const firstPending = state.progress.findIndex(
         (p) => p.status === "pending"
       );
-      if (firstPending === -1 && state.progress.length > 0) {
+      if (wantsResult || (firstPending === -1 && state.progress.length > 0) || state.submittedToServer) {
         state.viewMode = "summary";
       } else {
         state.viewMode = "game";

@@ -18,6 +18,10 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "subtitle": "Ordinær kvote ved Samordna opptak (poeng)",
         "unit": "poeng",
         "description": "Hvilket studium krever høyest poenggrense for å komme inn?",
+        "source": "Samordna opptak",
+        "source_detail": "Hovedopptaket – Poenggrenser i ordinær kvote (ORD)",
+        "source_year": "2024",
+        "source_url": "https://www.samordnaopptak.no",
         "items": [
             {
                 "title": "Medisin",
@@ -167,6 +171,10 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "subtitle": "Registrerte studenter ved lærestedet",
         "unit": "studenter",
         "description": "Hvilket universitet eller høyskole har flest registrerte studenter?",
+        "source": "Database for høgre utdanning (DBH / HK-dir)",
+        "source_detail": "Totalt registrerte studenter (høstsemesteret) ved universiteter og høyskoler",
+        "source_year": "2023/2024",
+        "source_url": "https://dbh.hkdir.no",
         "items": [
             {
                 "title": "NTNU",
@@ -262,7 +270,7 @@ DATASETS: Dict[str, Dict[str, Any]] = {
             {
                 "title": "Høyskolen Kristiania",
                 "org": "Oslo og Bergen",
-                "val": 5500,
+                "val": 10500,
                 "extra": "Privat høyskole innen markedsføring, ledelse og kreative fag.",
                 "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
             },
@@ -299,9 +307,13 @@ DATASETS: Dict[str, Dict[str, Any]] = {
     "snitt_vgs": {
         "id": "snitt_vgs",
         "title": "Inntakssnitt på videregående",
-        "subtitle": "Inntakspoeng for studiespesialisering (V1)",
+        "subtitle": "Inntakspoeng for studiespesialisering (Vg1)",
         "unit": "poeng",
         "description": "Hvilken videregående skole krevde høyest poengsum for å komme inn?",
+        "source": "Fylkeskommunale inntakskontorer & Utdanningsetaten",
+        "source_detail": "Offisielt 1. inntak for Vg1 studiespesialisering (grunnskolepoeng)",
+        "source_year": "2024",
+        "source_url": "https://www.vilbli.no",
         "items": [
             {
                 "title": "Elvebakken videregående skole",
@@ -430,6 +442,10 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "subtitle": "Antall søkere med studiet som 1. valg (Samordna opptak)",
         "unit": "søkere",
         "description": "Hvilket studium hadde flest søkere som satte det som sitt 1. valg?",
+        "source": "Samordna opptak",
+        "source_detail": "Søkertall per 15. april – Førsteprioritetssøkere til høyere utdanning",
+        "source_year": "2024",
+        "source_url": "https://www.samordnaopptak.no",
         "items": [
             {
                 "title": "Siviløkonom",
@@ -510,6 +526,10 @@ DATASETS: Dict[str, Dict[str, Any]] = {
         "unit": "% stryk",
         "icon": "📉",
         "description": "Hvilket beryktet universitetsfag har høyest strykprosent på eksamen?",
+        "source": "Database for høgre utdanning (DBH / HK-dir)",
+        "source_detail": "Karakterstatistikk og strykandel på ordinær eksamen i høyere utdanning",
+        "source_year": "2022–2024",
+        "source_url": "https://dbh.hkdir.no",
         "items": [
             {
                 "title": "Termodynamikk og strømningslære",
@@ -689,6 +709,10 @@ def generate_25_duel_pack(seed_str: Optional[str] = None) -> Dict[str, Any]:
             "unit": category["unit"],
             "icon": category_icons.get(cat_key, "🎓"),
             "description": category["description"],
+            "source": category.get("source", ""),
+            "source_detail": category.get("source_detail", ""),
+            "source_year": category.get("source_year", ""),
+            "source_url": category.get("source_url", ""),
             "items": selected,
         })
 

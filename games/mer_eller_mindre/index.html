@@ -91,7 +91,13 @@
 
       <!-- Category info banner -->
       <div class="category-banner" id="categoryBanner">
-        <span class="cat-badge" id="catBadge">Laster tema…</span>
+        <div class="cat-badges-row">
+          <span class="cat-badge" id="catBadge">Laster tema…</span>
+          <span class="cat-source-badge hidden" id="catSourceBadge" title="Offisiell kilde for denne kategorien">
+            <span class="source-icon">📚</span>
+            <span class="source-text" id="catSourceText">Kilde: Samordna opptak</span>
+          </span>
+        </div>
         <p class="cat-desc" id="catDesc">Trykk på alternativet du tror har høyest tall!</p>
       </div>
 
@@ -103,6 +109,10 @@
           <h2 class="trans-title" id="transTitle">Førsteprioritetssøkere</h2>
         </div>
         <p class="trans-desc" id="transDesc">Hvilket studium hadde flest søkere med 1. valg?</p>
+        <div class="trans-source-wrap hidden" id="transSourceWrap">
+          <span class="trans-source-label">Offisiell kilde:</span>
+          <strong class="trans-source-text" id="transSourceText">Samordna opptak (2024)</strong>
+        </div>
         <div class="trans-meter-track">
           <div class="trans-meter-fill" id="transMeterFill"></div>
         </div>
@@ -280,8 +290,14 @@
               duell.
             </li>
             <li>
-              <strong>Ekte tall & bilder:</strong> Offisielle tall og bilder fra norske læresteder, Samordna opptak og
-              DBH.
+              <strong>Offisielle kilder for kategoriene:</strong>
+              <div class="rules-sources-box">
+                <p>🎓 <strong>Karaktergrenser:</strong> Samordna opptak (Hovedopptak 2024, ordinær kvote).</p>
+                <p>👥 <strong>Førsteprioritetssøkere:</strong> Samordna opptak (Søkertall per 15. april 2024).</p>
+                <p>📉 <strong>Strykprosent:</strong> Database for høgre utdanning (DBH / HK-dir, eksamensstatistikk).</p>
+                <p>🏛️ <strong>Antall studenter:</strong> Database for høgre utdanning (DBH / HK-dir, høstsemesteret).</p>
+                <p>🏫 <strong>Inntakssnitt VGS:</strong> Fylkeskommunale inntakskontorer & Utdanningsetaten (1. inntak Vg1).</p>
+              </div>
             </li>
             <li>
               <strong>Del resultatet:</strong> Del ditt 25-duellers resultat (🟩 / 🟥) med venner og medstudenter!
