@@ -247,6 +247,34 @@ body {
   border-radius: 999px;
 }
 
+.hub-tab-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  vertical-align: middle;
+}
+
+.section-title-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  vertical-align: -3px;
+  margin-right: 0.45rem;
+}
+
+.pl-banner-icon-img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
 /* Disabled Card State */
 .game-card.disabled-card {
   opacity: 0.58;

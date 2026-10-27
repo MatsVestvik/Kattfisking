@@ -56,15 +56,15 @@
     <!-- Mode Selector & Party Banner -->
     <div class="mode-bar">
       <div class="mode-tabs">
-        <button type="button" class="mode-tab active" id="tabLocal">📱 1 Enhet (Pass &amp; Play)</button>
-        <button type="button" class="mode-tab" id="tabRoom">🌐 Party Rom (2 Enheter)</button>
+        <button type="button" class="mode-tab active" id="tabLocal">1 Enhet (Pass &amp; Play)</button>
+        <button type="button" class="mode-tab" id="tabRoom">Party Rom (2 Enheter)</button>
       </div>
 
       <!-- Room status pill (visible in room mode) -->
       <div class="room-pill hidden" id="roomPill">
         <span class="room-pill-label">ROM:</span>
         <strong class="room-pill-code" id="roomPillCode">----</strong>
-        <button type="button" class="room-copy-btn" id="btnCopyRoomLink" title="Kopier lenke">📋</button>
+        <button type="button" class="room-copy-btn" id="btnCopyRoomLink" title="Kopier lenke">Kopier</button>
       </div>
     </div>
 
@@ -127,7 +127,7 @@
         <!-- Move History Ticker -->
         <div class="move-ticker-card">
           <div class="ticker-header">
-            <span class="ticker-title">📜 Trekklogg</span>
+            <span class="ticker-title">Trekklogg</span>
             <span class="ticker-status" id="gameStatusText">Hvits trekk</span>
           </div>
           <div class="move-history-scroll" id="moveHistoryList">
@@ -139,16 +139,16 @@
         <div class="actions-card">
           <div class="action-buttons-group">
             <button type="button" class="btn btn-secondary btn-sm" id="btnUndo" title="Angre forrige trekk (i lokal modus)">
-              ↩️ Angre
+              Angre
             </button>
             <button type="button" class="btn btn-secondary btn-sm" id="btnDrawOffer" title="Tilby remis">
-              🤝 Remis
+              Remis
             </button>
             <button type="button" class="btn btn-secondary btn-sm" id="btnResign" title="Gi opp partiet">
-              🏳️ Gi opp
+              Gi opp
             </button>
             <button type="button" class="btn btn-primary btn-sm" id="btnNewGame" title="Start nytt parti">
-              ✨ Nytt parti
+              Nytt parti
             </button>
           </div>
 
@@ -195,10 +195,10 @@
 
       <div class="gameover-actions">
         <button type="button" class="btn btn-primary btn-large btn-full-width" id="btnGameOverRematch">
-          Spill omkamp 🔄
+          Spill omkamp
         </button>
         <button type="button" class="btn btn-secondary btn-full-width" id="btnGameOverClose">
-          Se brettet 🔍
+          Se brettet
         </button>
       </div>
     </div>
@@ -224,7 +224,7 @@
           <input type="text" id="inputHostName" class="form-input" maxlength="16" placeholder="F.eks. Magnus" value="Hvit" />
         </div>
         <button type="button" class="btn btn-primary btn-full-width" id="btnSubmitCreateRoom">
-          Opprett Sjakkrom 🚀
+          Opprett Sjakkrom
         </button>
       </div>
 
@@ -239,7 +239,7 @@
           <input type="text" id="inputJoinName" class="form-input" maxlength="16" placeholder="F.eks. Hikaru" value="Svart" />
         </div>
         <button type="button" class="btn btn-primary btn-full-width" id="btnSubmitJoinRoom">
-          Bli med i partiet ♟️
+          Bli med i partiet
         </button>
       </div>
     </div>
@@ -249,23 +249,23 @@
   <dialog class="sjakk-modal" id="modalHelp">
     <div class="modal-box">
       <div class="modal-header-row">
-        <h3 class="modal-title">❓ Slik spiller du Sjakk</h3>
+        <h3 class="modal-title">Slik spiller du Sjakk</h3>
         <button type="button" class="btn-close-modal" id="btnCloseHelpModal">×</button>
       </div>
       <div class="modal-body-scroll">
         <div class="help-section">
-          <h4>🎯 Mål</h4>
+          <h4>Mål</h4>
           <p>Sett motstanderens konge i <strong>sjakkmatt</strong> (kongen trues og kan ikke unnslippe).</p>
         </div>
         <div class="help-section">
-          <h4>📱 2 Spillemåter</h4>
+          <h4>2 Spillemåter</h4>
           <ul>
             <li><strong>1 Enhet (Pass &amp; Play):</strong> Spill sammen på samme mobil, nettbrett eller laptop. Slå gjerne på <em>«Snu brett automatisk»</em> hvis dere sitter overfor hverandre!</li>
             <li><strong>Party Rom:</strong> Koble sammen to telefoner via romkode. Begge ser brettet fra sin egen vinkel i sanntid!</li>
           </ul>
         </div>
         <div class="help-section">
-          <h4>♟️ Spesialtrekk støttes fullt ut:</h4>
+          <h4>Spesialtrekk støttes fullt ut:</h4>
           <ul>
             <li><strong>Rokade:</strong> Flytt kongen to felt mot tårnet.</li>
             <li><strong>En passant:</strong> Slå en motstanders bonde som nettopp hoppet to felt forbi din.</li>

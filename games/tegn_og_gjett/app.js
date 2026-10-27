@@ -592,7 +592,7 @@
         console.error(e);
       } finally {
         el.btnPlayAgain.disabled = false;
-        el.btnPlayAgain.textContent = "🔄 Spill igjen";
+        el.btnPlayAgain.textContent = "Spill igjen";
       }
     });
 

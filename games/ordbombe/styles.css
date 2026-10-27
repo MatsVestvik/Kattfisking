@@ -137,6 +137,25 @@ body {
   border: 1px solid var(--accent-orange);
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-icon-inline,
+.tab-icon-inline,
+.btn-icon-inline {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.tab-icon-inline {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
 }
 
 .header-right {

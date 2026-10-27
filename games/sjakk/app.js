@@ -1492,7 +1492,7 @@
         alert("Feil ved opprettelse av rom.");
       } finally {
         el.btnSubmitCreateRoom.disabled = false;
-        el.btnSubmitCreateRoom.textContent = "Opprett Sjakkrom 🚀";
+        el.btnSubmitCreateRoom.textContent = "Opprett Sjakkrom";
       }
     });
 
@@ -1545,7 +1545,7 @@
         alert("Feil ved tilkobling.");
       } finally {
         el.btnSubmitJoinRoom.disabled = false;
-        el.btnSubmitJoinRoom.textContent = "Bli med i partiet ♟️";
+        el.btnSubmitJoinRoom.textContent = "Bli med i partiet";
       }
     });
 
@@ -1555,7 +1555,7 @@
       try {
         await navigator.clipboard.writeText(url);
         el.btnCopyRoomLink.textContent = "✓";
-        setTimeout(() => (el.btnCopyRoomLink.textContent = "📋"), 1500);
+        setTimeout(() => (el.btnCopyRoomLink.textContent = "Kopier"), 1500);
       } catch (_) {
         prompt("Kopier lenke:", url);
       }

@@ -101,6 +101,27 @@ body {
   font-size: 1.35rem;
   font-weight: 900;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.party-header-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.section-title-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  vertical-align: -2px;
+  margin-right: 0.35rem;
 }
 
 .brand-badge {

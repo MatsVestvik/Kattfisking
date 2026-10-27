@@ -143,7 +143,7 @@
       if (!data.ok) {
         alert(data.error || "Kunne ikke opprette rom.");
         el.btnSubmitCreate.disabled = false;
-        el.btnSubmitCreate.textContent = "Opprett rom 🎉";
+        el.btnSubmitCreate.textContent = "Opprett rom";
         return;
       }
 
@@ -194,7 +194,7 @@
       if (!data.ok) {
         alert(data.error || "Fant ikke rommet.");
         el.btnSubmitJoin.disabled = false;
-        el.btnSubmitJoin.textContent = "Bli med i festen 🚀";
+        el.btnSubmitJoin.textContent = "Bli med i festen";
         return;
       }
 
@@ -212,7 +212,7 @@
       alert("Nettverksfeil ved tilkobling til rom.");
     } finally {
       el.btnSubmitJoin.disabled = false;
-      el.btnSubmitJoin.textContent = "Bli med i festen 🚀";
+      el.btnSubmitJoin.textContent = "Bli med i festen";
     }
   });
 
@@ -359,7 +359,7 @@
       state.isHost = true;
       el.sectionGameSelector.classList.remove("hidden");
       el.playerWaitingBox.classList.add("hidden");
-      el.hostHint.textContent = "Du er nå vert 👑";
+      el.hostHint.textContent = "Du er nå vert";
     }
   }
 
@@ -392,7 +392,7 @@
       if (!data.ok) {
         alert(data.error || "Kunne ikke starte spillet.");
         el.btnStartOrdbombe.disabled = false;
-        el.btnStartOrdbombe.textContent = "Start Ordbombe 💣";
+        el.btnStartOrdbombe.textContent = "Start Ordbombe";
         return;
       }
 
@@ -402,7 +402,7 @@
       console.error(err);
       alert("Feil ved start av spill.");
       el.btnStartOrdbombe.disabled = false;
-      el.btnStartOrdbombe.textContent = "Start Ordbombe 💣";
+      el.btnStartOrdbombe.textContent = "Start Ordbombe";
     }
   });
 
@@ -436,7 +436,7 @@
         if (!data.ok) {
           alert(data.error || "Kunne ikke starte Tegn & Gjett.");
           el.btnStartTegnOgGjett.disabled = false;
-          el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett 🎨";
+          el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett";
           return;
         }
 
@@ -446,7 +446,7 @@
         console.error(err);
         alert("Feil ved start av spill.");
         el.btnStartTegnOgGjett.disabled = false;
-        el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett 🎨";
+        el.btnStartTegnOgGjett.textContent = "Start Tegn & Gjett";
       }
     });
   }
@@ -479,7 +479,7 @@
         if (!data.ok) {
           alert(data.error || "Kunne ikke starte Sjakk.");
           el.btnStartSjakk.disabled = false;
-          el.btnStartSjakk.textContent = "Start Sjakk ♟️";
+          el.btnStartSjakk.textContent = "Start Sjakk";
           return;
         }
 
@@ -489,7 +489,7 @@
         console.error(err);
         alert("Feil ved start av spill.");
         el.btnStartSjakk.disabled = false;
-        el.btnStartSjakk.textContent = "Start Sjakk ♟️";
+        el.btnStartSjakk.textContent = "Start Sjakk";
       }
     });
   }
