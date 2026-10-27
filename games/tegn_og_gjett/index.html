@@ -71,6 +71,15 @@
         <div class="players-list" id="playersList">
           <!-- Dynamic player rows -->
         </div>
+
+        <!-- Mascot companion: Snoopy -->
+        <div class="mascot-companion-card" id="mascotCompanion">
+          <div class="snoopy-mascot-sprite" id="snoopyMascot" title="Snoopy – Tegn &amp; Gjett Maskot"></div>
+          <div class="mascot-speech-wrap">
+            <span class="mascot-name-tag">SNOOPY • MASKOT</span>
+            <p class="mascot-quote-bubble" id="mascotQuote">Klar til å gjette? Følg godt med!</p>
+          </div>
+        </div>
       </aside>
 
       <!-- Center Panel: Drawing Canvas & Tools -->
@@ -94,7 +103,8 @@
 
           <!-- Status Notice Overlay (e.g. Turn pause or choosing word) -->
           <div class="canvas-notice-overlay" id="canvasNoticeOverlay">
-            <div class="notice-icon" id="noticeIcon">🎨</div>
+            <div class="snoopy-mascot-sprite notice-mascot" id="noticeMascot"></div>
+            <div class="notice-icon hidden" id="noticeIcon" style="display: none;"></div>
             <h2 class="notice-title" id="noticeTitle">Gjør deg klar!</h2>
             <p class="notice-subtitle" id="noticeSubtitle">Venter på at tegneren skal velge ord…</p>
           </div>
@@ -170,7 +180,7 @@
   <!-- Modal: Word Selection (Visible to drawer during 'choosing') -->
   <div class="modal-overlay" id="modalWordChoice">
     <div class="modal-card">
-      <div style="font-size: 2.5rem; margin-bottom: 0.35rem;">🎨</div>
+      <div class="snoopy-mascot-sprite modal-mascot"></div>
       <h2 class="modal-title">Velg et ord å tegne!</h2>
       <p class="modal-subtitle">Gjør et valg før tiden renner ut:</p>
 

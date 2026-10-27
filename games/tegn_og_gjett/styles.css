@@ -442,6 +442,102 @@ body {
   color: #10b981;
 }
 
+/* Animated Snoopy Mascot */
+.snoopy-mascot-sprite {
+  width: 64px;
+  height: 64px;
+  background-image: url('/tegn-og-gjett/assets/mascot/snoopy_sheet.png');
+  background-repeat: no-repeat;
+  background-size: 384px 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: snoopyWalk 0.72s steps(6) infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes snoopyWalk {
+  from { background-position: 0 0; }
+  to { background-position: -384px 0; }
+}
+
+.snoopy-mascot-sprite.notice-mascot {
+  width: 96px;
+  height: 96px;
+  background-size: 576px 96px;
+  margin-bottom: 0.5rem;
+  animation: snoopyWalkNotice 0.72s steps(6) infinite, bounceSlow 1.5s infinite;
+}
+
+@keyframes snoopyWalkNotice {
+  from { background-position: 0 0; }
+  to { background-position: -576px 0; }
+}
+
+.snoopy-mascot-sprite.modal-mascot {
+  width: 80px;
+  height: 80px;
+  background-size: 480px 80px;
+  margin: 0 auto 0.5rem auto;
+  animation: snoopyWalkModal 0.72s steps(6) infinite;
+}
+
+@keyframes snoopyWalkModal {
+  from { background-position: 0 0; }
+  to { background-position: -480px 0; }
+}
+
+.snoopy-mascot-sprite.bounce {
+  animation: snoopyWalk 0.72s steps(6) infinite, mascotCheer 0.6s ease;
+}
+
+@keyframes mascotCheer {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.12); }
+}
+
+/* Mascot Companion Card in Sidebar */
+.mascot-companion-card {
+  margin-top: auto;
+  padding: 0.75rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+
+.mascot-companion-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(0, 180, 216, 0.35);
+}
+
+.mascot-speech-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.mascot-name-tag {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--accent-cyan);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mascot-quote-bubble {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  color: #cbd5e1;
+  font-style: italic;
+  word-break: break-word;
+}
+
 /* Center Panel - Canvas & Drawing Tools */
 .panel-canvas-container {
   display: flex;

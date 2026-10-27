@@ -96,9 +96,11 @@
     timerText: document.getElementById("timerText"),
     btnSoundToggle: document.getElementById("btnSoundToggle"),
 
-    // Left Leaderboard
+    // Left Leaderboard & Mascot
     playersCountBadge: document.getElementById("playersCountBadge"),
     playersList: document.getElementById("playersList"),
+    snoopyMascot: document.getElementById("snoopyMascot"),
+    mascotQuote: document.getElementById("mascotQuote"),
 
     // Center Canvas & Tools
     soloModeBar: document.getElementById("soloModeBar"),
@@ -783,7 +785,8 @@
         el.canvasNoticeOverlay.classList.remove("active");
       } else {
         hideWordChoiceModal();
-        showCanvasNotice("🎨", `${state.activeDrawerName} velger ord`, "Runden starter straks så fort ordet er valgt…");
+        showCanvasNotice("", `${state.activeDrawerName} velger ord`, "Runden starter straks så fort ordet er valgt…");
+        triggerMascotCheer(`${state.activeDrawerName} velger ord… Spennende!`);
       }
     } else if (state.turnState === "drawing") {
       hideWordChoiceModal();
@@ -800,7 +803,8 @@
       hideWordChoiceModal();
       el.drawingToolbar.classList.add("disabled");
       el.canvas.classList.add("guesser-cursor");
-      showCanvasNotice("⏰", `Tiden er ute!`, `Riktig ord var: «${(state.secretWord || "").toUpperCase()}»`);
+      showCanvasNotice("", `Tiden er ute!`, `Riktig ord var: «${(state.secretWord || "").toUpperCase()}»`);
+      triggerMascotCheer(`Runden er over! Riktig ord var ${(state.secretWord || "").toUpperCase()}.`);
     } else if (state.turnState === "game_over") {
       hideWordChoiceModal();
       el.drawingToolbar.classList.add("disabled");
@@ -883,10 +887,21 @@
   }
 
   function showCanvasNotice(icon, title, subtitle) {
-    el.noticeIcon.textContent = icon;
+    if (el.noticeIcon) el.noticeIcon.textContent = icon || "";
     el.noticeTitle.textContent = title;
     el.noticeSubtitle.textContent = subtitle;
     el.canvasNoticeOverlay.classList.add("active");
+  }
+
+  function triggerMascotCheer(quoteText) {
+    if (el.snoopyMascot) {
+      el.snoopyMascot.classList.remove("bounce");
+      void el.snoopyMascot.offsetWidth;
+      el.snoopyMascot.classList.add("bounce");
+    }
+    if (el.mascotQuote && quoteText) {
+      el.mascotQuote.textContent = quoteText;
+    }
   }
 
   // =========================================================================
@@ -1048,13 +1063,16 @@
     if (msg.type === "guess") {
       bubble.innerHTML = `<span class="sender">${escapeHtml(msg.sender)}:</span> ${escapeHtml(msg.text)}`;
     } else if (msg.type === "correct") {
-      bubble.innerHTML = `🎉 <strong>${escapeHtml(msg.sender)}</strong> ${escapeHtml(msg.text)}`;
+      bubble.innerHTML = `<strong>${escapeHtml(msg.sender)}</strong> ${escapeHtml(msg.text)}`;
+      triggerMascotCheer(`${msg.sender} gjettet riktig! Bra jobba!`);
     } else if (msg.type === "close") {
-      bubble.innerHTML = `💡 <strong>${escapeHtml(msg.sender)}:</strong> ${escapeHtml(msg.text)}`;
+      bubble.innerHTML = `<strong>${escapeHtml(msg.sender)}:</strong> ${escapeHtml(msg.text)}`;
+      triggerMascotCheer("Nesten riktig! Kjempenære!");
     } else if (msg.type === "system_highlight") {
-      bubble.innerHTML = `📢 ${escapeHtml(msg.text)}`;
+      bubble.innerHTML = `${escapeHtml(msg.text)}`;
     } else if (msg.type === "winner") {
-      bubble.innerHTML = `👑 ${escapeHtml(msg.text)}`;
+      bubble.innerHTML = `${escapeHtml(msg.text)}`;
+      triggerMascotCheer("Vi har en vinner! Flott runde!");
     } else {
       bubble.innerHTML = escapeHtml(msg.text);
     }
