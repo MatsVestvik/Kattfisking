@@ -1453,49 +1453,96 @@ body {
   align-items: center;
   justify-content: center;
   font-family: var(--font-pixel);
-  font-size: 0.45rem;
-  letter-spacing: 0.1em;
-  opacity: 0.55;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
   pointer-events: none;
   z-index: 5;
+  transition: all 0.25s ease;
+}
+
+.goal-indicator .goal-badge {
+  padding: 1px 7px;
+  border-radius: 4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.goal-indicator.is-my-goal {
+  opacity: 1;
+  font-weight: 900;
+  box-shadow: 0 0 16px var(--goal-color, #ffd166);
+  border-radius: 4px;
+}
+
+.goal-indicator.is-my-goal .goal-badge {
+  background: var(--goal-color, #ffd166);
+  color: #0b101b;
+  font-weight: 900;
+  box-shadow: 0 0 12px var(--goal-color, #ffd166);
+  text-shadow: none;
+  animation: myGoalPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes myGoalPulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.06); filter: brightness(1.25); }
 }
 
 .goal-north {
-  top: 3px;
-  left: 30px;
-  right: 30px;
-  height: 8px;
-  color: var(--p1-color);
-  background: linear-gradient(90deg, transparent, var(--p1-color), transparent);
+  top: 1px;
+  left: 20px;
+  right: 20px;
+  height: 14px;
 }
 
 .goal-south {
-  bottom: 3px;
-  left: 30px;
-  right: 30px;
-  height: 8px;
-  color: var(--p2-color);
-  background: linear-gradient(90deg, transparent, var(--p2-color), transparent);
+  bottom: 1px;
+  left: 20px;
+  right: 20px;
+  height: 14px;
 }
 
 .goal-west {
-  left: 3px;
-  top: 30px;
-  bottom: 30px;
-  width: 8px;
-  color: var(--p4-color);
-  background: linear-gradient(180deg, transparent, var(--p4-color), transparent);
+  left: 1px;
+  top: 20px;
+  bottom: 20px;
+  width: 14px;
   writing-mode: vertical-rl;
 }
 
 .goal-east {
-  right: 3px;
-  top: 30px;
-  bottom: 30px;
-  width: 8px;
-  color: var(--p3-color);
-  background: linear-gradient(180deg, transparent, var(--p3-color), transparent);
+  right: 1px;
+  top: 20px;
+  bottom: 20px;
+  width: 14px;
   writing-mode: vertical-rl;
+}
+
+/* Endzone cell styling on 9x9 board */
+.board-cell.my-endzone-cell {
+  position: relative;
+  border: 1.5px dashed var(--endzone-color, #ffd166) !important;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.12), 0 0 8px var(--endzone-color, #ffd166) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, #172136 100%) !important;
+}
+
+.board-cell.my-endzone-cell::after {
+  content: "★";
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 0.55rem;
+  color: var(--endzone-color, #ffd166);
+  opacity: 0.9;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px var(--endzone-color, #ffd166));
+}
+
+.board-cell.opponent-endzone-cell {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .board-grid-wrapper {

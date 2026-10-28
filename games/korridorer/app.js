@@ -557,6 +557,10 @@
     boardCells: document.getElementById("boardCells"),
     boardWallsLayer: document.getElementById("boardWallsLayer"),
     boardGroovesLayer: document.getElementById("boardGroovesLayer"),
+    goalNorth: document.getElementById("goalNorth"),
+    goalSouth: document.getElementById("goalSouth"),
+    goalWest: document.getElementById("goalWest"),
+    goalEast: document.getElementById("goalEast"),
 
     // Floating On-Board Wall Toolbar & Tooltip
     floatingWallToolbar: document.getElementById("floatingWallToolbar"),
@@ -1931,6 +1935,7 @@
     renderBoardWalls();
     renderBoardPawns();
     renderBoardHighlights();
+    renderEndzones();
   }
 
   function renderTopStatusBar() {
@@ -2121,6 +2126,111 @@
         ghost.style.pointerEvents = "none";
 
         cell.appendChild(ghost);
+      }
+    });
+  }
+
+  function renderEndzones() {
+    if (!state.players || state.players.length === 0) return;
+
+    // Determine the local player index:
+    const myIdx = (state.mode === "online" ? state.playerIndex : (state.mode === "bot" ? 0 : state.currentTurn));
+
+    const p1 = state.players[0];
+    const p2 = state.players[1];
+    const p3 = state.players[2];
+    const p4 = state.players[3];
+
+    // North Goal: Row 0 is Player 1's goal (reaches from bottom to top)
+    if (el.goalNorth && p1) {
+      el.goalNorth.style.display = "flex";
+      el.goalNorth.style.setProperty("--goal-color", p1.color);
+      el.goalNorth.style.color = p1.color;
+      el.goalNorth.style.background = `linear-gradient(90deg, transparent 5%, ${p1.color} 50%, transparent 95%)`;
+      if (myIdx === 0) {
+        el.goalNorth.classList.add("is-my-goal");
+        el.goalNorth.innerHTML = `<span class="goal-badge">⭐️ DITT MÅL ⬆</span>`;
+      } else {
+        el.goalNorth.classList.remove("is-my-goal");
+        el.goalNorth.innerHTML = `<span class="goal-badge">${p1.name}s MÅL ⬆</span>`;
+      }
+    }
+
+    // South Goal: Row 8 is Player 2's goal (reaches from top to bottom)
+    if (el.goalSouth && p2) {
+      el.goalSouth.style.display = "flex";
+      el.goalSouth.style.setProperty("--goal-color", p2.color);
+      el.goalSouth.style.color = p2.color;
+      el.goalSouth.style.background = `linear-gradient(90deg, transparent 5%, ${p2.color} 50%, transparent 95%)`;
+      if (myIdx === 1) {
+        el.goalSouth.classList.add("is-my-goal");
+        el.goalSouth.innerHTML = `<span class="goal-badge">⭐️ DITT MÅL ⬇</span>`;
+      } else {
+        el.goalSouth.classList.remove("is-my-goal");
+        el.goalSouth.innerHTML = `<span class="goal-badge">${p2.name}s MÅL ⬇</span>`;
+      }
+    }
+
+    // East Goal: Col 8 is Player 3's goal (in 3+ player games)
+    if (el.goalEast) {
+      if (state.players.length >= 3 && p3) {
+        el.goalEast.style.display = "flex";
+        el.goalEast.style.setProperty("--goal-color", p3.color);
+        el.goalEast.style.color = p3.color;
+        el.goalEast.style.background = `linear-gradient(180deg, transparent 5%, ${p3.color} 50%, transparent 95%)`;
+        if (myIdx === 2) {
+          el.goalEast.classList.add("is-my-goal");
+          el.goalEast.innerHTML = `<span class="goal-badge">⭐️ DITT MÅL ➡</span>`;
+        } else {
+          el.goalEast.classList.remove("is-my-goal");
+          el.goalEast.innerHTML = `<span class="goal-badge">${p3.name}s MÅL ➡</span>`;
+        }
+      } else {
+        el.goalEast.style.display = "none";
+      }
+    }
+
+    // West Goal: Col 0 is Player 4's goal (in 4 player games)
+    if (el.goalWest) {
+      if (state.players.length >= 4 && p4) {
+        el.goalWest.style.display = "flex";
+        el.goalWest.style.setProperty("--goal-color", p4.color);
+        el.goalWest.style.color = p4.color;
+        el.goalWest.style.background = `linear-gradient(180deg, transparent 5%, ${p4.color} 50%, transparent 95%)`;
+        if (myIdx === 3) {
+          el.goalWest.classList.add("is-my-goal");
+          el.goalWest.innerHTML = `<span class="goal-badge">⭐️ DITT MÅL ⬅</span>`;
+        } else {
+          el.goalWest.classList.remove("is-my-goal");
+          el.goalWest.innerHTML = `<span class="goal-badge">${p4.name}s MÅL ⬅</span>`;
+        }
+      } else {
+        el.goalWest.style.display = "none";
+      }
+    }
+
+    // Reflect player's color directly in the 9x9 board endzone cells
+    document.querySelectorAll(".board-cell").forEach(cell => {
+      const r = parseInt(cell.dataset.r, 10);
+      const c = parseInt(cell.dataset.c, 10);
+
+      cell.classList.remove("my-endzone-cell", "opponent-endzone-cell");
+      cell.style.removeProperty("--endzone-color");
+
+      let goalIdx = -1;
+      if (r === 0) goalIdx = 0;
+      else if (r === 8) goalIdx = 1;
+      else if (c === 8 && state.players.length >= 3) goalIdx = 2;
+      else if (c === 0 && state.players.length >= 4) goalIdx = 3;
+
+      if (goalIdx !== -1 && state.players[goalIdx]) {
+        const gp = state.players[goalIdx];
+        cell.style.setProperty("--endzone-color", gp.color);
+        if (goalIdx === myIdx) {
+          cell.classList.add("my-endzone-cell");
+        } else {
+          cell.classList.add("opponent-endzone-cell");
+        }
       }
     });
   }

@@ -423,6 +423,13 @@ print(json.dumps(res, ensure_ascii=False))
         } else {
           return sendJson(res, { error: "Fil ikke funnet" }, 404);
         }
+      } else if (safeRel.startsWith("bomb/")) {
+        const bombCand = path.join(BASE_DIR, safeRel);
+        if (fs.existsSync(bombCand)) {
+          fullPath = bombCand;
+        } else {
+          return sendJson(res, { error: "Fil ikke funnet" }, 404);
+        }
       } else if (fs.existsSync(path.join(BASE_DIR, safeRel))) {
         fullPath = path.join(BASE_DIR, safeRel);
       } else {

@@ -252,6 +252,12 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                     full_path = char_cand
                 else:
                     self._send_json({"error": "Fil ikke funnet"}, status=404)
+            elif safe_rel.startswith("bomb/"):
+                bomb_cand = os.path.join(BASE_DIR, safe_rel)
+                if os.path.isfile(bomb_cand):
+                    full_path = bomb_cand
+                else:
+                    self._send_json({"error": "Fil ikke funnet"}, status=404)
                     return
             elif os.path.isfile(os.path.join(BASE_DIR, safe_rel)):
                 full_path = os.path.join(BASE_DIR, safe_rel)

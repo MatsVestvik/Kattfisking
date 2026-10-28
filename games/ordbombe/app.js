@@ -301,7 +301,37 @@
     currentRoomStatus: "idle",
     lastRoomActivePlayerId: null,
     lastRoomPrompt: null,
+    lastRoomState: null,
+    currentBombFrame: 1,
   };
+
+  // Preload bomb ticking animation art frames
+  const BOMB_FRAMES = [];
+  for (let i = 1; i <= 10; i++) {
+    const img = new Image();
+    img.src = `/bomb/bomb_${String(i).padStart(4, "0")}.png`;
+    BOMB_FRAMES.push(img);
+  }
+
+  function updateBombFrame(frameIndex) {
+    const idx = Math.min(10, Math.max(1, Math.round(frameIndex || 1)));
+    if (state.currentBombFrame === idx) return;
+    state.currentBombFrame = idx;
+    if (el.bombSpriteFrame) {
+      el.bombSpriteFrame.src = `/bomb/bomb_${String(idx).padStart(4, "0")}.png`;
+    }
+  }
+
+  function isPlayerTurn() {
+    if (state.isRoomMode) {
+      const gs = state.lastRoomState;
+      return !!(gs && gs.status === "playing" && gs.active_player_id === state.playerId);
+    }
+    if (state.mode === "party") {
+      return state.isPlaying && !state.players[state.activePlayerIndex]?.eliminated;
+    }
+    return state.isPlaying;
+  }
 
   // DOM Elements
   const el = {
@@ -346,6 +376,7 @@
     arenaPointerArrow: document.getElementById("arenaPointerArrow"),
     circlePlayersContainer: document.getElementById("circlePlayersContainer"),
     bombCenterHub: document.getElementById("bombCenterHub"),
+    bombSpriteFrame: document.getElementById("bombSpriteFrame"),
     bombGraphic: document.getElementById("bombGraphic"),
     bombSparksCanvas: document.getElementById("bombSparksCanvas"),
     promptLetters: document.getElementById("promptLetters"),
@@ -656,10 +687,10 @@
       bubble.style.display = "";
     }
 
-    // 2. Spectator handling
+    // 2. Spectator handling (use readOnly instead of disabled so keyboard isn't violently dismissed)
     if (!isMyTurn && el.wordInput) {
       el.wordInput.value = "";
-      el.wordInput.disabled = true;
+      el.wordInput.readOnly = true;
     }
   }
 
@@ -790,12 +821,9 @@
     if (el.gameArena && el.gameArena.classList.contains("hidden")) return;
     if (!state.isPlaying) return;
 
-    const isMyTurn = state.isRoomMode
-      ? (state.lastRoomState?.status === "playing" && state.lastRoomState?.active_player_id === state.playerId)
-      : (state.mode === "party" ? !state.players[state.activePlayerIndex]?.eliminated : true);
-
-    if (isMyTurn && el.wordInput) {
+    if (isPlayerTurn() && el.wordInput) {
       if (el.wordInput.disabled) el.wordInput.disabled = false;
+      if (el.wordInput.readOnly) el.wordInput.readOnly = false;
       if (document.activeElement !== el.wordInput) {
         try {
           el.wordInput.focus({ preventScroll: true });
@@ -803,6 +831,10 @@
           el.wordInput.focus();
         }
       }
+      try {
+        const len = el.wordInput.value.length;
+        el.wordInput.setSelectionRange(len, len);
+      } catch (_) {}
     }
   }
 
@@ -818,6 +850,7 @@
     if (el.bombCenterHub) el.bombCenterHub.classList.remove("ticking-panic");
     if (el.bombGraphic) el.bombGraphic.classList.remove("ticking-panic");
     if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
+    updateBombFrame(1);
 
     // In solo mode, duration tightens as streak grows
     if (state.mode === "solo") {
@@ -848,6 +881,7 @@
 
     // Focus input
     el.wordInput.disabled = false;
+    el.wordInput.readOnly = false;
     if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
     el.wordInput.value = "";
     el.wordInput.className = "word-input-headless";
@@ -887,24 +921,27 @@
   }
 
   function updateTimerDisplay() {
-    // NO visible countdown numbers or progress bars!
-    // The player relies entirely on ticking audio cues and bomb panic shaking.
     const isPanic = state.timerRemaining <= 3.2 && state.timerRemaining > 0;
     if (isPanic) {
       if (el.bombCenterHub) el.bombCenterHub.classList.add("ticking-panic");
-      if (el.bombGraphic) el.bombGraphic.classList.add("ticking-panic");
       if (el.arenaPointerArrow) el.arenaPointerArrow.classList.add("ticking-panic");
     } else {
       if (el.bombCenterHub) el.bombCenterHub.classList.remove("ticking-panic");
-      if (el.bombGraphic) el.bombGraphic.classList.remove("ticking-panic");
       if (el.arenaPointerArrow) el.arenaPointerArrow.classList.remove("ticking-panic");
     }
+
+    const total = (state.mode === "solo" ? Math.max(4.2, 10.0 - state.soloStreak * 0.35) : state.turnDuration) || 6.0;
+    const remaining = Math.max(0, state.timerRemaining);
+    const progress = Math.min(1, Math.max(0, (total - remaining) / total));
+    const frameIndex = Math.min(10, Math.max(1, Math.floor(progress * 10) + 1));
+    updateBombFrame(frameIndex);
   }
 
   // Trigger bomb explosion
   function triggerExplosion() {
     if (state.isExploding) return;
     state.isExploding = true;
+    updateBombFrame(10);
 
     const curPlayer = state.players[state.activePlayerIndex] || {
       name: state.soloName || "Spiller",
@@ -1350,11 +1387,7 @@
     if (e.key === "Escape") return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    const isMyTurn = state.isRoomMode
-      ? (state.lastRoomState?.status === "playing" && state.lastRoomState?.active_player_id === state.playerId)
-      : (state.mode === "party" ? !state.players[state.activePlayerIndex]?.eliminated : true);
-
-    if (!isMyTurn) return;
+    if (!isPlayerTurn()) return;
 
     if (e.key === "Enter") {
       e.preventDefault();
@@ -1377,27 +1410,25 @@
   });
 
   // Keep word input ALWAYS focused and selected during active game (Desktop & Mobile)
-  document.addEventListener("click", (e) => {
-    if (!el.gameArena.classList.contains("hidden") && state.isPlaying) {
-      if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop") && !e.target.closest("select") && !e.target.closest("input:not(#wordInput)")) {
-        ensureInputFocus();
-      }
+  const focusInputOnUserInteraction = (e) => {
+    if (!el.gameArena || el.gameArena.classList.contains("hidden") || !state.isPlaying) return;
+    if (e && e.target && (e.target.closest("button") || e.target.closest("a") || e.target.closest(".modal-backdrop") || e.target.closest("select") || e.target.closest("input:not(#wordInput)"))) {
+      return;
     }
-  });
+    if (isPlayerTurn()) {
+      ensureInputFocus();
+    }
+  };
 
-  document.addEventListener("touchstart", (e) => {
-    if (!el.gameArena.classList.contains("hidden") && state.isPlaying) {
-      if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest(".modal-backdrop") && !e.target.closest("select") && !e.target.closest("input:not(#wordInput)")) {
-        ensureInputFocus();
-      }
-    }
-  }, { passive: true });
+  document.addEventListener("click", focusInputOnUserInteraction);
+  document.addEventListener("touchstart", focusInputOnUserInteraction, { passive: true });
+  document.addEventListener("pointerdown", focusInputOnUserInteraction);
 
   if (el.wordInput) {
     el.wordInput.addEventListener("blur", () => {
-      setTimeout(() => {
-        ensureInputFocus();
-      }, 60);
+      if (isPlayerTurn() && state.isPlaying) {
+        setTimeout(ensureInputFocus, 50);
+      }
     });
   }
 
@@ -1467,6 +1498,12 @@
     // Active player and turn checking
     state.lastRoomPlayers = data.players || [];
     state.currentRoomStatus = gs.status || "idle";
+    state.lastRoomState = gs;
+
+    const totalDuration = gs.turn_duration || 6.0;
+    const progress = Math.min(1, Math.max(0, (totalDuration - remaining) / totalDuration));
+    const frameIndex = Math.min(10, Math.max(1, Math.floor(progress * 10) + 1));
+    updateBombFrame(frameIndex);
 
     const isMyTurn = gs.active_player_id === state.playerId;
     const activePlayer = data.players.find(p => p.id === gs.active_player_id);
@@ -1483,10 +1520,11 @@
 
       if (isMyTurn && gs.status === "playing") {
         el.wordInput.disabled = false;
+        el.wordInput.readOnly = false;
         if (el.btnSubmitWord) el.btnSubmitWord.disabled = false;
-        setTimeout(() => {
-          ensureInputFocus();
-        }, 50);
+        ensureInputFocus();
+        setTimeout(ensureInputFocus, 40);
+        setTimeout(ensureInputFocus, 120);
       }
     }
 
@@ -1516,6 +1554,7 @@
     if (isMyTurn) {
       el.turnOverline.textContent = "💣 DET ER DIN TUR!";
       el.wordInput.disabled = (gs.status !== "playing");
+      el.wordInput.readOnly = (gs.status !== "playing");
       el.wordInput.placeholder = `Skriv et ord med ${state.currentPrompt}...`;
       if (el.btnSubmitWord) el.btnSubmitWord.disabled = (gs.status !== "playing");
       el.appShell.classList.add("my-turn-active");
@@ -1524,7 +1563,8 @@
       }
     } else {
       el.turnOverline.textContent = `${gs.active_player_name || 'En annen spiller'} har bomben:`;
-      el.wordInput.disabled = true;
+      el.wordInput.readOnly = true;
+      el.wordInput.disabled = false;
       el.wordInput.value = "";
       el.wordInput.placeholder = liveTypingText ? `✍️ ${liveTypingText}` : `Venter på at ${gs.active_player_name || 'spilleren'} skal svare...`;
       if (el.btnSubmitWord) el.btnSubmitWord.disabled = true;
@@ -1542,6 +1582,7 @@
       state.lastHandledEventTimestamp = gs.last_event.timestamp;
       if (gs.last_event.type === "explosion") {
         sfx.explosion();
+        updateBombFrame(10);
         if (el.bombCenterHub) el.bombCenterHub.classList.add("exploding");
         if (el.bombGraphic) el.bombGraphic.classList.add("exploding");
         sparks.explode();
