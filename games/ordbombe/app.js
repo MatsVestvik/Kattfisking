@@ -467,10 +467,12 @@
     if (!container) return;
     container.innerHTML = "";
     for (let i = 0; i < maxLives; i++) {
-      const span = document.createElement("span");
-      span.className = `heart ${i < lives ? "active" : "lost"}`;
-      span.textContent = "❤️";
-      container.appendChild(span);
+      const isAlive = i < lives;
+      const img = document.createElement("img");
+      img.className = `heart-pixel-icon ${isAlive ? "active" : "lost"}`;
+      img.src = isAlive ? "/fullHeart.png" : "/emptyHeart.png";
+      img.alt = isAlive ? "Liv" : "Tapt liv";
+      container.appendChild(img);
     }
   }
 
@@ -554,7 +556,11 @@
 
       const avatar = p.avatar || (p.eliminated ? "💀" : DEFAULT_AVATARS[idx % DEFAULT_AVATARS.length]);
       const lives = Math.max(0, p.lives ?? 3);
-      const heartsStr = "❤️".repeat(lives) + "🖤".repeat(Math.max(0, 3 - lives));
+      let heartsHtml = "";
+      for (let h = 0; h < 3; h++) {
+        const isAlive = h < lives;
+        heartsHtml += `<img src="${isAlive ? '/fullHeart.png' : '/emptyHeart.png'}" class="cp-heart-pixel ${isAlive ? 'active' : 'lost'}" alt="${isAlive ? 'Liv' : 'Tapt liv'}" />`;
+      }
 
       const isMeInNode = state.isRoomMode
         ? (p.id === state.playerId)
@@ -571,7 +577,7 @@
         </div>
         <div class="cp-info">
           <span class="cp-name" title="${p.name}">${p.name}</span>
-          <span class="cp-hearts" aria-label="${lives} liv">${heartsStr}</span>
+          <span class="cp-hearts" aria-label="${lives} liv">${heartsHtml}</span>
         </div>
       `;
 
@@ -1188,7 +1194,7 @@
       const livingPlayers = state.players.filter(p => !p.eliminated);
       const winner = livingPlayers[0] || state.players[0];
 
-      el.victoryIconWrap.textContent = "👑";
+      el.victoryIconWrap.innerHTML = '<img src="/fullTrophy.png" class="pixel-trophy-img" alt="Trofé" />';
       el.gameOverBadge.textContent = "RUNDEN ER AVGJORT";
       el.gameOverTitle.textContent = `${winner.name} vant Ordbombe!`;
       el.gameOverSubtitle.textContent = `Siste overlevende spiller med ${winner.wordsCount} godkjente ord! Gratulerer!`;
@@ -1575,7 +1581,7 @@
     el.gameArena.classList.add("hidden");
     el.gameOverCard.classList.remove("hidden");
 
-    el.victoryIconWrap.textContent = "👑";
+    el.victoryIconWrap.innerHTML = '<img src="/fullTrophy.png" class="pixel-trophy-img" alt="Trofé" />';
     el.gameOverBadge.textContent = "RUNDEN ER OVER";
     el.gameOverTitle.textContent = winner ? `${winner.name} vant Ordbombe!` : "Ingen overlevende!";
     el.gameOverSubtitle.textContent = "Fantastisk innsats i party-rommet!";

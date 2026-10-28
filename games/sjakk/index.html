@@ -31,7 +31,7 @@
     <!-- Header -->
     <header class="sjakk-header">
       <div class="header-left">
-        <a href="/" class="icon-btn text-btn-link" title="Tilbake til NTNU Games">‹ NTNU GAMES</a>
+        <button type="button" class="icon-btn text-btn-link" id="btnBack" title="Tilbake">‹ NTNU GAMES</button>
         <div class="brand-wrap">
           <img src="assets/icon.png" alt="Sjakk logo" class="header-pixel-icon" />
           <div class="game-branding">
@@ -190,7 +190,9 @@
   <!-- GAME OVER / VICTORY MODAL -->
   <dialog class="sjakk-modal" id="modalGameOver">
     <div class="modal-box text-center">
-      <div class="gameover-trophy" id="gameOverTrophy">🏆</div>
+      <div class="gameover-trophy" id="gameOverTrophy">
+        <img src="/fullTrophy.png" class="pixel-trophy-img" alt="Trofé" />
+      </div>
       <h2 class="gameover-title" id="gameOverTitle">Sjakkmatt!</h2>
       <p class="gameover-reason" id="gameOverReason">Hvit vinner partiet.</p>
 
@@ -200,6 +202,9 @@
         </button>
         <button type="button" class="btn btn-secondary btn-full-width" id="btnGameOverClose">
           Se brettet
+        </button>
+        <button type="button" class="btn btn-secondary btn-full-width" id="btnGameOverLounge">
+          ‹ Tilbake til Lounge
         </button>
       </div>
     </div>

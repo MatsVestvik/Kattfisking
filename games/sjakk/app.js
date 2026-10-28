@@ -773,6 +773,10 @@
     pollTimer: null,
     lastPolledVersion: 0,
     pendingPromotionMove: null,
+    gameStatus: "waiting", // 'waiting', 'active', 'finished'
+    dismissedGameOver: false,
+    manuallyFlipped: false,
+    partyRoomCode: null,
   };
 
   // DOM Elements
@@ -829,6 +833,8 @@
     gameOverReason: document.getElementById("gameOverReason"),
     btnGameOverRematch: document.getElementById("btnGameOverRematch"),
     btnGameOverClose: document.getElementById("btnGameOverClose"),
+    btnGameOverLounge: document.getElementById("btnGameOverLounge"),
+    btnBack: document.getElementById("btnBack"),
 
     modalRoomSetup: document.getElementById("modalRoomSetup"),
     btnCloseRoomModal: document.getElementById("btnCloseRoomModal"),
@@ -1020,9 +1026,13 @@
 
     // Status text
     const status = state.game.getGameStatus();
-    if (status.over) {
-      el.gameStatusText.textContent = status.title;
-      el.gameStatusText.style.color = "var(--accent-gold)";
+    if (status.over || state.gameStatus === "finished") {
+      if (state.dismissedGameOver) {
+        updateStatusTextForDismissed(status.reason || (el.gameOverReason ? el.gameOverReason.textContent : "") || "Partiet er over.");
+      } else {
+        el.gameStatusText.textContent = status.title || "Partiet er over";
+        el.gameStatusText.style.color = "var(--accent-gold)";
+      }
     } else {
       el.gameStatusText.textContent = isWhiteTurn ? "Hvits trekk" : "Svarts trekk";
       el.gameStatusText.style.color = "var(--accent-blue)";
@@ -1199,6 +1209,8 @@
     if (status.over) {
       stopTimer();
       soundEngine.playVictory();
+      state.gameStatus = "finished";
+      state.dismissedGameOver = false;
       triggerGameOver(status.title, status.reason);
     } else {
       startTimer();
@@ -1268,6 +1280,7 @@
     state.lastMove = null;
     state.whiteTime = state.timeControl;
     state.blackTime = state.timeControl;
+    state.dismissedGameOver = false;
     stopTimer();
 
     if (state.mode === "local" && state.autoFlip) {
@@ -1307,6 +1320,58 @@
     }
   }
 
+  function updateStatusTextForDismissed(reason) {
+    if (!el.gameStatusText) return;
+    el.gameStatusText.innerHTML = `
+      <span>${reason}</span>
+      <button type="button" class="game-status-reopen-btn" id="btnReopenGameOver">
+        🏆 Vis resultat / Omkamp
+      </button>
+    `;
+    const btnReopen = document.getElementById("btnReopenGameOver");
+    if (btnReopen) {
+      btnReopen.onclick = () => {
+        state.dismissedGameOver = false;
+        el.modalGameOver.showModal();
+      };
+    }
+  }
+
+  async function returnToLounge() {
+    const code = state.roomCode || sessionStorage.getItem("party_room_code");
+    const playerId = state.playerId || sessionStorage.getItem("party_player_id") || "";
+    const hostToken = sessionStorage.getItem("party_host_token") || "";
+
+    if (code) {
+      if (state.gameStatus === "active") {
+        const ok = confirm("Vil du avslutte partiet og gå til Party Lounge?");
+        if (!ok) return;
+      }
+
+      // Notify party to return to lounge
+      try {
+        await fetch("/api/party/to-lounge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: code,
+            playerId: playerId,
+            hostToken: hostToken,
+          }),
+        });
+      } catch (err) {
+        console.warn("to-lounge fetch failed:", err);
+      }
+
+      sessionStorage.setItem("party_room_code", code);
+      if (playerId) sessionStorage.setItem("party_player_id", playerId);
+      window.location.href = `/party/?code=${encodeURIComponent(code)}&player=${encodeURIComponent(playerId)}`;
+      return;
+    }
+
+    window.location.href = "/party/";
+  }
+
   function startRoomPolling() {
     if (state.pollTimer) clearInterval(state.pollTimer);
 
@@ -1322,21 +1387,42 @@
         const data = await resp.json();
         if (!data.ok) return;
 
+        // Sync player role and board perspective
+        if (data.myRole && (data.myRole === "w" || data.myRole === "b" || data.myRole === "spectator")) {
+          state.playerColor = data.myRole;
+          if (!state.manuallyFlipped && (data.myRole === "w" || data.myRole === "b")) {
+            if (state.perspective !== data.myRole) {
+              state.perspective = data.myRole;
+              renderBoard();
+            }
+          }
+        }
+
+        // Sync host status
+        if (data.whitePlayer && state.playerId) {
+          state.isHost = (data.whitePlayer.id === state.playerId);
+        }
+
+        // Sync back button text
+        if (el.btnBack) {
+          el.btnBack.textContent = "‹ Lounge";
+        }
+
         // Sync player labels
         if (data.whitePlayer) {
           const isBottom = state.perspective === "w";
           const targetName = isBottom ? el.bottomPlayerName : el.topPlayerName;
           const targetAv = isBottom ? el.bottomAvatar : el.topAvatar;
-          targetName.textContent = data.whitePlayer.name;
-          targetAv.innerHTML = renderAvatarHtml(data.whitePlayer.avatar);
+          if (targetName) targetName.textContent = data.whitePlayer.name;
+          if (targetAv) targetAv.innerHTML = renderAvatarHtml(data.whitePlayer.avatar);
         }
 
         if (data.blackPlayer) {
           const isBottom = state.perspective === "b";
           const targetName = isBottom ? el.bottomPlayerName : el.topPlayerName;
           const targetAv = isBottom ? el.bottomAvatar : el.topAvatar;
-          targetName.textContent = data.blackPlayer.name;
-          targetAv.innerHTML = renderAvatarHtml(data.blackPlayer.avatar);
+          if (targetName) targetName.textContent = data.blackPlayer.name;
+          if (targetAv) targetAv.innerHTML = renderAvatarHtml(data.blackPlayer.avatar);
         }
 
         // Sync times
@@ -1344,17 +1430,94 @@
         state.blackTime = data.blackTime;
         renderClocks();
 
-        // Check if there are new moves from opponent
+        // 1. Detect rematch transition: finished -> active
+        if (state.gameStatus === "finished" && data.status === "active") {
+          state.gameStatus = "active";
+          state.dismissedGameOver = false;
+          if (el.modalGameOver.open) el.modalGameOver.close();
+          el.btnGameOverRematch.disabled = false;
+          el.btnGameOverRematch.textContent = "Spill omkamp";
+          el.btnGameOverRematch.classList.remove("btn-rematch-pulse");
+          resetGame();
+          if (data.moves && data.moves.length > 0) {
+            applyRemoteMoves(data.moves);
+          }
+          return;
+        }
+
+        // 2. Check initial start: waiting -> active
+        if (state.gameStatus === "waiting" && data.status === "active") {
+          state.gameStatus = "active";
+          if (data.moves && data.moves.length > 0) {
+            applyRemoteMoves(data.moves);
+          }
+        }
+
+        // 3. Apply any new moves from opponent
         if (data.moves.length > state.game.history.length) {
-          // Re-play moves
           applyRemoteMoves(data.moves);
         }
 
-        // Check draw / finished state
+        // 4. Handle Draw Offer updates
+        if (data.status === "active") {
+          if (data.drawOfferedBy && data.drawOfferedBy !== state.playerColor) {
+            el.btnDrawOffer.textContent = "Godta remis 🤝";
+            el.btnDrawOffer.classList.add("btn-rematch-pulse");
+            el.btnDrawOffer.disabled = false;
+          } else if (data.drawOfferedBy === state.playerColor) {
+            el.btnDrawOffer.textContent = "Remis tilbudt… ⏳";
+            el.btnDrawOffer.classList.remove("btn-rematch-pulse");
+            el.btnDrawOffer.disabled = true;
+          } else {
+            el.btnDrawOffer.textContent = "Tilby remis";
+            el.btnDrawOffer.classList.remove("btn-rematch-pulse");
+            el.btnDrawOffer.disabled = false;
+          }
+        }
+
+        // 5. Handle finished state and rematch button states
         if (data.status === "finished") {
           stopTimer();
-          if (!el.modalGameOver.open) {
+          const justFinished = state.gameStatus !== "finished";
+          state.gameStatus = "finished";
+
+          // If party lounge return was triggered, navigate to lounge
+          if (data.resultReason && data.resultReason.includes("Party Lounge")) {
+            const code = state.roomCode || sessionStorage.getItem("party_room_code");
+            const pId = state.playerId || sessionStorage.getItem("party_player_id") || "";
+            if (code) {
+              window.location.href = `/party/?code=${encodeURIComponent(code)}&player=${encodeURIComponent(pId)}`;
+              return;
+            }
+          }
+
+          // Sync rematch button text based on server rematchRequestedBy
+          if (data.rematchRequestedBy) {
+            if (data.rematchRequestedBy !== state.playerColor) {
+              el.btnGameOverRematch.textContent = "Godta omkamp! ⚔️";
+              el.btnGameOverRematch.classList.add("btn-rematch-pulse");
+              el.btnGameOverRematch.disabled = false;
+            } else {
+              el.btnGameOverRematch.textContent = "Venter på motstander… ⏳";
+              el.btnGameOverRematch.classList.remove("btn-rematch-pulse");
+              el.btnGameOverRematch.disabled = true;
+            }
+          } else {
+            el.btnGameOverRematch.textContent = "Spill omkamp";
+            el.btnGameOverRematch.classList.remove("btn-rematch-pulse");
+            el.btnGameOverRematch.disabled = false;
+          }
+
+          if (justFinished) {
+            state.dismissedGameOver = false;
+            soundEngine.playVictory();
             triggerGameOver("Partiet er over!", data.resultReason || "Spillet ble avsluttet.");
+          } else if (!el.modalGameOver.open && !state.dismissedGameOver) {
+            triggerGameOver("Partiet er over!", data.resultReason || "Spillet ble avsluttet.");
+          }
+
+          if (state.dismissedGameOver) {
+            updateStatusTextForDismissed(data.resultReason || "Partiet er avsluttet.");
           }
         }
       } catch (err) {
@@ -1385,11 +1548,13 @@
           m.from.r === fromR &&
           m.from.c === fromC &&
           m.to.r === toR &&
-          m.to.c === toC &&
-          (!sm.promotion || m.promo === sm.promotion)
+          m.to.c === toC
       );
 
       if (match) {
+        if (sm.promotion) {
+          match.promo = sm.promotion;
+        }
         const isCapture = !!state.game.board[toR][toC] || match.isEnPassant;
         state.game.makeMove(match);
         state.lastMove = { from: { r: fromR, c: fromC }, to: { r: toR, c: toC } };
@@ -1414,6 +1579,7 @@
 
     // Flip Board
     el.btnFlipBoard.addEventListener("click", () => {
+      state.manuallyFlipped = true;
       state.perspective = state.perspective === "w" ? "b" : "w";
       renderBoard();
     });
@@ -1629,28 +1795,57 @@
     // New Game / Rematch
     el.btnNewGame.addEventListener("click", () => {
       if (confirm("Starte et nytt parti?")) {
+        state.dismissedGameOver = false;
         resetGame();
       }
     });
 
-    el.btnGameOverRematch.addEventListener("click", () => {
-      el.modalGameOver.close();
+    el.btnGameOverRematch.addEventListener("click", async () => {
       if (state.mode === "room") {
-        fetch("/api/sjakk/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            roomCode: state.roomCode,
-            playerId: state.playerId,
-            action: "rematch",
-          }),
-        });
+        el.btnGameOverRematch.disabled = true;
+        el.btnGameOverRematch.textContent = "Sender forespørsel… ⏳";
+        try {
+          const resp = await fetch("/api/sjakk/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              roomCode: state.roomCode,
+              playerId: state.playerId,
+              action: "rematch",
+            }),
+          });
+          const data = await resp.json();
+          if (data.ok) {
+            el.btnGameOverRematch.textContent = "Venter på motstander… ⏳";
+          } else {
+            alert(data.error || "Kunne ikke be om omkamp.");
+            el.btnGameOverRematch.disabled = false;
+            el.btnGameOverRematch.textContent = "Spill omkamp";
+          }
+        } catch (err) {
+          el.btnGameOverRematch.disabled = false;
+          el.btnGameOverRematch.textContent = "Spill omkamp";
+        }
       } else {
+        state.dismissedGameOver = false;
+        el.modalGameOver.close();
         resetGame();
       }
     });
 
-    el.btnGameOverClose.addEventListener("click", () => el.modalGameOver.close());
+    el.btnGameOverClose.addEventListener("click", () => {
+      state.dismissedGameOver = true;
+      el.modalGameOver.close();
+      const reason = el.gameOverReason ? el.gameOverReason.textContent : "Partiet er avsluttet.";
+      updateStatusTextForDismissed(reason);
+    });
+
+    if (el.btnGameOverLounge) {
+      el.btnGameOverLounge.addEventListener("click", returnToLounge);
+    }
+    if (el.btnBack) {
+      el.btnBack.addEventListener("click", returnToLounge);
+    }
 
     // Time Control Change
     el.selectTimeControl.addEventListener("change", (e) => {
@@ -1671,16 +1866,29 @@
 
     // Parse URL params for ?room=CODE
     const params = new URLSearchParams(window.location.search);
-    const roomParam = params.get("room");
-    const playerParam = params.get("player");
+    const roomParam = params.get("room") || params.get("code");
+    const playerParam = params.get("player") || params.get("playerId");
 
     if (roomParam) {
-      el.inputRoomCode.value = roomParam.toUpperCase();
+      const roomUpper = roomParam.toUpperCase();
+      el.inputRoomCode.value = roomUpper;
       el.tabRoom.click();
       if (playerParam) {
         state.playerId = playerParam;
-        state.roomCode = roomParam.toUpperCase();
+        state.roomCode = roomUpper;
+        state.partyRoomCode = roomUpper;
         state.mode = "room";
+        sessionStorage.setItem("party_room_code", roomUpper);
+        sessionStorage.setItem("party_player_id", playerParam);
+        el.tabRoom.classList.add("active");
+        el.tabLocal.classList.remove("active");
+        el.roomPill.classList.remove("hidden");
+        el.roomPillCode.textContent = state.roomCode;
+        el.btnUndo.disabled = true;
+        el.labelAutoFlip.classList.add("hidden");
+        if (el.btnBack) {
+          el.btnBack.textContent = "‹ Lounge";
+        }
         el.modalRoomSetup.close();
         startRoomPolling();
       }

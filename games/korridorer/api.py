@@ -492,8 +492,8 @@ class KorridorerAPI:
         KorridorerAPI._clean_expired_rooms()
 
         if path == "/api/korridorer/state":
-            room_code = (query.get("room") or [""])[0].strip().upper()
-            player_id = (query.get("player") or [""])[0].strip()
+            room_code = (query.get("room") or query.get("code") or [""])[0].strip().upper()
+            player_id = (query.get("player") or query.get("playerId") or [""])[0].strip()
 
             with _rooms_lock:
                 room = _rooms.get(room_code)

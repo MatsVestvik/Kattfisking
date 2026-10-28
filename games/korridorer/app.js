@@ -571,6 +571,7 @@
     statTurnCount: document.getElementById("statTurnCount"),
     statWallsPlaced: document.getElementById("statWallsPlaced"),
     btnVictoryRematch: document.getElementById("btnVictoryRematch"),
+    btnVictoryLounge: document.getElementById("btnVictoryLounge"),
     btnVictoryLobby: document.getElementById("btnVictoryLobby"),
   };
 
@@ -1041,6 +1042,12 @@
       el.modalVictory.classList.add("hidden");
       handleRequestRematch();
     });
+    if (el.btnVictoryLounge) {
+      el.btnVictoryLounge.addEventListener("click", () => {
+        el.modalVictory.classList.add("hidden");
+        leaveToLobby();
+      });
+    }
     el.btnVictoryLobby.addEventListener("click", () => {
       el.modalVictory.classList.add("hidden");
       leaveToLobby();
@@ -1077,6 +1084,11 @@
         state.mode = "online";
         state.roomCode = code;
         state.playerId = playerParam;
+        sessionStorage.setItem("party_room_code", code);
+        sessionStorage.setItem("party_player_id", playerParam);
+        if (el.btnLeaveRoomHeader) {
+          el.btnLeaveRoomHeader.textContent = "‹ Lounge";
+        }
         startOnlineRoomPolling();
       } else {
         switchLobbyTab("online");
@@ -2194,13 +2206,30 @@
     }
   }
 
-  function leaveToLobby() {
+  async function leaveToLobby() {
     if (state.pollTimer) clearInterval(state.pollTimer);
     state.pollTimer = null;
+    const code = state.roomCode || sessionStorage.getItem("party_room_code");
+    const playerId = state.playerId || sessionStorage.getItem("party_player_id");
     state.roomCode = null;
     state.gameActive = false;
     state.winner = null;
     clearStagedWall();
+
+    if (code) {
+      try {
+        await fetch("/api/party/to-lounge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: code,
+            playerId: playerId || "",
+          }),
+        });
+      } catch (_) {}
+      window.location.href = `/party/?code=${encodeURIComponent(code)}&player=${encodeURIComponent(playerId || "")}`;
+      return;
+    }
 
     // Remove ?room query param without full page reload
     window.history.replaceState({}, document.title, window.location.pathname);

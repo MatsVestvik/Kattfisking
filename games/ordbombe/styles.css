@@ -537,8 +537,21 @@ body {
 
 .hearts-box {
   display: flex;
+  align-items: center;
   gap: 0.35rem;
-  font-size: 1.4rem;
+}
+
+.heart-pixel-icon {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.heart-pixel-icon.lost {
+  opacity: 0.4;
+  transform: scale(0.85);
 }
 
 .heart {
@@ -907,9 +920,24 @@ body {
 }
 
 .cp-hearts {
-  font-size: 0.7rem;
-  letter-spacing: -0.05em;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.cp-heart-pixel {
+  width: 13px;
+  height: 13px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.cp-heart-pixel.lost {
+  opacity: 0.35;
+  transform: scale(0.85);
 }
 
 /* Active Turn Highlighting on Circle */
@@ -1663,4 +1691,30 @@ body {
   100% {
     box-shadow: 0 0 28px rgba(251, 133, 0, 0.85);
   }
+}
+
+/* Pixel Art Icons */
+.pixel-trophy-img {
+  width: 60px;
+  height: 60px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.45));
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.gear-icon-img {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  vertical-align: middle;
+  margin-right: 6px;
+  transition: transform 0.2s ease;
+}
+
+#btnChangeSettings:hover .gear-icon-img {
+  content: url('/hover_settings.png');
+  transform: rotate(45deg);
 }

@@ -209,6 +209,7 @@ class SjakkRoom:
                 self.status = "finished"
                 self.result = move_data.get("result", "*")
                 self.result_reason = move_data.get("resultReason", "Parti over.")
+                self._notify_party_finished()
             else:
                 # Switch turn
                 self.turn = "b" if self.turn == "w" else "w"
@@ -239,6 +240,7 @@ class SjakkRoom:
                 self.result = "1/2-1/2"
                 self.result_reason = "Enighet om remis (uavgjort)."
                 self.draw_offered_by = None
+                self._notify_party_finished()
                 self.bump()
                 return True, "Remis godtatt!"
 
@@ -258,12 +260,14 @@ class SjakkRoom:
                 self.status = "finished"
                 self.result = "0-1"
                 self.result_reason = "Hvit ga opp. Svart vinner!"
+                self._notify_party_finished()
                 self.bump()
                 return True, "Du ga opp."
             elif is_black:
                 self.status = "finished"
                 self.result = "1-0"
                 self.result_reason = "Svart ga opp. Hvit vinner!"
+                self._notify_party_finished()
                 self.bump()
                 return True, "Du ga opp."
 
@@ -300,12 +304,39 @@ class SjakkRoom:
                 self.turn_start_time = time.time() if self.time_control > 0 else None
                 self.draw_offered_by = None
                 self.rematch_requested_by = None
+                self._notify_party_active()
                 self.bump()
                 return True, "Omkamp startet! Fargene er byttet."
 
             self.rematch_requested_by = requester_color
             self.bump()
             return True, "Forespørsel om omkamp sendt."
+
+    def _notify_party_finished(self):
+        try:
+            from games.party.api import _rooms as party_rooms
+            with _rooms_lock:
+                if self.code in party_rooms:
+                    p_room = party_rooms[self.code]
+                    with p_room.lock:
+                        p_room.current_game = None
+                        p_room.game_state = {}
+                        p_room.bump()
+        except Exception:
+            pass
+
+    def _notify_party_active(self):
+        try:
+            from games.party.api import _rooms as party_rooms
+            with _rooms_lock:
+                if self.code in party_rooms:
+                    p_room = party_rooms[self.code]
+                    with p_room.lock:
+                        p_room.current_game = "sjakk"
+                        p_room.game_state = {"status": "active"}
+                        p_room.bump()
+        except Exception:
+            pass
 
 
 class SjakkAPI:
@@ -452,6 +483,12 @@ class SjakkAPI:
                 ok, msg = room.resign(player_id)
             elif action == "rematch":
                 ok, msg = room.request_rematch(player_id)
+            elif action in ("to-lounge", "to_lobby", "exit"):
+                room.status = "finished"
+                room.result_reason = "Partiet ble avsluttet (returnert til Party Lounge)."
+                room.bump()
+                room._notify_party_finished()
+                return 200, {"ok": True, "message": "Returnert til lounge"}
             else:
                 return 400, {"ok": False, "error": "Ukjent handling."}
 
@@ -459,5 +496,17 @@ class SjakkAPI:
                 return 400, {"ok": False, "error": msg}
 
             return 200, {"ok": True, "message": msg, "state": room.get_public_state(player_id)}
+
+        elif path in ("/api/sjakk/to-lounge", "/api/sjakk/exit"):
+            code = str(body.get("roomCode", "")).strip().upper()
+            with _rooms_lock:
+                room = _rooms.get(code)
+            if room:
+                with room.lock:
+                    room.status = "finished"
+                    room.result_reason = "Partiet ble avsluttet (returnert til Party Lounge)."
+                    room.bump()
+                room._notify_party_finished()
+            return 200, {"ok": True}
 
         return None

@@ -163,6 +163,38 @@ class PartyRoom:
 
             if self.current_game == "tegn_og_gjett":
                 effective_game_state = self._get_tegn_og_gjett_public_state(client_player_id)
+            elif self.current_game == "sjakk":
+                effective_game_state = dict(self.game_state)
+                try:
+                    from games.sjakk.api import _rooms as sjakk_rooms
+                    with _rooms_lock:
+                        s_room = sjakk_rooms.get(self.code)
+                    if s_room:
+                        with s_room.lock:
+                            effective_game_state["status"] = s_room.status
+                            effective_game_state["resultReason"] = s_room.result_reason
+                            if s_room.status == "finished":
+                                self.current_game = None
+                                self.game_state = {}
+                                self.bump()
+                except Exception as s_err:
+                    print("Error checking sjakk room state in party:", s_err)
+            elif self.current_game == "korridorer":
+                effective_game_state = dict(self.game_state)
+                try:
+                    from games.korridorer.api import _rooms as korridorer_rooms
+                    with _rooms_lock:
+                        k_room = korridorer_rooms.get(self.code)
+                    if k_room:
+                        with k_room.lock:
+                            effective_game_state["status"] = k_room.status
+                            effective_game_state["winner"] = k_room.winner
+                            if k_room.status == "finished":
+                                self.current_game = None
+                                self.game_state = {}
+                                self.bump()
+                except Exception as k_err:
+                    print("Error checking korridorer room state in party:", k_err)
             else:
                 effective_game_state = self.game_state
 
@@ -1121,8 +1153,43 @@ class PartyAPI:
                 "color": new_color
             }
 
-        if rel_path == "/api/select-game":
-            code = str(body.get("roomCode") or "").strip().upper()
+        if rel_path in ("/api/to-lounge", "/api/to-lobby"):
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            with _rooms_lock:
+                room = _rooms.get(code)
+            if room:
+                with room.lock:
+                    room.current_game = None
+                    room.game_state = {}
+                    room.bump()
+
+            try:
+                from games.sjakk.api import _rooms as sjakk_rooms
+                with _rooms_lock:
+                    if code in sjakk_rooms:
+                        s_room = sjakk_rooms[code]
+                        with s_room.lock:
+                            s_room.status = "finished"
+                            s_room.result_reason = "Partiet ble avsluttet (returnert til Party Lounge)."
+                            s_room.bump()
+            except Exception as err:
+                print("Error updating sjakk room on to-lounge:", err)
+
+            try:
+                from games.korridorer.api import _rooms as korr_rooms
+                with _rooms_lock:
+                    if code in korr_rooms:
+                        k_room = korr_rooms[code]
+                        with k_room.lock:
+                            k_room.status = "finished"
+                            k_room.bump()
+            except Exception as err:
+                print("Error updating korridorer room on to-lounge:", err)
+
+            return 200, {"ok": True, "message": "Returnert til lounge"}
+
+        if rel_path in ("/api/select-game", "/api/start-game"):
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
             host_token = str(body.get("hostToken") or "").strip()
             game_id = body.get("gameId")  # e.g. "ordbombe" or None for lobby
             settings = body.get("settings") or {}
@@ -1134,7 +1201,26 @@ class PartyAPI:
                 return 404, {"ok": False, "error": "Rommet finnes ikke"}
 
             with room.lock:
-                if room.host_token != host_token:
+                is_host_req = bool(room.host_token and room.host_token == host_token)
+                # Allow returning to lobby if host OR if game is finished
+                if game_id is None:
+                    room.current_game = None
+                    room.game_state = {}
+                    room.bump()
+                    try:
+                        from games.sjakk.api import _rooms as sjakk_rooms
+                        with _rooms_lock:
+                            if code in sjakk_rooms:
+                                s_room = sjakk_rooms[code]
+                                with s_room.lock:
+                                    s_room.status = "finished"
+                                    s_room.result_reason = "Partiet ble avsluttet (returnert til Party Lounge)."
+                                    s_room.bump()
+                    except Exception:
+                        pass
+                    return 200, {"ok": True, "currentGame": None}
+
+                if not is_host_req:
                     return 403, {"ok": False, "error": "Bare romverten kan starte eller bytte spill"}
 
                 if game_id == "ordbombe":
@@ -1143,60 +1229,71 @@ class PartyAPI:
                     room.start_tegn_og_gjett(settings)
                 elif game_id == "sjakk":
                     room.current_game = "sjakk"
-                    room.game_state = {"settings": settings}
+                    room.game_state = {"settings": settings, "status": "active"}
                     try:
                         from games.sjakk.api import _rooms as sjakk_rooms, SjakkRoom
                         with _rooms_lock:
-                            if code not in sjakk_rooms:
-                                host_player = room.players.get(room.host_id, {})
-                                time_ctrl = int(settings.get("timeControl", 300))
-                                s_room = SjakkRoom(
-                                    code=code,
-                                    host_name=host_player.get("name", "Hvit"),
-                                    host_avatar=host_player.get("avatar", "charbear"),
-                                    time_control=time_ctrl
-                                )
-                                s_room.host_id = room.host_id
-                                s_room.white_player["id"] = room.host_id
-                                sjakk_rooms[code] = s_room
+                            host_player = room.players.get(room.host_id, {})
+                            time_ctrl = int(settings.get("timeControl", 300))
+                            s_room = SjakkRoom(
+                                code=code,
+                                host_name=host_player.get("name", "Hvit"),
+                                host_avatar=host_player.get("avatar", "charbear"),
+                                time_control=time_ctrl
+                            )
+                            s_room.host_id = room.host_id
+                            s_room.white_player["id"] = room.host_id
+                            # If second player is in the party, assign as Black
+                            other_players = [p for pid, p in room.players.items() if pid != room.host_id]
+                            if other_players:
+                                p2 = other_players[0]
+                                s_room.black_player = {
+                                    "id": p2["id"],
+                                    "name": p2["name"],
+                                    "avatar": p2["avatar"],
+                                    "color": "b",
+                                    "isHost": False,
+                                    "lastSeen": time.time(),
+                                }
+                                s_room.start_game_if_ready()
+                            sjakk_rooms[code] = s_room
                     except Exception as err:
                         print("Error creating sjakk party room bridge:", err)
                     room.bump()
                 elif game_id == "korridorer":
                     room.current_game = "korridorer"
-                    room.game_state = {"settings": settings}
+                    room.game_state = {"settings": settings, "status": "active"}
                     try:
                         from games.korridorer.api import _rooms as korridorer_rooms, KorridorerRoom, PLAYER_CONFIGS
                         with _rooms_lock:
-                            if code not in korridorer_rooms:
-                                host_player = room.players.get(room.host_id, {})
-                                k_room = KorridorerRoom(
-                                    code=code,
-                                    host_name=host_player.get("name", "Spiller 1"),
-                                    host_avatar=host_player.get("avatar", "charbear"),
-                                    max_players=4
-                                )
-                                k_room.host_id = room.host_id
-                                k_room.players[0]["id"] = room.host_id
-                                for pid, pdata in room.players.items():
-                                    if pid != room.host_id and len(k_room.players) < 4:
-                                        idx = len(k_room.players)
-                                        cfg = PLAYER_CONFIGS[idx]
-                                        k_room.players.append({
-                                            "id": pid,
-                                            "name": pdata.get("name", f"Spiller {idx + 1}"),
-                                            "avatar": pdata.get("avatar", cfg["defaultAvatar"]),
-                                            "color": cfg["color"],
-                                            "colorName": cfg["colorName"],
-                                            "pos": list(cfg["start"]),
-                                            "walls": 10 if len(room.players) == 2 else 5,
-                                            "goalDesc": cfg["goalDesc"],
-                                            "isHost": False,
-                                            "lastSeen": time.time(),
-                                        })
-                                if len(k_room.players) >= 2:
-                                    k_room.start_game()
-                                korridorer_rooms[code] = k_room
+                            host_player = room.players.get(room.host_id, {})
+                            k_room = KorridorerRoom(
+                                code=code,
+                                host_name=host_player.get("name", "Spiller 1"),
+                                host_avatar=host_player.get("avatar", "charbear"),
+                                max_players=4
+                            )
+                            k_room.host_id = room.host_id
+                            k_room.players[0]["id"] = room.host_id
+                            for pid, pdata in room.players.items():
+                                if pid != room.host_id and len(k_room.players) < 4:
+                                    idx = len(k_room.players)
+                                    cfg = PLAYER_CONFIGS[idx]
+                                    k_room.players.append({
+                                        "id": pid,
+                                        "name": pdata.get("name", f"Spiller {idx + 1}"),
+                                        "avatar": pdata.get("avatar", cfg["defaultAvatar"]),
+                                        "color": cfg["color"],
+                                        "colorName": cfg["colorName"],
+                                        "pos": list(cfg["start"]),
+                                        "walls": 10 if len(room.players) == 2 else 5,
+                                        "goalDesc": cfg["goalDesc"],
+                                        "isHost": False,
+                                        "lastSeen": time.time(),
+                                    })
+                            if len(k_room.players) >= 2:
+                                k_room.start_game()
+                            korridorer_rooms[code] = k_room
                     except Exception as err:
                         print("Error creating korridorer party room bridge:", err)
                     room.bump()
@@ -1204,6 +1301,17 @@ class PartyAPI:
                     # Return to lobby
                     room.current_game = None
                     room.game_state = {}
+                    try:
+                        from games.sjakk.api import _rooms as sjakk_rooms
+                        with _rooms_lock:
+                            if code in sjakk_rooms:
+                                s_room = sjakk_rooms[code]
+                                with s_room.lock:
+                                    s_room.status = "finished"
+                                    s_room.result_reason = "Verten avsluttet partiet og returnerte til loungen."
+                                    s_room.bump()
+                    except Exception as s_err:
+                        print("Error updating sjakk room on return to lobby:", s_err)
                     room.bump()
                 else:
                     return 400, {"ok": False, "error": f"Spillet '{game_id}' er under utvikling og ikke tilgjengelig enda."}

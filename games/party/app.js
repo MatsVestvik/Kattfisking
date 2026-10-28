@@ -258,14 +258,7 @@
     el.roomCodeDisplay.textContent = state.roomCode;
     el.hostHint.textContent = state.isHost ? "Du er vert 👑" : `Tilkoblet som ${state.playerName}`;
 
-    // Adjust views depending on whether client is host or normal player
-    if (state.isHost) {
-      el.sectionGameSelector.classList.remove("hidden");
-      el.playerWaitingBox.classList.add("hidden");
-    } else {
-      el.sectionGameSelector.classList.add("hidden");
-      el.playerWaitingBox.classList.remove("hidden");
-    }
+    renderHostVsGuestUI(state.isHost);
 
     // Update URL without reloading
     const newUrl = `${window.location.pathname}?code=${state.roomCode}`;
@@ -377,7 +370,7 @@
             return;
           }
 
-          if (data.currentGame === "sjakk") {
+          if (data.currentGame === "sjakk" && data.gameState?.status !== "finished") {
             // Redirect to Sjakk in room mode!
             const target = `/sjakk/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
             window.location.href = target;
@@ -453,11 +446,44 @@
     });
 
     // If host status changed
-    if (room.isHost && !state.isHost) {
-      state.isHost = true;
-      el.sectionGameSelector.classList.remove("hidden");
+    if (typeof room.isHost === "boolean" && room.isHost !== state.isHost) {
+      state.isHost = room.isHost;
+      renderHostVsGuestUI(state.isHost);
+      el.hostHint.textContent = state.isHost ? "Du er vert 👑" : `Tilkoblet som ${state.playerName}`;
+    }
+  }
+
+  function renderHostVsGuestUI(isHost) {
+    el.sectionGameSelector.classList.remove("hidden");
+    const sectionHint = document.querySelector("#sectionGameSelector .section-hint");
+
+    if (isHost) {
+      el.sectionGameSelector.classList.remove("is-guest-view");
       el.playerWaitingBox.classList.add("hidden");
-      el.hostHint.textContent = "Du er nå vert";
+      if (sectionHint) sectionHint.textContent = "Verten velger spill for hele rommet";
+
+      document.querySelectorAll(".start-game-btn").forEach((btn) => {
+        btn.disabled = false;
+        const originalText = btn.dataset.hostText || btn.textContent;
+        btn.dataset.hostText = originalText;
+        btn.textContent = originalText;
+      });
+      document.querySelectorAll(".lg-settings-inline select").forEach((sel) => {
+        sel.disabled = false;
+      });
+    } else {
+      el.sectionGameSelector.classList.add("is-guest-view");
+      el.playerWaitingBox.classList.remove("hidden");
+      if (sectionHint) sectionHint.textContent = "Tilgjengelige partyspill (Verten velger spill):";
+
+      document.querySelectorAll(".start-game-btn").forEach((btn) => {
+        if (!btn.dataset.hostText) btn.dataset.hostText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Venter på vert 👑";
+      });
+      document.querySelectorAll(".lg-settings-inline select").forEach((sel) => {
+        sel.disabled = true;
+      });
     }
   }
 
@@ -600,7 +626,7 @@
         el.btnStartKorridorer.disabled = true;
         el.btnStartKorridorer.textContent = "Starter spill…";
 
-        const resp = await fetch("/api/party/start-game", {
+        const resp = await fetch("/api/party/select-game", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -698,7 +724,13 @@
   // Initialization: check query params (?code=ABCD or ?room=ABCD or ?tab=create)
   const urlParams = new URLSearchParams(window.location.search);
   const codeParam = (urlParams.get("code") || urlParams.get("room") || "").trim().toUpperCase();
+  const playerParam = (urlParams.get("player") || urlParams.get("playerId") || "").trim();
   const tabParam = (urlParams.get("tab") || urlParams.get("action") || "").trim().toLowerCase();
+
+  if (codeParam && playerParam) {
+    sessionStorage.setItem("party_room_code", codeParam);
+    sessionStorage.setItem("party_player_id", playerParam);
+  }
 
   const savedName = localStorage.getItem("spillhjornet_player_name") || sessionStorage.getItem("party_player_name") || "";
   if (savedName) {

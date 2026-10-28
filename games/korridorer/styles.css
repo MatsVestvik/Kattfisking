@@ -2279,6 +2279,14 @@ body {
 .victory-trophy {
   font-size: 3rem;
   margin-bottom: 0.5rem;
+}
+
+.pixel-trophy-img {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: inline-block;
   animation: trophyFloat 2s ease-in-out infinite;
 }
 

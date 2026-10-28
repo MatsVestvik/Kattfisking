@@ -1139,7 +1139,7 @@
         `;
       } else {
         step.innerHTML = `
-          <div style="font-size: 1.5rem; opacity: 0.3;">👤</div>
+          <div style="margin-bottom: 0.25rem;"><img src="/emptyTrophy.png" style="width: 28px; height: 28px; image-rendering: pixelated; opacity: 0.35;" alt="Tom plass" /></div>
           <div class="podium-pillar" style="opacity: 0.4;">${item.rankNum}</div>
           <div class="podium-player-name" style="opacity: 0.4;">–</div>
         `;
