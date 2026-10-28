@@ -702,6 +702,17 @@ body {
   z-index: 1;
 }
 
+.bomb-sparks-canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  height: 280px;
+  pointer-events: none;
+  z-index: 2;
+}
+
 /* Prompt box in center of bomb body */
 .prompt-box {
   position: absolute;

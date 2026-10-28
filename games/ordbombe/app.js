@@ -160,11 +160,13 @@
   class SparksParticleSystem {
     constructor(canvas) {
       this.canvas = canvas;
-      this.ctx = canvas.getContext("2d");
+      this.ctx = (canvas && typeof canvas.getContext === "function") ? canvas.getContext("2d") : null;
       this.particles = [];
       this.active = false;
       this.loop = this.loop.bind(this);
-      requestAnimationFrame(this.loop);
+      if (this.canvas && this.ctx) {
+        requestAnimationFrame(this.loop);
+      }
     }
 
     start() {
@@ -176,6 +178,7 @@
     }
 
     explode(count = 50) {
+      if (!this.canvas || !this.ctx) return;
       const originX = this.canvas.width / 2;
       const originY = 130;
       for (let i = 0; i < count; i++) {
@@ -195,6 +198,7 @@
     }
 
     loop() {
+      if (!this.canvas || !this.ctx) return;
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
       if (this.active) {
