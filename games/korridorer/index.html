@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Korridorer – Taktisk labyrintduell for 2–4 spillere | NTNU Games</title>
+  <meta name="description"
+    content="Spill Korridorer (Quoridor) for 2–4 spillere online, på samme skjerm, eller mot bots. Flytt monsteret ditt over brettet eller sett opp vegger for å sperre motstanderne ute!" />
+  <link rel="icon" type="image/png" href="/hub/assets/icons/korridorer.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/hub/parallax-bg.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- Ambient Parallax Dynamic Background Canvas -->
+  <div id="parallax-bg" class="parallax-container" aria-hidden="true"></div>
+
+  <!-- App Wrapper -->
+  <div class="korridorer-app" id="app">
+    <!-- Top Header Navigation -->
+    <header class="app-header">
+      <div class="header-left">
+        <a href="/" class="btn-back" title="Tilbake til Spillhjørnet Hub">
+          <span class="back-arrow" aria-hidden="true">←</span> Hub
+        </a>
+        <div class="header-branding">
+          <img src="/hub/assets/icons/korridorer.png" class="header-game-icon" alt="" aria-hidden="true" />
+          <div>
+            <h1 class="header-title">KORRIDORER</h1>
+            <span class="header-badge">2–4 Spillere</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button type="button" class="icon-btn" id="btnAudioToggle" title="Skru av/på lydeffekter" aria-label="Lyd">
+          <span id="audioIcon">🔊</span>
+        </button>
+        <button type="button" class="icon-btn" id="btnRulesModal" title="Spilleregler &amp; Tips" aria-label="Hjelp">
+          <span>❓</span> Regler
+        </button>
+        <button type="button" class="btn-leave-room hidden" id="btnLeaveRoomHeader">
+          Forlat rom
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="app-main">
+      <!-- ============================================== -->
+      <!-- VIEW 1: LOBBY & MODE SELECTION                 -->
+      <!-- ============================================== -->
+      <section class="view-panel" id="viewLobby">
+        <div class="lobby-card">
+          <div class="lobby-hero">
+            <div class="hero-icon-wrap">
+              <img src="/hub/assets/icons/korridorer.png" alt="Korridorer spill-ikon" class="hero-icon" />
+            </div>
+            <h2 class="hero-title">Taktisk Labyrintduell</h2>
+            <p class="hero-desc">
+              Flytt ditt utvalgte monster til motsatt side av brettet, eller bygg vegger for å sperre motstanderne!
+            </p>
+          </div>
+
+          <!-- Mode Navigation Tabs -->
+          <div class="lobby-tabs" role="tablist">
+            <button type="button" class="lobby-tab-btn active" id="tabOnline" role="tab" aria-selected="true">
+              🌐 Nettspill
+            </button>
+            <button type="button" class="lobby-tab-btn" id="tabLocal" role="tab" aria-selected="false">
+              🛋️ Samme skjerm
+            </button>
+            <button type="button" class="lobby-tab-btn" id="tabBot" role="tab" aria-selected="false">
+              🤖 Mot Bot
+            </button>
+          </div>
+
+          <!-- TAB 1: Online Multiplayer Panel -->
+          <div class="tab-panel active" id="panelOnline">
+            <div class="online-lobby-deck">
+              <!-- Top Unified Profile Card -->
+              <div class="online-profile-card">
+                <div class="opc-header">
+                  <div class="opc-title-group">
+                    <span class="opc-badge">👤 Spillerprofil</span>
+                    <h3 class="opc-title">Ditt navn & monster</h3>
+                  </div>
+                  <span class="opc-hint">Gjelder for både opprettelse og tilkobling</span>
+                </div>
+
+                <div class="opc-grid">
+                  <div class="form-group opc-name-col">
+                    <label for="createPlayerName">Ditt kallenavn</label>
+                    <div class="avatar-input-combo">
+                      <div class="avatar-circle-preview">
+                        <img src="/assets/mons/charbear.png" id="onlineAvatarPreview" alt="Valgt monster" />
+                      </div>
+                      <input type="text" id="createPlayerName" class="text-input" maxlength="18"
+                        placeholder="Skriv inn navn..." value="Spiller 1" required />
+                    </div>
+                    <!-- Hidden input to keep joinPlayerName in sync for JS -->
+                    <input type="hidden" id="joinPlayerName" value="Spiller 1" />
+                  </div>
+
+                  <div class="form-group opc-sprites-col">
+                    <label>Velg ditt monster på brettet</label>
+                    <div class="sprite-picker-grid" id="pickerCreateSprite">
+                      <!-- Rendered via JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Action Gateways: Create vs Join -->
+              <div class="online-split">
+                <!-- Create Room Card -->
+                <div class="action-box card-theme-amber">
+                  <div class="action-box-header">
+                    <div class="box-badge-row">
+                      <span class="action-card-badge badge-amber">👑 Romvert</span>
+                    </div>
+                    <h3 class="box-title">Opprett nytt parti</h3>
+                    <p class="box-desc">Start et parti og inviter venner med 4-bokstavskode eller direktelenke.</p>
+                  </div>
+
+                  <div class="action-box-content">
+                    <div class="form-group">
+                      <label>Antall spillere i partiet</label>
+                      <div class="segmented-control" id="controlPlayerCount">
+                        <button type="button" class="seg-btn" data-count="2">2 spillere</button>
+                        <button type="button" class="seg-btn" data-count="3">3 spillere</button>
+                        <button type="button" class="seg-btn active" data-count="4">4 spillere</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="button" class="primary-btn pulse-glow" id="btnSubmitCreate">
+                    ✨ Opprett rom
+                  </button>
+                </div>
+
+                <!-- Join Room Card -->
+                <div class="action-box card-theme-cyan">
+                  <div class="action-box-header">
+                    <div class="box-badge-row">
+                      <span class="action-card-badge badge-cyan">🚀 Bli med</span>
+                    </div>
+                    <h3 class="box-title">Bli med med kode</h3>
+                    <p class="box-desc">Skriv inn koden du har fått fra romverten eller Party Lounge.</p>
+                  </div>
+
+                  <div class="action-box-content">
+                    <div class="form-group">
+                      <label for="joinRoomCode">4-bokstavs romkode</label>
+                      <input type="text" id="joinRoomCode" class="text-input code-input" maxlength="6"
+                        placeholder="F.EKS. VEGG" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                        required />
+                    </div>
+                  </div>
+
+                  <button type="button" class="secondary-btn btn-cyan-accent" id="btnSubmitJoin">
+                    🚀 Koble til parti
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Local Pass & Play Panel -->
+          <div class="tab-panel hidden" id="panelLocal">
+            <div class="action-box single-box">
+              <h3 class="box-title">Spill 2–4 spillere på samme skjerm</h3>
+              <p class="box-desc">
+                Send telefonen, laptopen eller iPaden rundt i hybelen eller sofaen!
+              </p>
+
+              <div class="form-group">
+                <label>Antall spillere</label>
+                <div class="segmented-control" id="controlLocalCount">
+                  <button type="button" class="seg-btn active" data-count="2">2 spillere</button>
+                  <button type="button" class="seg-btn" data-count="3">3 spillere</button>
+                  <button type="button" class="seg-btn" data-count="4">4 spillere</button>
+                </div>
+              </div>
+
+              <!-- Player configuration rows -->
+              <div class="local-players-list" id="localPlayersList">
+                <!-- Rendered dynamically via JS for 2 to 4 players -->
+              </div>
+
+              <button type="button" class="primary-btn pulse-glow" id="btnStartLocal">
+                🎮 Start lokalt parti
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 3: Solo vs AI Panel -->
+          <div class="tab-panel hidden" id="panelBot">
+            <div class="action-box single-box">
+              <h3 class="box-title">Spill mot datamaskinen</h3>
+              <p class="box-desc">
+                Tren opp labyrintferdighetene dine mot datastyrte motstandere med smart veivalg og blokkerings-taktikk.
+              </p>
+
+              <div class="form-group">
+                <label for="botPlayerName">Ditt kallenavn</label>
+                <input type="text" id="botPlayerName" class="text-input" maxlength="18" value="Mester" />
+              </div>
+
+              <div class="form-group">
+                <label>Ditt monster</label>
+                <div class="sprite-picker-grid" id="pickerBotSprite">
+                  <!-- Rendered via JS -->
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Antall motstandere</label>
+                <div class="segmented-control" id="controlBotCount">
+                  <button type="button" class="seg-btn active" data-count="2">1 mot 1 (2 spillere)</button>
+                  <button type="button" class="seg-btn" data-count="4">Alle mot alle (4 spillere)</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Vanskelighetsgrad</label>
+                <div class="segmented-control" id="controlBotDiff">
+                  <button type="button" class="seg-btn" data-diff="easy">Rekrutt (Enkel)</button>
+                  <button type="button" class="seg-btn active" data-diff="hard">Mester (Taktisk)</button>
+                </div>
+              </div>
+
+              <button type="button" class="primary-btn pulse-glow" id="btnStartBot">
+                ⚔️ Start soloduel
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 2: ONLINE WAITING ROOM LOBBY              -->
+      <!-- ============================================== -->
+      <section class="view-panel hidden" id="viewWaitingRoom">
+        <div class="waiting-card">
+          <div class="waiting-header">
+            <div>
+              <span class="room-code-tag">Romkode</span>
+              <div class="room-code-display" id="dispRoomCode">----</div>
+            </div>
+            <div class="waiting-actions">
+              <button type="button" class="share-btn" id="btnCopyInviteLink">
+                🔗 Kopier lenke
+              </button>
+            </div>
+          </div>
+
+          <p class="waiting-subtitle" id="dispWaitingSubtitle">
+            Venter på at motspillerne skal bli med… (2–4 spillere)
+          </p>
+
+          <!-- 4 Player Slots Grid -->
+          <div class="player-slots-grid" id="containerWaitingSlots">
+            <!-- Rendered via JS -->
+          </div>
+
+          <!-- Host controls -->
+          <div class="waiting-footer">
+            <div class="waiting-footer-actions">
+              <button type="button" class="secondary-btn btn-add-bot" id="btnAddBotOnline">
+                🤖 + Legg til bot
+              </button>
+              <button type="button" class="primary-btn start-game-btn pulse-glow" id="btnHostStartOnline">
+                🎮 Start spill nå
+              </button>
+            </div>
+            <p class="hint-text" id="dispHostHint">
+              Romvert kan starte spillet (hvis du er alene legges en bot automatisk til).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 3: ACTIVE GAMEPLAY BOARD ARENA             -->
+      <!-- ============================================== -->
+      <section class="view-panel hidden" id="viewGame">
+        <div class="game-layout">
+          <!-- Top Status Bar & Turn Announcement -->
+          <div class="game-top-bar">
+            <div class="turn-announcer" id="turnAnnouncer">
+              <div class="turn-pawn-preview" id="turnPawnPreview">
+                <img src="/assets/mons/charbear.png" id="turnPawnImg" alt="" />
+              </div>
+              <div class="turn-text-group">
+                <span class="turn-label" id="turnLabel">DIN TUR!</span>
+                <span class="turn-sub" id="turnSub">Klikk en rute for å flytte, eller velg en vegg.</span>
+              </div>
+            </div>
+
+            <!-- Quick Mode Indicator / Switcher -->
+            <div class="mode-toggles">
+              <button type="button" class="mode-btn active" id="btnModePawn" title="Flytt brikken din">
+                ♟️ Flytt brikke
+              </button>
+              <button type="button" class="mode-btn" id="btnModeWall" title="Plasser en sperrevegg">
+                🧱 Bygg vegg (<span id="btnWallsCount">10</span>)
+              </button>
+              <button type="button" class="icon-sub-btn" id="btnRotateWall" title="Roter vegg (Tast: R / Mellomrom)">
+                🔄 <span id="labelOrientation">Horisontal</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Center Stage: Players Panels + 9x9 Board -->
+          <div class="arena-stage">
+            <!-- Left / Top Players Cards (P1 & P3) -->
+            <div class="players-column col-left" id="colPlayersLeft">
+              <!-- Dynamic player cards rendered via JS -->
+            </div>
+
+            <!-- The Quoridor Board Wrapper -->
+            <div class="board-outer-container">
+              <!-- Edge Goal Indicators for P1, P2, P3, P4 -->
+              <div class="goal-indicator goal-north" id="goalNorth" title="Mållinje for Spiller 1 (Rød)">
+                <span>MÅLLINJE RAD 0</span>
+              </div>
+              <div class="goal-indicator goal-south" id="goalSouth" title="Mållinje for Spiller 2 (Cyan)">
+                <span>MÅLLINJE RAD 8</span>
+              </div>
+              <div class="goal-indicator goal-west" id="goalWest" title="Mållinje for Spiller 4 (Lilla)">
+                <span>MÅLLINJE KOL 0</span>
+              </div>
+              <div class="goal-indicator goal-east" id="goalEast" title="Mållinje for Spiller 3 (Grønn)">
+                <span>MÅLLINJE KOL 8</span>
+              </div>
+
+              <!-- Interactive 9x9 Board Grid -->
+              <div class="board-grid-wrapper" id="boardWrapper">
+                <div class="board-cells" id="boardCells">
+                  <!-- 81 tiles generated via JS -->
+                </div>
+                <div class="board-walls-layer" id="boardWallsLayer">
+                  <!-- Placed and preview walls rendered here -->
+                </div>
+                <div class="board-grooves-layer" id="boardGroovesLayer">
+                  <!-- 8x8 intersection slots for hover & touch wall placement -->
+                </div>
+
+                <!-- Floating On-Board Wall Confirmation & Rotation Toolbar -->
+                <div class="floating-wall-toolbar hidden" id="floatingWallToolbar">
+                  <button type="button" class="fwt-btn fwt-rotate" id="btnFloatRotate" title="Roter 90° (Tast: R / Mellomrom / Høyreklikk)">
+                    <span class="fwt-icon">🔄</span> Roter
+                  </button>
+                  <button type="button" class="fwt-btn fwt-confirm" id="btnFloatConfirm" title="Plasser vegg her (Tast: Enter)">
+                    <span class="fwt-icon">✓</span> Plasser
+                  </button>
+                  <button type="button" class="fwt-btn fwt-cancel" id="btnFloatCancel" title="Avbryt (Tast: Esc)">
+                    ✕
+                  </button>
+                </div>
+
+                <!-- Floating Wall Error/Warning Tooltip -->
+                <div class="ghost-wall-tooltip hidden" id="ghostWallTooltip"></div>
+              </div>
+            </div>
+
+            <!-- Right / Bottom Players Cards (P2 & P4) -->
+            <div class="players-column col-right" id="colPlayersRight">
+              <!-- Dynamic player cards rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Modern Ergonomic Action Command Dock -->
+          <div class="game-action-dock" id="gameActionDock">
+            <div class="dock-mode-group">
+              <button type="button" class="dock-btn active" id="btnDockPawn" title="Flytt monsteret ditt til en ledig rute (Tast: V / Piltaster)">
+                <span class="dock-btn-icon">♟️</span>
+                <div class="dock-btn-text">
+                  <span class="dock-btn-title">Flytt brikke</span>
+                  <span class="dock-btn-sub">Klikk en rute eller bruk piltaster</span>
+                </div>
+              </button>
+              <button type="button" class="dock-btn" id="btnDockWall" title="Bygg en 2-ruters sperrevegg på brettet (Tast: V)">
+                <span class="dock-btn-icon">🧱</span>
+                <div class="dock-btn-text">
+                  <span class="dock-btn-title">Bygg vegg</span>
+                  <span class="dock-btn-sub"><strong id="dockWallsLeft">10</strong> vegger igjen</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="dock-wall-options" id="dockWallOptions">
+              <button type="button" class="dock-rotate-btn" id="btnDockRotate" title="Roter vegg mellom horisontal og vertikal (Tast: R / Mellomrom / Høyreklikk)">
+                <span class="rotate-icon">🔄</span>
+                <div class="rotate-info">
+                  <span class="rotate-title" id="dockRotateTitle">Retning: Horisontal</span>
+                  <span class="rotate-hint">Tast: <strong>R</strong> • Høyreklikk • Rullehjul</span>
+                </div>
+                <span class="rotate-preview-badge" id="dockRotateBadge">↔</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Game Bottom Controls & Chat/Reactions Bar -->
+          <div class="game-bottom-bar">
+            <div class="reactions-bar">
+              <span class="reactions-title">Reaksjon:</span>
+              <button type="button" class="reaction-chip" data-emoji="🔥">🔥</button>
+              <button type="button" class="reaction-chip" data-emoji="😂">😂</button>
+              <button type="button" class="reaction-chip" data-emoji="🧱">🧱</button>
+              <button type="button" class="reaction-chip" data-emoji="⚡">⚡</button>
+              <button type="button" class="reaction-chip" data-emoji="😱">😱</button>
+              <button type="button" class="reaction-chip" data-emoji="👏">👏</button>
+            </div>
+
+            <div class="game-control-buttons">
+              <button type="button" class="btn-subtle" id="btnRestartGame">
+                🔄 Omstart
+              </button>
+              <button type="button" class="btn-subtle" id="btnBackToLobby">
+                🚪 Til lobby
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Floating Chat Notification Toast Overlay -->
+    <div class="chat-toast-container" id="chatToastContainer" aria-live="polite"></div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 1: GAME RULES MODAL                      -->
+    <!-- ============================================== -->
+    <div class="modal-backdrop hidden" id="modalRules" role="dialog" aria-modal="true"
+      aria-labelledby="rulesTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="rulesTitle">Slik spiller du Korridorer</h3>
+          <button type="button" class="modal-close-btn" id="btnCloseRules" aria-label="Lukk">✕</button>
+        </div>
+        <div class="modal-body rules-content">
+          <div class="rule-block">
+            <div class="rule-icon">🎯</div>
+            <div>
+              <h4>Målet med spillet</h4>
+              <p>Førstemann som fører monsteret sitt til en hvilken som helst rute på motsatt side av brettet vinner!
+              </p>
+            </div>
+          </div>
+
+          <div class="rule-block">
+            <div class="rule-icon">♟️</div>
+            <div>
+              <h4>Hver tur har du ett valg:</h4>
+              <p><strong>1. Flytt monsteret:</strong> Flytt ett steg ortogonalt (opp, ned, venstre eller høyre).</p>
+              <p><strong>2. Bygg en vegg:</strong> Plasser en 2-ruters vegg for å bremse eller lede motstanderne inn i
+                en blindvei!</p>
+            </div>
+          </div>
+
+          <div class="rule-block">
+            <div class="rule-icon">🦘</div>
+            <div>
+              <h4>Hoppe over motstandere</h4>
+              <p>Hvis du står rett foran et annet monster uten vegg mellom dere, kan du <strong>hoppe rett over</strong>
+                det! Hvis det er en vegg bak motstanderen, kan du hoppe <strong>diagonalt</strong> til en av sidene.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule-block">
+            <div class="rule-icon">🚫</div>
+            <div>
+              <h4>Den gylne regelen for vegger</h4>
+              <p>Det er <strong>strengt forbudt</strong> å mure en motspiller helt inne. Det må alltid finnes minst én
+                åpen sti til mållinjen for samtlige spillere på brettet!</p>
+            </div>
+          </div>
+
+          <div class="rule-block">
+            <div class="rule-icon">⌨️</div>
+            <div>
+              <h4>Hurtigtaster</h4>
+              <p>Trykk <strong>R</strong> eller <strong>Mellomrom</strong> for å rotere veggen. Trykk
+                <strong>V</strong> for å bytte mellom brikkeflytt og veggbygging.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="primary-btn" id="btnDismissRules">Skjønner, la oss spille!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 2: VICTORY & GAME OVER MODAL             -->
+    <!-- ============================================== -->
+    <div class="modal-backdrop hidden" id="modalVictory" role="dialog" aria-modal="true"
+      aria-labelledby="victoryTitle">
+      <div class="modal-card victory-card">
+        <div class="victory-confetti" id="confettiContainer" aria-hidden="true"></div>
+        <div class="victory-trophy">👑</div>
+        <div class="victory-winner-avatar-wrap">
+          <img src="/assets/mons/charbear.png" id="victoryWinnerImg" class="victory-winner-img" alt="Vinner-monster" />
+        </div>
+        <h2 class="victory-title" id="victoryTitle">Gratulerer!</h2>
+        <p class="victory-desc" id="victoryDesc">Spiller 1 nådde målet først og vant partiet!</p>
+
+        <div class="victory-stats" id="victoryStats">
+          <div class="vstat-item">
+            <span class="vstat-num" id="statTurnCount">0</span>
+            <span class="vstat-lbl">Trekk spilt</span>
+          </div>
+          <div class="vstat-item">
+            <span class="vstat-num" id="statWallsPlaced">0</span>
+            <span class="vstat-lbl">Vegger bygd</span>
+          </div>
+        </div>
+
+        <div class="victory-actions">
+          <button type="button" class="primary-btn pulse-glow" id="btnVictoryRematch">
+            🔄 Spill omkamp
+          </button>
+          <button type="button" class="secondary-btn" id="btnVictoryLobby">
+            🚪 Tilbake til lobby
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Parallax Logic -->
+  <script src="/hub/parallax-bg.js"></script>
+  <!-- Main Game App Script -->
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -73,6 +73,7 @@
     selectRoundsDraw: document.getElementById("selectRoundsDraw"),
     btnStartSjakk: document.getElementById("btnStartSjakk"),
     selectTimerSjakk: document.getElementById("selectTimerSjakk"),
+    btnStartKorridorer: document.getElementById("btnStartKorridorer"),
     btnLeaveRoom: document.getElementById("btnLeaveRoom"),
     connStatusText: document.getElementById("connStatusText"),
   };
@@ -317,6 +318,13 @@
             window.location.href = target;
             return;
           }
+
+          if (data.currentGame === "korridorer") {
+            // Redirect to Korridorer in room mode!
+            const target = `/korridorer/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
+            window.location.href = target;
+            return;
+          }
         }
       } catch (err) {
         console.warn("Poll connection hiccup:", err);
@@ -490,6 +498,44 @@
         alert("Feil ved start av spill.");
         el.btnStartSjakk.disabled = false;
         el.btnStartSjakk.textContent = "Start Sjakk";
+      }
+    });
+  }
+
+  // Host launches Korridorer
+  if (el.btnStartKorridorer) {
+    el.btnStartKorridorer.addEventListener("click", async () => {
+      if (!state.isHost || !state.roomCode) return;
+      try {
+        el.btnStartKorridorer.disabled = true;
+        el.btnStartKorridorer.textContent = "Starter spill…";
+
+        const resp = await fetch("/api/party/start-game", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            hostToken: state.hostToken,
+            gameId: "korridorer",
+            settings: {},
+          }),
+        });
+
+        const data = await resp.json();
+        if (!data.ok) {
+          alert(data.error || "Kunne ikke starte Korridorer.");
+          el.btnStartKorridorer.disabled = false;
+          el.btnStartKorridorer.textContent = "Start Korridorer";
+          return;
+        }
+
+        // Transition self immediately
+        window.location.href = `/korridorer/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
+      } catch (err) {
+        console.error(err);
+        alert("Feil ved start av spill.");
+        el.btnStartKorridorer.disabled = false;
+        el.btnStartKorridorer.textContent = "Start Korridorer";
       }
     });
   }

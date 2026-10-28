@@ -22,10 +22,10 @@ if ss -tulpn 2>/dev/null | grep -q ":$PORT " || lsof -i ":$PORT" >/dev/null 2>&1
   exit 0
 fi
 
-if command -v node >/dev/null 2>&1; then
-  echo "Starter Kattfisking med Node.js på port $PORT..."
-  exec node server.js
-else
-  echo "Starter Kattfisking med Python 3 på port $PORT..."
+if command -v python3 >/dev/null 2>&1; then
+  echo "Starter NTNU Games med Python 3 på port $PORT..."
   exec python3 server.py
+elif command -v node >/dev/null 2>&1; then
+  echo "Starter NTNU Games med Node.js på port $PORT..."
+  exec node server.js
 fi

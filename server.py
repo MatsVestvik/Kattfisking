@@ -19,6 +19,7 @@ from games.geoguesser import GeoguesserAPI
 from games.ordbombe import OrdbombeAPI
 from games.party import PartyAPI
 from games.sjakk import SjakkAPI
+from games.korridorer import KorridorerAPI
 
 PORT = int(os.environ.get("PORT", "3000"))
 HOST = os.environ.get("HOST", "0.0.0.0")
@@ -109,7 +110,13 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                 if res:
                     return self._send_json(res[1], status=res[0])
 
-            # 7. Static files
+            # 7. Check Korridorer API
+            if path.startswith("/api/korridorer/"):
+                res = KorridorerAPI.handle_get(path, query)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 8. Static files
             self.serve_static(path, head_only=head_only)
 
         except Exception as exc:
@@ -160,6 +167,12 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
             # 6. Check Sjakk API
             if path.startswith("/api/sjakk/"):
                 res = SjakkAPI.handle_post(path, body)
+                if res:
+                    return self._send_json(res[1], status=res[0])
+
+            # 7. Check Korridorer API
+            if path.startswith("/api/korridorer/"):
+                res = KorridorerAPI.handle_post(path, body)
                 if res:
                     return self._send_json(res[1], status=res[0])
 
@@ -287,6 +300,8 @@ def main() -> None:
     print(f"   • Kattfisking:  http://{HOST}:{PORT}/kattfisking/")
     print(f"   • Mer/Mindre:   http://{HOST}:{PORT}/mer-eller-mindre/")
     print(f"   • Ordbombe:     http://{HOST}:{PORT}/ordbombe/ (Partyspill)")
+    print(f"   • Sjakk:        http://{HOST}:{PORT}/sjakk/ (2 spillere)")
+    print(f"   • Korridorer:   http://{HOST}:{PORT}/korridorer/ (2-4 spillere)")
     print(f"   • NTNU guesser: http://{HOST}:{PORT}/geoguesser/ (under utvikling)\n")
 
     try:

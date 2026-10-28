@@ -1042,6 +1042,44 @@ class PartyAPI:
                     except Exception as err:
                         print("Error creating sjakk party room bridge:", err)
                     room.bump()
+                elif game_id == "korridorer":
+                    room.current_game = "korridorer"
+                    room.game_state = {"settings": settings}
+                    try:
+                        from games.korridorer.api import _rooms as korridorer_rooms, KorridorerRoom, PLAYER_CONFIGS
+                        with _rooms_lock:
+                            if code not in korridorer_rooms:
+                                host_player = room.players.get(room.host_id, {})
+                                k_room = KorridorerRoom(
+                                    code=code,
+                                    host_name=host_player.get("name", "Spiller 1"),
+                                    host_avatar=host_player.get("avatar", "charbear"),
+                                    max_players=4
+                                )
+                                k_room.host_id = room.host_id
+                                k_room.players[0]["id"] = room.host_id
+                                for pid, pdata in room.players.items():
+                                    if pid != room.host_id and len(k_room.players) < 4:
+                                        idx = len(k_room.players)
+                                        cfg = PLAYER_CONFIGS[idx]
+                                        k_room.players.append({
+                                            "id": pid,
+                                            "name": pdata.get("name", f"Spiller {idx + 1}"),
+                                            "avatar": pdata.get("avatar", cfg["defaultAvatar"]),
+                                            "color": cfg["color"],
+                                            "colorName": cfg["colorName"],
+                                            "pos": list(cfg["start"]),
+                                            "walls": 10 if len(room.players) == 2 else 5,
+                                            "goalDesc": cfg["goalDesc"],
+                                            "isHost": False,
+                                            "lastSeen": time.time(),
+                                        })
+                                if len(k_room.players) >= 2:
+                                    k_room.start_game()
+                                korridorer_rooms[code] = k_room
+                    except Exception as err:
+                        print("Error creating korridorer party room bridge:", err)
+                    room.bump()
                 elif game_id is None:
                     # Return to lobby
                     room.current_game = None

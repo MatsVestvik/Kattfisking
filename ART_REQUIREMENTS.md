@@ -51,6 +51,7 @@ NTNU Games skal ikke føles som en samling tilfeldige, AI-genererte webmaler. Pl
 | `ntnu_guesser.png` | **NTNU guesser** | Antikk pikslet campus-kompass i messing med rød/blå kompassnål. | Eksisterer (64×64) |
 | `ordbombe.png` | **Ordbombe** | Klassisk rund, kullsvart tegneserie-bombe med tent, gnistrende lunte. Gjennomsiktig bakgrunn. | Eksisterer (64×64) |
 | `tegn_og_gjett.png` | **Tegn & Gjett** | Pikslet staffeli i tre med fargeklatt-palett og malerpensel med fargesprut. Gjennomsiktig bakgrunn. | Eksisterer (64×64) |
+| `korridorer.png` | **Korridorer** | Pikslet labyrint-rutenett med sperrevegger og monsterbrikke. Gjennomsiktig bakgrunn. | Eksisterer (64×64) |
 
 ---
 

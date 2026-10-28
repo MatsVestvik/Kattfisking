@@ -431,6 +431,18 @@ body {
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(239, 71, 111, 0.28);
 }
 
+.game-card.card-amber {
+  background: radial-gradient(circle at 85% 75%, rgba(245, 158, 11, 0.14) 0%, transparent 60%), rgba(19, 27, 46, 0.86);
+}
+.game-card.card-amber:hover {
+  border-color: #f59e0b;
+  background: radial-gradient(circle at 85% 75%, rgba(245, 158, 11, 0.25) 0%, transparent 65%), rgba(23, 34, 59, 0.94);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 28px rgba(245, 158, 11, 0.28);
+}
+.game-card.card-amber .card-btn {
+  color: #fbbf24;
+}
+
 /* Party Lobby Hub Banner */
 .party-lobby-hub-banner {
   background: linear-gradient(135deg, rgba(251, 133, 0, 0.14), rgba(131, 56, 236, 0.16));

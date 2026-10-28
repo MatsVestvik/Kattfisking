@@ -449,8 +449,11 @@ print(json.dumps(res, ensure_ascii=False))
 server.listen(PORT, HOST, () => {
   console.log(`🎮 NTNU Games (Node.js) kjører på http://${HOST}:${PORT}`);
   console.log(`   • Hub:          http://${HOST}:${PORT}/`);
+  console.log(`   • Party Lobby:  http://${HOST}:${PORT}/party/ (Rom & multi-enhet)`);
   console.log(`   • Kattfisking:  http://${HOST}:${PORT}/kattfisking/`);
   console.log(`   • Mer/Mindre:   http://${HOST}:${PORT}/mer-eller-mindre/`);
   console.log(`   • Ordbombe:     http://${HOST}:${PORT}/ordbombe/ (Partyspill)`);
+  console.log(`   • Sjakk:        http://${HOST}:${PORT}/sjakk/ (2 spillere)`);
+  console.log(`   • Korridorer:   http://${HOST}:${PORT}/korridorer/ (2-4 spillere)`);
   console.log(`   • NTNU guesser: http://${HOST}:${PORT}/geoguesser/ (under utvikling)\n`);
 });
