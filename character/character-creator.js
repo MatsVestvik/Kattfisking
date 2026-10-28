@@ -145,7 +145,14 @@
       "mouth/mouth_0008.png",
       "mouth/mouth_0009.png"
     ];
-    preloadingPromise = Promise.all(files.map(preloadImage)).catch(() => {});
+    preloadingPromise = Promise.all(files.map(preloadImage))
+      .then(() => {
+        dataUrlCache.clear();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("character-creator-ready"));
+        }
+      })
+      .catch(() => {});
     return preloadingPromise;
   }
 
@@ -303,6 +310,24 @@
     if (headImg && headImg.complete) {
       const tinted = createTintedHeadCanvas(headImg, cfg.headColor);
       ctx.drawImage(tinted, 0, 0, canvas.width, canvas.height);
+    } else {
+      canvas.__incomplete = true;
+      ctx.fillStyle = cfg.headColor || "#ffd166";
+      ctx.beginPath();
+      ctx.arc(32, 32, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      // Simple face fallback
+      ctx.fillStyle = "#111827";
+      ctx.beginPath();
+      ctx.arc(24, 28, 3, 0, Math.PI * 2);
+      ctx.arc(40, 28, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(32, 36, 6, 0, Math.PI);
+      ctx.stroke();
     }
 
     // 2. Mouth
@@ -311,6 +336,8 @@
       const mouthImg = imageCache.get(mouthFile);
       if (mouthImg && mouthImg.complete) {
         ctx.drawImage(mouthImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        canvas.__incomplete = true;
       }
     }
 
@@ -320,6 +347,8 @@
       const eyesImg = imageCache.get(eyesFile);
       if (eyesImg && eyesImg.complete) {
         ctx.drawImage(eyesImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        canvas.__incomplete = true;
       }
     }
 
@@ -329,6 +358,8 @@
       const hairImg = imageCache.get(hairFile);
       if (hairImg && hairImg.complete) {
         ctx.drawImage(hairImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        canvas.__incomplete = true;
       }
     }
 
@@ -389,7 +420,9 @@
     canvas.height = 64;
     compositeCharacterSync(canvas, config);
     const dataUrl = canvas.toDataURL("image/png");
-    dataUrlCache.set(key, dataUrl);
+    if (!canvas.__incomplete) {
+      dataUrlCache.set(key, dataUrl);
+    }
     return dataUrl;
   }
 

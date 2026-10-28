@@ -577,10 +577,14 @@ class PartyRoom:
     def _advance_turn(self) -> None:
         now = time.time()
         gs = self.game_state
-        turn_order = gs.get("turn_order", [])
+        turn_order = [pid for pid in gs.get("turn_order", []) if pid in self.players]
         if not turn_order:
             turn_order = list(self.players.keys())
-            gs["turn_order"] = turn_order
+        gs["turn_order"] = turn_order
+
+        if not turn_order:
+            self._end_tegn_og_gjett_game()
+            return
 
         curr_turn_idx = gs.get("turn_idx", 0)
         next_turn_idx = curr_turn_idx + 1
@@ -833,8 +837,8 @@ class PartyRoom:
                     })
                     gs["next_msg_id"] = msg_id + 1
 
-                    turn_order = gs.get("turn_order", [])
-                    other_count = max(1, len(turn_order) - 1)
+                    active_guessers = [pid for pid in self.players if pid != drawer_id]
+                    other_count = max(1, len(active_guessers))
                     if len(guessed_ids) >= other_count:
                         self._end_drawing_turn(reason="all_guessed")
                     else:
@@ -880,8 +884,10 @@ class PartyRoom:
 
             elif action == "to_lobby":
                 host_token = str(body.get("hostToken") or "").strip()
-                if self.host_token != host_token:
-                    return 403, {"ok": False, "error": "Kun verten kan gå tilbake til lobby"}
+                is_host_req = bool(self.host_token and self.host_token == host_token)
+                is_game_over = gs.get("status") == "game_over" or gs.get("turn_state") == "game_over"
+                if not (is_host_req or is_game_over):
+                    return 403, {"ok": False, "error": "Kun verten kan gå tilbake til lobby mens spillet pågår"}
                 self.current_game = None
                 self.game_state = {}
                 self.bump()

@@ -370,7 +370,7 @@
             return;
           }
 
-          if (data.currentGame === "tegn_og_gjett") {
+          if (data.currentGame === "tegn_og_gjett" && data.gameState?.turn_state !== "game_over" && data.gameState?.status !== "game_over") {
             // Redirect to Tegn & Gjett in room mode!
             const target = `/tegn-og-gjett/?room=${encodeURIComponent(state.roomCode)}&player=${encodeURIComponent(state.playerId)}`;
             window.location.href = target;

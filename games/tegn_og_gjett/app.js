@@ -17,11 +17,14 @@
   const roomCodeParam = (urlParams.get("room") || urlParams.get("code") || "").trim().toUpperCase();
   const playerIdParam = (urlParams.get("player") || urlParams.get("playerId") || "").trim();
 
-  // Curated 12 Colors Palette
+  // Curated 16 Colors Palette (including Brown & Skin Tones)
   const PALETTE_COLORS = [
     "#111827", // Svart
     "#4b5563", // Mørk grå
+    "#9ca3af", // Lys grå
     "#ffffff", // Hvit
+    "#8d5b36", // Kaffebrun / Klassisk brun
+    "#4a2810", // Dyp sjokoladebrun
     "#ef4444", // Rød
     "#f97316", // Oransje
     "#eab308", // Gul
@@ -31,6 +34,7 @@
     "#3b82f6", // Blå
     "#8b5cf6", // Lilla
     "#ec4899", // Rosa
+    "#f3c299", // Fersken / Hudtone
   ];
 
   // Fallback Norwegian words for solo mode
@@ -69,12 +73,14 @@
     wordCategory: "",
 
     // Drawing Tool State
-    tool: "pencil", // "pencil", "eraser"
+    tool: "pencil", // "pencil", "eraser", "fill"
     currentColor: "#111827",
     currentSize: 7,
     isDrawing: false,
     currentStrokePoints: [],
+    lastSentIndex: 0,
     unsentActions: [],
+    isFlushingDraw: false,
     localStrokes: [], // For undo functionality
 
     // Audio
@@ -271,16 +277,16 @@
     });
 
     el.btnToolFill.addEventListener("click", () => {
-      const fillColor = state.tool === "eraser" ? "#ffffff" : state.currentColor;
-      clearCanvasLocally(fillColor);
-      recordAction({ type: "clear", color: fillColor });
-      playTone(300, 0.15);
+      state.tool = "fill";
+      updateActiveToolUI();
+      playTone(400, 0.05);
     });
 
     el.btnToolClear.addEventListener("click", () => {
       if (confirm("Vil du tømme hele tegningen?")) {
         clearCanvasLocally("#ffffff");
         recordAction({ type: "clear", color: "#ffffff" });
+        flushUnsentDrawActions();
         playTone(220, 0.15);
       }
     });
@@ -291,6 +297,7 @@
         redrawAllLocalStrokes();
         recordAction({ type: "clear", color: "#ffffff" });
         state.localStrokes.forEach(act => recordAction(act));
+        flushUnsentDrawActions();
         playTone(350, 0.08);
       }
     });
@@ -299,6 +306,7 @@
   function updateActiveToolUI() {
     el.btnToolPencil.classList.toggle("active", state.tool === "pencil");
     el.btnToolEraser.classList.toggle("active", state.tool === "eraser");
+    el.btnToolFill.classList.toggle("active", state.tool === "fill");
   }
 
   // =========================================================================
@@ -319,6 +327,100 @@
   function clearCanvasLocally(fillColor = "#ffffff") {
     ctx.fillStyle = fillColor;
     ctx.fillRect(0, 0, 800, 500);
+  }
+
+  function hexToRgb(hex) {
+    let clean = (hex || "#000000").replace("#", "").trim();
+    if (clean.length === 3) {
+      clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
+    }
+    const num = parseInt(clean, 16);
+    return isNaN(num)
+      ? { r: 0, g: 0, b: 0 }
+      : { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  /**
+   * Fast bounded flood-fill (paint bucket) on 800x500 canvas.
+   * Tolerant to antialiased line boundaries without bleeding through.
+   */
+  function floodFill(startX, startY, fillHex) {
+    startX = Math.round(Math.max(0, Math.min(799, startX)));
+    startY = Math.round(Math.max(0, Math.min(499, startY)));
+
+    const imgData = ctx.getImageData(0, 0, 800, 500);
+    const data = imgData.data;
+
+    const startIdx = (startY * 800 + startX) * 4;
+    const r0 = data[startIdx];
+    const g0 = data[startIdx + 1];
+    const b0 = data[startIdx + 2];
+    const a0 = data[startIdx + 3];
+
+    const { r: fr, g: fg, b: fb } = hexToRgb(fillHex);
+    const fa = 255;
+
+    // Already target color
+    if (Math.abs(r0 - fr) < 4 && Math.abs(g0 - fg) < 4 && Math.abs(b0 - fb) < 4 && Math.abs(a0 - fa) < 4) {
+      return;
+    }
+
+    const match = (idx) => {
+      const dr = Math.abs(data[idx] - r0);
+      const dg = Math.abs(data[idx + 1] - g0);
+      const db = Math.abs(data[idx + 2] - b0);
+      const da = Math.abs(data[idx + 3] - a0);
+      return (dr + dg + db + da) <= 48;
+    };
+
+    const visited = new Uint8Array(800 * 500);
+    const stackX = new Int32Array(800 * 500);
+    const stackY = new Int32Array(800 * 500);
+    let stackPtr = 0;
+
+    stackX[stackPtr] = startX;
+    stackY[stackPtr] = startY;
+    stackPtr++;
+    visited[startY * 800 + startX] = 1;
+
+    while (stackPtr > 0) {
+      stackPtr--;
+      const x = stackX[stackPtr];
+      const y = stackY[stackPtr];
+      const idx = (y * 800 + x) * 4;
+
+      data[idx] = fr;
+      data[idx + 1] = fg;
+      data[idx + 2] = fb;
+      data[idx + 3] = fa;
+
+      // 4-way neighbors
+      const neighbors = [
+        [x + 1, y],
+        [x - 1, y],
+        [x, y + 1],
+        [x, y - 1]
+      ];
+
+      for (let i = 0; i < 4; i++) {
+        const nx = neighbors[i][0];
+        const ny = neighbors[i][1];
+        if (nx >= 0 && nx < 800 && ny >= 0 && ny < 500) {
+          const pIdx = ny * 800 + nx;
+          if (!visited[pIdx]) {
+            visited[pIdx] = 1;
+            const cIdx = pIdx * 4;
+            if (match(cIdx)) {
+              stackX[stackPtr] = nx;
+              stackY[stackPtr] = ny;
+              stackPtr++;
+            }
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
   }
 
   function drawSmoothLine(points, color, size) {
@@ -359,6 +461,8 @@
     state.localStrokes.forEach(act => {
       if (act.type === "stroke") {
         drawSmoothLine(act.points, act.color, act.size);
+      } else if (act.type === "fill") {
+        floodFill(act.x, act.y, act.color);
       } else if (act.type === "clear") {
         clearCanvasLocally(act.color || "#ffffff");
       }
@@ -370,12 +474,37 @@
     if (e.touches && e.touches.length > 1) return;
     if (e.cancelable) e.preventDefault();
 
-    state.isDrawing = true;
     const pt = getNormalizedPoint(e);
+
+    // Flood fill tool action
+    if (state.tool === "fill") {
+      const fillColor = state.currentColor;
+      floodFill(pt.x, pt.y, fillColor);
+      const action = { type: "fill", x: pt.x, y: pt.y, color: fillColor };
+      state.localStrokes.push(action);
+      recordAction(action);
+      flushUnsentDrawActions();
+      playTone(520, 0.06);
+      return;
+    }
+
+    state.isDrawing = true;
     state.currentStrokePoints = [[pt.x, pt.y]];
+    state.lastSentIndex = 0;
 
     const drawColor = state.tool === "eraser" ? "#ffffff" : state.currentColor;
     drawSmoothLine(state.currentStrokePoints, drawColor, state.currentSize);
+
+    // Stream initial dot action immediately
+    const initialAction = {
+      type: "stroke",
+      color: drawColor,
+      size: state.currentSize,
+      points: [[pt.x, pt.y]],
+    };
+    recordAction(initialAction);
+    state.localStrokes.push(initialAction);
+    flushUnsentDrawActions();
   }
 
   function onPointerMove(e) {
@@ -392,6 +521,21 @@
       pts.push([pt.x, pt.y]);
       const drawColor = state.tool === "eraser" ? "#ffffff" : state.currentColor;
       drawSmoothLine(pts.slice(-3), drawColor, state.currentSize);
+
+      // Continuously stream micro-segments every 3 points so guessers see live drawing!
+      if (pts.length - state.lastSentIndex >= 3) {
+        const segment = pts.slice(state.lastSentIndex);
+        state.lastSentIndex = pts.length - 1;
+        const segAction = {
+          type: "stroke",
+          color: drawColor,
+          size: state.currentSize,
+          points: segment,
+        };
+        recordAction(segAction);
+        state.localStrokes.push(segAction);
+        flushUnsentDrawActions();
+      }
     }
   }
 
@@ -399,19 +543,22 @@
     if (!state.isDrawing) return;
     state.isDrawing = false;
 
-    if (state.currentStrokePoints.length > 0) {
+    const pts = state.currentStrokePoints;
+    if (pts.length > 0 && state.lastSentIndex < pts.length - 1) {
       const drawColor = state.tool === "eraser" ? "#ffffff" : state.currentColor;
-      const action = {
+      const remaining = pts.slice(state.lastSentIndex);
+      const finalAction = {
         type: "stroke",
         color: drawColor,
         size: state.currentSize,
-        points: state.currentStrokePoints,
+        points: remaining,
       };
-
-      state.localStrokes.push(action);
-      recordAction(action);
-      state.currentStrokePoints = [];
+      recordAction(finalAction);
+      state.localStrokes.push(finalAction);
     }
+    state.currentStrokePoints = [];
+    state.lastSentIndex = 0;
+    flushUnsentDrawActions();
   }
 
   function canUserDraw() {
@@ -436,14 +583,14 @@
     if (state.isSolo) return;
     state.unsentActions.push(action);
 
-    // Flush batch after 100ms or when batch exceeds 15 actions
-    if (state.unsentActions.length >= 10) {
+    if (state.unsentActions.length >= 4) {
       flushUnsentDrawActions();
     }
   }
 
   async function flushUnsentDrawActions() {
-    if (state.unsentActions.length === 0 || state.isSolo) return;
+    if (state.unsentActions.length === 0 || state.isSolo || state.isFlushingDraw) return;
+    state.isFlushingDraw = true;
     const batch = state.unsentActions.splice(0, 40);
 
     try {
@@ -461,11 +608,16 @@
       console.warn("Draw stroke sync network glitch:", err);
       // Re-queue unsent on failure
       state.unsentActions.unshift(...batch);
+    } finally {
+      state.isFlushingDraw = false;
+      if (state.unsentActions.length > 0) {
+        setTimeout(flushUnsentDrawActions, 30);
+      }
     }
   }
 
-  // Regularly flush unsent drawer strokes every 150ms
-  setInterval(flushUnsentDrawActions, 150);
+  // Regularly flush unsent drawer strokes every 60ms
+  setInterval(flushUnsentDrawActions, 60);
 
   // =========================================================================
   // Solo Practice Mode
@@ -560,12 +712,13 @@
     el.soloModeBar.classList.add("hidden");
     el.backBtnText.textContent = "Lounge";
     el.btnBack.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
+    el.btnBack.addEventListener("click", onBackToLounge);
     el.timerBubble.classList.remove("hidden");
 
     // Start room heartbeat polling
     startPolling();
 
-    // Start fast draw delta sync loop (every 240ms)
+    // Start fast draw delta sync loop (every 90ms)
     startDrawSyncLoop();
 
     // Chat form submit
@@ -600,23 +753,65 @@
 
     el.btnReturnLobby.addEventListener("click", async (e) => {
       e.preventDefault();
-      const hostToken = sessionStorage.getItem("party_host_token");
-      if (state.isHost && hostToken) {
-        try {
-          await fetch("/api/party/tegn-og-gjett/action", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              roomCode: state.roomCode,
-              playerId: state.playerId,
-              hostToken: hostToken,
-              action: "to_lobby",
-            }),
-          });
-        } catch (err) { }
-      }
+      el.btnReturnLobby.disabled = true;
+      el.btnReturnLobby.textContent = "Går til Lounge…";
+      const hostToken = sessionStorage.getItem("party_host_token") || "";
+      try {
+        await fetch("/api/party/tegn-og-gjett/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            playerId: state.playerId,
+            hostToken: hostToken,
+            action: "to_lobby",
+          }),
+        });
+      } catch (err) { }
       window.location.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
     });
+  }
+
+  async function onBackToLounge(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (state.isSolo) {
+      window.location.href = "/";
+      return;
+    }
+
+    const hostToken = sessionStorage.getItem("party_host_token") || "";
+    if (state.isHost) {
+      const ok = confirm("Vil du gå tilbake til Party Lounge og ta med alle spillerne?");
+      if (!ok) return;
+      try {
+        await fetch("/api/party/tegn-og-gjett/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            playerId: state.playerId,
+            hostToken: hostToken,
+            action: "to_lobby",
+          }),
+        });
+      } catch (err) {}
+      window.location.href = `/party/?code=${encodeURIComponent(state.roomCode)}`;
+    } else {
+      const ok = confirm("Vil du forlate spillet og gå til Party Lounge?");
+      if (!ok) return;
+      try {
+        await fetch("/api/party/leave", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomCode: state.roomCode,
+            playerId: state.playerId,
+          }),
+        });
+      } catch (err) {}
+      sessionStorage.removeItem("party_room_code");
+      window.location.href = "/party/";
+    }
   }
 
   function startPolling() {
@@ -683,7 +878,7 @@
           // silently continue
         }
       }
-      state.drawSyncTimer = setTimeout(syncDraw, 220);
+      state.drawSyncTimer = setTimeout(syncDraw, 90);
     }
 
     syncDraw();
@@ -692,6 +887,8 @@
   function applyRemoteDrawAction(action) {
     if (action.type === "stroke") {
       drawSmoothLine(action.points, action.color, action.size);
+    } else if (action.type === "fill") {
+      floodFill(action.x, action.y, action.color);
     } else if (action.type === "clear") {
       clearCanvasLocally(action.color || "#ffffff");
     }
@@ -960,7 +1157,12 @@
   // =========================================================================
   // Leaderboard Rendering
   // =========================================================================
+  let lastPlayersList = [];
+  let lastGuessedIds = [];
+
   function renderLeaderboard(players, activeDrawerId, guessedIds) {
+    lastPlayersList = players || [];
+    lastGuessedIds = guessedIds || [];
     el.playersCountBadge.textContent = String(players.length);
 
     // Sort players descending by score
@@ -970,7 +1172,7 @@
     sorted.forEach((p, idx) => {
       const isMe = p.id === state.playerId;
       const isDrawer = p.id === activeDrawerId;
-      const hasGuessed = guessedIds.includes(p.id);
+      const hasGuessed = (guessedIds || []).includes(p.id);
 
       const row = document.createElement("div");
       row.className = `player-row ${isMe ? "is-me" : ""} ${isDrawer ? "is-drawer" : ""} ${hasGuessed ? "has-guessed" : ""}`;
@@ -996,6 +1198,12 @@
       el.playersList.appendChild(row);
     });
   }
+
+  window.addEventListener("character-creator-ready", () => {
+    if (lastPlayersList && lastPlayersList.length > 0) {
+      renderLeaderboard(lastPlayersList, state.activeDrawerId, lastGuessedIds);
+    }
+  });
 
   // =========================================================================
   // Live Chat & Guess Submission

@@ -387,12 +387,17 @@ body {
 }
 
 .player-mon-img {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   display: block;
+}
+
+.podium-step .player-mon-img {
+  width: 52px;
+  height: 52px;
 }
 
 .player-status-badge {
@@ -654,7 +659,7 @@ body {
 /* Colors Palette */
 .colors-palette {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   grid-auto-flow: row;
   gap: 0.35rem;
 }
