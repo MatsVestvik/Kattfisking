@@ -243,6 +243,18 @@ class GameGatewayHandler(BaseHTTPRequestHandler):
                     full_path = asset_cand
                 elif os.path.isfile(os.path.join(BASE_DIR, safe_rel)):
                     full_path = os.path.join(BASE_DIR, safe_rel)
+                else:
+                    self._send_json({"error": "Fil ikke funnet"}, status=404)
+                    return
+            elif safe_rel.startswith("character/"):
+                char_cand = os.path.join(BASE_DIR, safe_rel)
+                if os.path.isfile(char_cand):
+                    full_path = char_cand
+                else:
+                    self._send_json({"error": "Fil ikke funnet"}, status=404)
+                    return
+            elif os.path.isfile(os.path.join(BASE_DIR, safe_rel)):
+                full_path = os.path.join(BASE_DIR, safe_rel)
             else:
                 # Fallback to hub index.html for root SPA navigation
                 hub_index = os.path.join(HUB_DIR, "index.html")

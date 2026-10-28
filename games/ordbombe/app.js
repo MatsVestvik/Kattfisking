@@ -477,11 +477,22 @@
   // --- CIRCULAR ARENA & ARROW POINTER SYSTEM ---
   const DEFAULT_AVATARS = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
 
+  function getUserDefaultAvatar() {
+    if (window.CharacterCreator && typeof window.CharacterCreator.getSavedConfigString === "function") {
+      return window.CharacterCreator.getSavedConfigString();
+    }
+    return "charbear";
+  }
+
   function renderAvatarHtml(avatar) {
     if (avatar === "💀") return `<span class="skull-emoji">💀</span>`;
+    if (window.CharacterCreator && typeof window.CharacterCreator.getAvatarImgSrc === "function") {
+      const src = window.CharacterCreator.getAvatarImgSrc(avatar);
+      return `<img src="${src}" alt="Spillerfigur" class="player-mon-img" />`;
+    }
     const monIds = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
-    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png"))) {
-      const src = avatar.endsWith(".png") ? avatar : `/assets/mons/${avatar}.png`;
+    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png") || avatar.startsWith("data:"))) {
+      const src = (avatar.endsWith(".png") || avatar.startsWith("data:")) ? avatar : `/assets/mons/${avatar}.png`;
       return `<img src="${src}" alt="Monster" class="player-mon-img" />`;
     }
     return `<span class="avatar-fallback">${avatar || "👤"}</span>`;
@@ -512,7 +523,7 @@
     el.circlePlayersContainer.innerHTML = "";
 
     const list = playersList || (state.mode === "party" ? state.players : [
-      { name: state.soloName, lives: state.players[0]?.lives ?? 3, eliminated: false, avatar: "charbear" }
+      { name: state.soloName, lives: state.players[0]?.lives ?? 3, eliminated: false, avatar: getUserDefaultAvatar() }
     ]);
 
     const total = list.length;
@@ -743,7 +754,7 @@
         lives: 3,
         eliminated: false,
         wordsCount: 0,
-        avatar: "charbear",
+        avatar: getUserDefaultAvatar(),
       }];
       state.activePlayerIndex = 0;
 
@@ -820,7 +831,7 @@
     } else {
       el.turnPlayerName.textContent = state.soloName;
       el.turnOverline.textContent = "Solomodus:";
-      el.turnAvatar.innerHTML = renderAvatarHtml("charbear");
+      el.turnAvatar.innerHTML = renderAvatarHtml(getUserDefaultAvatar());
       renderHearts(el.activeHeartsBox, curPlayer.lives);
       renderCircularPlayers();
       rotateArrowToActive();
@@ -841,7 +852,7 @@
       state.currentPrompt,
       true,
       state.mode === "party" ? curPlayer.name : state.soloName,
-      state.mode === "party" ? (curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "charbear"
+      state.mode === "party" ? (curPlayer.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : getUserDefaultAvatar()
     );
 
     // Tick loop every 100ms
@@ -1273,7 +1284,7 @@
       activeAvatar = cur ? (cur.avatar || DEFAULT_AVATARS[state.activePlayerIndex % DEFAULT_AVATARS.length]) : "charbear";
     } else {
       activeName = state.soloName || "Spiller 1";
-      activeAvatar = "charbear";
+      activeAvatar = getUserDefaultAvatar();
     }
 
     updateTypingUI(val, state.currentPrompt, true, activeName, activeAvatar);
@@ -1480,7 +1491,7 @@
     }
 
     el.turnPlayerName.textContent = activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller");
-    el.turnAvatar.innerHTML = renderAvatarHtml(activePlayer ? activePlayer.avatar : "charbear");
+    el.turnAvatar.innerHTML = renderAvatarHtml(activePlayer ? activePlayer.avatar : getUserDefaultAvatar());
 
     // Render Circular Arena and point arrow
     renderCircularPlayers(data.players || [], gs.active_player_id);
@@ -1493,7 +1504,7 @@
       state.currentPrompt,
       isMyTurn,
       activePlayer ? activePlayer.name : (gs.active_player_name || "Spiller"),
-      activePlayer ? (activePlayer.avatar || "charbear") : "charbear"
+      activePlayer ? (activePlayer.avatar || getUserDefaultAvatar()) : getUserDefaultAvatar()
     );
 
     if (isMyTurn) {

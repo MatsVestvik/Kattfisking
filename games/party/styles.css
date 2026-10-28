@@ -223,7 +223,8 @@ body {
   text-align: left;
 }
 
-.form-group label {
+.form-group label,
+.form-group .form-label {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-muted);

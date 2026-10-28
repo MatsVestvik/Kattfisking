@@ -847,9 +847,14 @@
   };
 
   function renderAvatarHtml(avatar) {
+    if (avatar === "💀") return `<span class="skull-emoji">💀</span>`;
+    if (window.CharacterCreator && typeof window.CharacterCreator.getAvatarImgSrc === "function") {
+      const src = window.CharacterCreator.getAvatarImgSrc(avatar);
+      return `<img src="${src}" alt="Spillerfigur" class="player-mon-img" />`;
+    }
     const monIds = ["charbear", "jormundgandr", "pixiu", "squitonkey", "tanuki", "totter"];
-    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png"))) {
-      const src = avatar.endsWith(".png") ? avatar : `/assets/mons/${avatar}.png`;
+    if (avatar && (monIds.includes(avatar) || avatar.endsWith(".png") || avatar.startsWith("data:"))) {
+      const src = (avatar.endsWith(".png") || avatar.startsWith("data:")) ? avatar : `/assets/mons/${avatar}.png`;
       return `<img src="${src}" alt="Monster" class="player-mon-img" />`;
     }
     return avatar || "👤";

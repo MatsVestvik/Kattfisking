@@ -15,6 +15,9 @@
   ];
 
   function getMonImg(avatar) {
+    if (window.CharacterCreator && typeof window.CharacterCreator.getAvatarImgSrc === "function") {
+      return window.CharacterCreator.getAvatarImgSrc(avatar);
+    }
     if (!avatar) return "/assets/mons/charbear.png";
     if (avatar.startsWith("/") || avatar.startsWith("data:") || avatar.endsWith(".png")) return avatar;
     const found = MONS.find(m => m.id === avatar);
@@ -23,8 +26,15 @@
 
   function renderAvatarHtml(avatar, extraClass = "") {
     const src = getMonImg(avatar);
-    return `<img src="${src}" alt="Monster" class="player-mon-img ${extraClass}" />`;
+    return `<img src="${src}" alt="Partyfigur" class="player-mon-img ${extraClass}" />`;
   }
+
+  const getInitialAvatar = () => {
+    if (window.CharacterCreator && typeof window.CharacterCreator.getSavedConfigString === "function") {
+      return window.CharacterCreator.getSavedConfigString();
+    }
+    return "char:h1:c_ffd166:r3:e1:m1";
+  };
 
   // State
   const state = {
@@ -32,7 +42,7 @@
     hostToken: null,
     playerId: null,
     playerName: null,
-    avatar: "charbear",
+    avatar: getInitialAvatar(),
     isHost: false,
     version: 0,
     pollTimer: null,
@@ -52,8 +62,6 @@
     inputJoinCode: document.getElementById("inputJoinCode"),
     inputJoinName: document.getElementById("inputJoinName"),
     inputCreateName: document.getElementById("inputCreateName"),
-    avatarPickerJoin: document.getElementById("avatarPickerJoin"),
-    avatarPickerCreate: document.getElementById("avatarPickerCreate"),
     btnSubmitJoin: document.getElementById("btnSubmitJoin"),
     btnSubmitCreate: document.getElementById("btnSubmitCreate"),
 
@@ -78,30 +86,34 @@
     connStatusText: document.getElementById("connStatusText"),
   };
 
-  // Render Avatar pickers
-  function renderAvatarPicker(container, selectedAvatar, onSelect) {
-    if (!container) return;
-    container.innerHTML = "";
-    MONS.forEach(mon => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = `avatar-chip ${mon.id === selectedAvatar ? "selected" : ""}`;
-      chip.title = mon.name;
-      chip.innerHTML = `<img src="${mon.img}" alt="${mon.name}" class="mon-picker-img" />`;
-      chip.addEventListener("click", () => {
-        container.querySelectorAll(".avatar-chip").forEach(c => c.classList.remove("selected"));
-        chip.classList.add("selected");
-        onSelect(mon.id);
-      });
-      container.appendChild(chip);
+  let selectedJoinAvatar = getInitialAvatar();
+  let selectedCreateAvatar = getInitialAvatar();
+
+  const joinContainer = document.getElementById("skribblCustomizerJoin");
+  const createContainer = document.getElementById("skribblCustomizerCreate");
+
+  let joinWidget = null;
+  let createWidget = null;
+
+  if (window.CharacterCreator && joinContainer) {
+    joinWidget = window.CharacterCreator.renderSkribblWidget(joinContainer, {
+      initialConfig: window.CharacterCreator.getSavedCharacter(),
+      onChange: (encoded, dataUrl, cfg) => {
+        selectedJoinAvatar = encoded;
+        selectedCreateAvatar = encoded;
+      }
     });
   }
 
-  let selectedJoinAvatar = "jormundgandr";
-  let selectedCreateAvatar = "charbear";
-
-  renderAvatarPicker(el.avatarPickerJoin, selectedJoinAvatar, av => selectedJoinAvatar = av);
-  renderAvatarPicker(el.avatarPickerCreate, selectedCreateAvatar, av => selectedCreateAvatar = av);
+  if (window.CharacterCreator && createContainer) {
+    createWidget = window.CharacterCreator.renderSkribblWidget(createContainer, {
+      initialConfig: window.CharacterCreator.getSavedCharacter(),
+      onChange: (encoded, dataUrl, cfg) => {
+        selectedCreateAvatar = encoded;
+        selectedJoinAvatar = encoded;
+      }
+    });
+  }
 
   // Tabs switching (Join / Create)
   el.tabJoin.addEventListener("click", () => {
@@ -109,6 +121,9 @@
     el.tabCreate.classList.remove("active");
     el.contentJoin.classList.remove("hidden");
     el.contentCreate.classList.add("hidden");
+    if (joinWidget && window.CharacterCreator) {
+      joinWidget.setConfig(window.CharacterCreator.getSavedCharacter(), true);
+    }
   });
 
   el.tabCreate.addEventListener("click", () => {
@@ -116,6 +131,9 @@
     el.tabJoin.classList.remove("active");
     el.contentCreate.classList.remove("hidden");
     el.contentJoin.classList.add("hidden");
+    if (createWidget && window.CharacterCreator) {
+      createWidget.setConfig(window.CharacterCreator.getSavedCharacter(), true);
+    }
   });
 
   // Display domain host in instructions
@@ -240,7 +258,7 @@
       state.roomCode = code;
       state.playerId = pId;
       state.playerName = pName || "Spiller";
-      state.avatar = av || "charbear";
+      state.avatar = av || getInitialAvatar();
       state.hostToken = hToken || null;
       state.isHost = !!hToken;
       return true;

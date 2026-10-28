@@ -18,6 +18,9 @@
   ];
 
   function getMonImg(avatarId) {
+    if (typeof CharacterCreator !== "undefined") {
+      return CharacterCreator.getAvatarImgSrc(avatarId);
+    }
     if (!avatarId) return "/assets/mons/charbear.png";
     if (avatarId.startsWith("/") || avatarId.startsWith("data:")) return avatarId;
     const found = MONS.find(m => m.id === avatarId);
@@ -431,19 +434,29 @@
 
   // Saved preferences in localStorage
   const savedName = localStorage.getItem("korridorer_player_name") || localStorage.getItem("party_player_name") || "";
-  let selectedCreateAvatar = localStorage.getItem("korridorer_avatar") || localStorage.getItem("spillhjornet_avatar") || "charbear";
-  let selectedJoinAvatar = localStorage.getItem("korridorer_avatar") || "jormundgandr";
-  let selectedBotAvatar = localStorage.getItem("korridorer_avatar") || "charbear";
+  const initialChar = (typeof CharacterCreator !== "undefined")
+    ? CharacterCreator.getSavedCharacter()
+    : { head: 1, headColor: "#f3c299", hair: 1, eyes: 1, brows: 1, nose: 1, mouth: 1 };
+  const initialEncodedChar = (typeof CharacterCreator !== "undefined")
+    ? CharacterCreator.encodeConfig(initialChar)
+    : "char:h1:c_f3c299:r1:e1:b1:n1:m1";
+
+  let selectedCreateAvatar = localStorage.getItem("korridorer_character") || localStorage.getItem("korridorer_avatar") || initialEncodedChar;
+  if (!selectedCreateAvatar.startsWith("char:") && !selectedCreateAvatar.startsWith("data:")) {
+    selectedCreateAvatar = initialEncodedChar;
+  }
+  let selectedJoinAvatar = selectedCreateAvatar;
+  let selectedBotAvatar = selectedCreateAvatar;
   let createMaxPlayers = 4;
   let localPlayersCount = 2;
   let botPlayersCount = 2;
 
   // Local Pass & Play temporary player settings
   const localConfig = [
-    { name: savedName || "Spiller 1", avatar: "charbear" },
-    { name: "Spiller 2", avatar: "jormundgandr" },
-    { name: "Spiller 3", avatar: "tanuki" },
-    { name: "Spiller 4", avatar: "squitonkey" },
+    { name: savedName || "Spiller 1", avatar: selectedCreateAvatar },
+    { name: "Spiller 2", avatar: "char:h1:c_06d6a0:r2:e2:m2" },
+    { name: "Spiller 3", avatar: "char:h1:c_ef476f:r3:e3:m3" },
+    { name: "Spiller 4", avatar: "char:h1:c_8338ec:r1:e1:m1" },
   ];
 
   // DOM Elements
@@ -466,9 +479,13 @@
     panelLocal: document.getElementById("panelLocal"),
     panelBot: document.getElementById("panelBot"),
 
-    // Online Lobby Form
+    // Online Lobby Form & Character Widget
     createPlayerName: document.getElementById("createPlayerName"),
     onlineAvatarPreview: document.getElementById("onlineAvatarPreview"),
+    btnPreviewAvatarClick: document.getElementById("btnPreviewAvatarClick"),
+    btnOpenCharCreator: document.getElementById("btnOpenCharCreator"),
+    btnQuickRandomChar: document.getElementById("btnQuickRandomChar"),
+    cpwQuickColors: document.getElementById("cpwQuickColors"),
     pickerCreateSprite: document.getElementById("pickerCreateSprite"),
     controlPlayerCount: document.getElementById("controlPlayerCount"),
     btnSubmitCreate: document.getElementById("btnSubmitCreate"),
@@ -494,6 +511,10 @@
 
     // Bot Tab
     botPlayerName: document.getElementById("botPlayerName"),
+    botAvatarPreview: document.getElementById("botAvatarPreview"),
+    btnPreviewAvatarBotClick: document.getElementById("btnPreviewAvatarBotClick"),
+    btnOpenCharCreatorBot: document.getElementById("btnOpenCharCreatorBot"),
+    btnRandomCharBot: document.getElementById("btnRandomCharBot"),
     pickerBotSprite: document.getElementById("pickerBotSprite"),
     controlBotCount: document.getElementById("controlBotCount"),
     controlBotDiff: document.getElementById("controlBotDiff"),
@@ -562,32 +583,29 @@
       if (el.botPlayerName) el.botPlayerName.value = savedName;
     }
 
-    if (el.onlineAvatarPreview) {
-      el.onlineAvatarPreview.src = getMonImg(selectedCreateAvatar);
+    // Initialize & update character previews
+    updateCharacterPreviews();
+
+    // Event listeners for character creation
+    if (el.btnOpenCharCreator) {
+      el.btnOpenCharCreator.addEventListener("click", () => openCharacterCreatorModal());
+    }
+    if (el.btnPreviewAvatarClick) {
+      el.btnPreviewAvatarClick.addEventListener("click", () => openCharacterCreatorModal());
+    }
+    if (el.btnQuickRandomChar) {
+      el.btnQuickRandomChar.addEventListener("click", () => randomizePlayerCharacter());
     }
 
-    // Render Avatar Pickers
-    renderSpritePicker(el.pickerCreateSprite, selectedCreateAvatar, id => {
-      selectedCreateAvatar = id;
-      selectedJoinAvatar = id;
-      localStorage.setItem("korridorer_avatar", id);
-      if (el.onlineAvatarPreview) el.onlineAvatarPreview.src = getMonImg(id);
-      renderSpritePicker(el.pickerCreateSprite, selectedCreateAvatar);
-    });
-
-    if (el.pickerJoinSprite) {
-      renderSpritePicker(el.pickerJoinSprite, selectedJoinAvatar, id => {
-        selectedJoinAvatar = id;
-        localStorage.setItem("korridorer_avatar", id);
-        renderSpritePicker(el.pickerJoinSprite, selectedJoinAvatar);
-      });
+    if (el.btnOpenCharCreatorBot) {
+      el.btnOpenCharCreatorBot.addEventListener("click", () => openCharacterCreatorModal());
     }
-
-    renderSpritePicker(el.pickerBotSprite, selectedBotAvatar, id => {
-      selectedBotAvatar = id;
-      localStorage.setItem("korridorer_avatar", id);
-      renderSpritePicker(el.pickerBotSprite, selectedBotAvatar);
-    });
+    if (el.btnPreviewAvatarBotClick) {
+      el.btnPreviewAvatarBotClick.addEventListener("click", () => openCharacterCreatorModal());
+    }
+    if (el.btnRandomCharBot) {
+      el.btnRandomCharBot.addEventListener("click", () => randomizePlayerCharacter());
+    }
 
     // Keep name inputs synced
     if (el.createPlayerName) {
@@ -598,6 +616,18 @@
       });
     }
 
+    // Global event listener when character is updated anywhere
+    window.addEventListener("spillhjornet:characterUpdated", e => {
+      if (e.detail && e.detail.encoded) {
+        selectedCreateAvatar = e.detail.encoded;
+        selectedJoinAvatar = e.detail.encoded;
+        selectedBotAvatar = e.detail.encoded;
+        localConfig[0].avatar = e.detail.encoded;
+        updateCharacterPreviews();
+        renderLocalPlayersSetup();
+      }
+    });
+
     renderLocalPlayersSetup();
     renderBoardBaseGrid();
 
@@ -605,27 +635,78 @@
     checkUrlQueryParams();
   }
 
-  // Render Sprite Picker Chips
-  function renderSpritePicker(container, selectedId, onSelect) {
-    if (!container) return;
-    container.innerHTML = "";
-    MONS.forEach(mon => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = `sprite-chip ${mon.id === selectedId ? "selected" : ""}`;
-      chip.title = `${mon.name} (${mon.desc})`;
-      chip.innerHTML = `
-        <img src="${mon.img}" alt="${mon.name}" class="sprite-chip-img" />
-        <span class="sprite-chip-name">${mon.name}</span>
-      `;
-      if (onSelect) {
-        chip.addEventListener("click", () => onSelect(mon.id));
+  // Update Character Previews across views and quick swatches
+  function updateCharacterPreviews() {
+    const src = getMonImg(selectedCreateAvatar);
+    if (el.onlineAvatarPreview) el.onlineAvatarPreview.src = src;
+    if (el.botAvatarPreview) el.botAvatarPreview.src = getMonImg(selectedBotAvatar);
+
+    // Populate quick color swatches
+    if (el.cpwQuickColors && typeof CharacterCreator !== "undefined") {
+      el.cpwQuickColors.innerHTML = "";
+      const currentCfg = CharacterCreator.parseConfig(selectedCreateAvatar);
+      CharacterCreator.HEAD_COLORS.slice(0, 10).forEach(col => {
+        const sw = document.createElement("button");
+        sw.type = "button";
+        sw.className = `cpw-quick-swatch ${col.hex.toLowerCase() === currentCfg.headColor.toLowerCase() ? "active" : ""}`;
+        sw.style.backgroundColor = col.hex;
+        sw.title = col.name;
+        sw.addEventListener("click", () => {
+          currentCfg.headColor = col.hex;
+          const encoded = CharacterCreator.saveCharacter(currentCfg);
+          selectedCreateAvatar = encoded;
+          selectedJoinAvatar = encoded;
+          selectedBotAvatar = encoded;
+          localConfig[0].avatar = encoded;
+          updateCharacterPreviews();
+          renderLocalPlayersSetup();
+          soundEngine.playPawnMove();
+        });
+        el.cpwQuickColors.appendChild(sw);
+      });
+    }
+  }
+
+  // Open Full Character Creator Modal
+  function openCharacterCreatorModal(onSavedCallback) {
+    if (typeof CharacterCreator === "undefined") return;
+    CharacterCreator.openModal({
+      initialConfig: selectedCreateAvatar,
+      onSave: (newCfg, dataUrl) => {
+        const encoded = CharacterCreator.encodeConfig(newCfg);
+        selectedCreateAvatar = encoded;
+        selectedJoinAvatar = encoded;
+        selectedBotAvatar = encoded;
+        localConfig[0].avatar = encoded;
+        updateCharacterPreviews();
+        renderLocalPlayersSetup();
+        soundEngine.playWallRotate();
+        if (onSavedCallback) onSavedCallback(encoded);
       }
-      container.appendChild(chip);
     });
   }
 
-  // Render Local Pass & Play Configuration Rows
+  // Quick Randomize Player Character
+  function randomizePlayerCharacter() {
+    if (typeof CharacterCreator === "undefined") return;
+    const rnd = CharacterCreator.getRandomConfig();
+    const encoded = CharacterCreator.saveCharacter(rnd);
+    selectedCreateAvatar = encoded;
+    selectedJoinAvatar = encoded;
+    selectedBotAvatar = encoded;
+    localConfig[0].avatar = encoded;
+    updateCharacterPreviews();
+    renderLocalPlayersSetup();
+    soundEngine.playWallRotate();
+  }
+
+  // Render Sprite Picker Chips (Legacy fallback)
+  function renderSpritePicker(container, selectedId, onSelect) {
+    if (!container) return;
+    container.innerHTML = "";
+  }
+
+  // Render Local Pass & Play Configuration Rows with Character Customizer
   function renderLocalPlayersSetup() {
     if (!el.localPlayersList) return;
     el.localPlayersList.innerHTML = "";
@@ -638,27 +719,65 @@
 
       row.innerHTML = `
         <span class="local-p-badge" style="background:${cfg.color};">P${i + 1}</span>
-        <button type="button" class="local-p-avatar-btn" id="btnLocalAvatarP${i}" title="Bytt monster">
-          <img src="${getMonImg(pData.avatar)}" class="local-p-avatar-img" id="imgLocalAvatarP${i}" alt="Monster" />
+        <button type="button" class="local-p-avatar-btn" id="btnLocalAvatarP${i}" title="Tilpass figur for Spiller ${i + 1}">
+          <img src="${getMonImg(pData.avatar)}" class="local-p-avatar-img" id="imgLocalAvatarP${i}" alt="Figur" />
+          <span class="btn-customize-mini-badge">🎨</span>
         </button>
         <input type="text" class="local-p-input" id="inputLocalNameP${i}" maxlength="18" value="${pData.name}" placeholder="${cfg.defaultName}" />
+        <button type="button" class="btn-local-random" id="btnLocalRandomP${i}" title="Tilfeldig figur">🎲</button>
       `;
 
-      // Cycle monster on click
+      // Open character creator on avatar click
       const btnAv = row.querySelector(`#btnLocalAvatarP${i}`);
       const imgAv = row.querySelector(`#imgLocalAvatarP${i}`);
       btnAv.addEventListener("click", () => {
-        const curIdx = MONS.findIndex(m => m.id === pData.avatar);
-        const nextMon = MONS[(curIdx + 1) % MONS.length];
-        pData.avatar = nextMon.id;
-        imgAv.src = nextMon.img;
-        soundEngine.playWallRotate();
+        if (typeof CharacterCreator !== "undefined") {
+          CharacterCreator.openModal({
+            initialConfig: pData.avatar,
+            title: `Tilpass figur: Spiller ${i + 1}`,
+            onSave: (newCfg, dataUrl) => {
+              const enc = CharacterCreator.encodeConfig(newCfg);
+              pData.avatar = enc;
+              imgAv.src = dataUrl || getMonImg(enc);
+              if (i === 0) {
+                selectedCreateAvatar = enc;
+                selectedJoinAvatar = enc;
+                selectedBotAvatar = enc;
+                updateCharacterPreviews();
+              }
+              soundEngine.playWallRotate();
+            }
+          });
+        }
+      });
+
+      // Quick randomizer for local player
+      const btnRnd = row.querySelector(`#btnLocalRandomP${i}`);
+      btnRnd.addEventListener("click", () => {
+        if (typeof CharacterCreator !== "undefined") {
+          const rnd = CharacterCreator.getRandomConfig();
+          const enc = CharacterCreator.encodeConfig(rnd);
+          pData.avatar = enc;
+          imgAv.src = getMonImg(enc);
+          if (i === 0) {
+            selectedCreateAvatar = enc;
+            selectedJoinAvatar = enc;
+            selectedBotAvatar = enc;
+            updateCharacterPreviews();
+          }
+          soundEngine.playWallRotate();
+        }
       });
 
       // Name change listener
       const inputName = row.querySelector(`#inputLocalNameP${i}`);
       inputName.addEventListener("input", e => {
         pData.name = e.target.value.trim() || cfg.defaultName;
+        if (i === 0) {
+          if (el.createPlayerName) el.createPlayerName.value = pData.name;
+          if (el.joinPlayerName) el.joinPlayerName.value = pData.name;
+          localStorage.setItem("korridorer_player_name", pData.name);
+        }
       });
 
       el.localPlayersList.appendChild(row);
@@ -1316,7 +1435,12 @@
       },
     ];
 
-    const botAvatars = ["jormundgandr", "tanuki", "squitonkey", "totter", "pixiu"];
+    const botAvatars = [
+      "char:h1:c_06d6a0:r2:e2:m2",
+      "char:h1:c_ffd166:r3:e3:m3",
+      "char:h1:c_ef476f:r1:e1:m1",
+      "char:h1:c_8338ec:r3:e2:m3",
+    ];
     const botNames = ["Bot Sigurd", "Bot Freja", "Bot Thor", "Bot Odin"];
 
     for (let i = 1; i < count; i++) {

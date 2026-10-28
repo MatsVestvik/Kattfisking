@@ -148,14 +148,25 @@
     });
   });
 
-  // Handle initial hash on page load for deep links (e.g. #party scrolls smoothly to party section)
-  const initialHash = window.location.hash.replace("#", "").toLowerCase();
-  if (initialHash === "party") {
-    const partySec = document.querySelector('[data-section-category="party"]');
-    if (partySec) {
-      setTimeout(() => {
-        partySec.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+  // Universal Character Avatar in Hub Header
+  const btnHubOpenCharacter = document.getElementById("btnHubOpenCharacter");
+  const hubAvatarImg = document.getElementById("hubAvatarImg");
+
+  function refreshHubAvatar() {
+    if (hubAvatarImg && typeof CharacterCreator !== "undefined") {
+      hubAvatarImg.src = CharacterCreator.getAvatarImgSrc();
     }
   }
+
+  refreshHubAvatar();
+
+  if (btnHubOpenCharacter && typeof CharacterCreator !== "undefined") {
+    btnHubOpenCharacter.addEventListener("click", () => {
+      CharacterCreator.openModal({
+        onSave: () => refreshHubAvatar()
+      });
+    });
+  }
+
+  window.addEventListener("spillhjornet:characterUpdated", refreshHubAvatar);
 })();

@@ -223,7 +223,12 @@ class KorridorerRoom:
             bot_idx = len(self.players)
             cfg = PLAYER_CONFIGS[bot_idx]
             bot_names = ["Bot Sigurd", "Bot Freja", "Bot Thor", "Bot Odin"]
-            bot_avatars = ["jormundgandr", "tanuki", "squitonkey", "totter", "pixiu"]
+            bot_avatars = [
+                "char:h1:c_06d6a0:r2:e2:m2",
+                "char:h1:c_ffd166:r3:e3:m3",
+                "char:h1:c_ef476f:r1:e1:m1",
+                "char:h1:c_8338ec:r3:e2:m3",
+            ]
 
             bot_id = f"bot_{uuid.uuid4().hex[:6]}"
             name = bot_names[(bot_idx - 1) % len(bot_names)]
@@ -506,7 +511,7 @@ class KorridorerAPI:
 
         if path == "/api/korridorer/create":
             host_name = str(body.get("hostName", "Spiller 1")).strip()[:18] or "Spiller 1"
-            host_avatar = str(body.get("avatar", "charbear")).strip()[:64] or "charbear"
+            host_avatar = str(body.get("avatar", "charbear")).strip()[:200000] or "charbear"
             max_players = int(body.get("maxPlayers", 4))
 
             with _rooms_lock:
@@ -532,7 +537,7 @@ class KorridorerAPI:
         elif path == "/api/korridorer/join":
             code = str(body.get("roomCode", "")).strip().upper()
             player_name = str(body.get("playerName", "Spiller")).strip()[:18] or "Spiller"
-            avatar = str(body.get("avatar", "jormundgandr")).strip()[:64] or "jormundgandr"
+            avatar = str(body.get("avatar", "jormundgandr")).strip()[:200000] or "jormundgandr"
 
             with _rooms_lock:
                 room = _rooms.get(code)

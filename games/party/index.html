@@ -9,6 +9,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/favicon.png" />
   <link rel="stylesheet" href="/party/styles.css?v=1.0" />
+  <link rel="stylesheet" href="/character/character-creator.css" />
   <link rel="stylesheet" href="/parallax-bg.css?v=2.1" />
 </head>
 
@@ -66,10 +67,8 @@
           </div>
 
           <div class="form-group">
-            <label>Velg din avatar</label>
-            <div class="avatar-picker" id="avatarPickerJoin">
-              <!-- Rendered via JS -->
-            </div>
+            <div class="form-label">Tilpass din festfigur</div>
+            <div id="skribblCustomizerJoin"></div>
           </div>
 
           <button type="submit" class="party-btn primary-btn" id="btnSubmitJoin">
@@ -91,10 +90,8 @@
           </div>
 
           <div class="form-group">
-            <label>Velg vert-avatar</label>
-            <div class="avatar-picker" id="avatarPickerCreate">
-              <!-- Rendered via JS -->
-            </div>
+            <div class="form-label">Vertens festfigur</div>
+            <div id="skribblCustomizerCreate"></div>
           </div>
 
           <button type="submit" class="party-btn primary-btn" id="btnSubmitCreate">
@@ -331,6 +328,7 @@
     </main>
   </div>
 
+  <script src="/character/character-creator.js"></script>
   <script src="/party/app.js?v=1.0"></script>
   <script src="/parallax-bg.js?v=2.1"></script>
 </body>

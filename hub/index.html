@@ -11,6 +11,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/favicon.png" />
   <link rel="stylesheet" href="/hub.css?v=2.2" />
+  <link rel="stylesheet" href="/character/character-creator.css" />
   <link rel="stylesheet" href="/parallax-bg.css?v=2.2" />
 </head>
 
@@ -39,6 +40,10 @@
       </a>
 
       <div class="hub-header-right">
+        <button type="button" class="hub-character-btn" id="btnHubOpenCharacter" title="Tilpass din spillfigur">
+          <img src="" id="hubAvatarImg" class="hub-avatar-icon" alt="" />
+          <span>Min figur</span>
+        </button>
         <div class="status-dot-pill">
           <span class="live-pulse-dot"></span>
           <span>4 AKTIVE SPILL</span>
@@ -279,6 +284,7 @@
     </footer>
   </div>
 
+  <script src="/character/character-creator.js"></script>
   <script src="/hub.js?v=2.0"></script>
   <script src="/parallax-bg.js?v=2.2"></script>
 </body>

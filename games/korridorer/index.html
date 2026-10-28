@@ -14,6 +14,7 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="/hub/parallax-bg.css" />
+  <link rel="stylesheet" href="/character/character-creator.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -89,17 +90,18 @@
                 <div class="opc-header">
                   <div class="opc-title-group">
                     <span class="opc-badge">👤 Spillerprofil</span>
-                    <h3 class="opc-title">Ditt navn & monster</h3>
+                    <h3 class="opc-title">Ditt navn & din figur</h3>
                   </div>
-                  <span class="opc-hint">Gjelder for både opprettelse og tilkobling</span>
+                  <span class="opc-hint">Figuren representerer deg på brettet i alle kamper</span>
                 </div>
 
                 <div class="opc-grid">
                   <div class="form-group opc-name-col">
                     <label for="createPlayerName">Ditt kallenavn</label>
                     <div class="avatar-input-combo">
-                      <div class="avatar-circle-preview">
-                        <img src="/assets/mons/charbear.png" id="onlineAvatarPreview" alt="Valgt monster" />
+                      <div class="avatar-circle-preview clickable" id="btnPreviewAvatarClick" title="Klikk for å tilpasse figuren din">
+                        <img src="" id="onlineAvatarPreview" alt="Valgt figur" />
+                        <span class="avatar-edit-badge">✏️</span>
                       </div>
                       <input type="text" id="createPlayerName" class="text-input" maxlength="18"
                         placeholder="Skriv inn navn..." value="Spiller 1" required />
@@ -109,10 +111,22 @@
                   </div>
 
                   <div class="form-group opc-sprites-col">
-                    <label>Velg ditt monster på brettet</label>
-                    <div class="sprite-picker-grid" id="pickerCreateSprite">
-                      <!-- Rendered via JS -->
+                    <label>Din tilpassede spillfigur</label>
+                    <div class="character-preview-widget" id="charPreviewWidget">
+                      <div class="cpw-actions">
+                        <button type="button" class="btn-customize-char" id="btnOpenCharCreator">
+                          🎨 Tilpass din figur
+                        </button>
+                        <button type="button" class="btn-random-char" id="btnQuickRandomChar" title="Generer en ny tilfeldig figur">
+                          🎲 Tilfeldig
+                        </button>
+                      </div>
+                      <div class="cpw-palette-row">
+                        <span class="cpw-palette-label">Hurtigfarge:</span>
+                        <div class="cpw-quick-colors" id="cpwQuickColors"></div>
+                      </div>
                     </div>
+                    <div id="pickerCreateSprite" class="hidden"></div>
                   </div>
                 </div>
               </div>
@@ -214,10 +228,22 @@
               </div>
 
               <div class="form-group">
-                <label>Ditt monster</label>
-                <div class="sprite-picker-grid" id="pickerBotSprite">
-                  <!-- Rendered via JS -->
+                <label>Din figur i duellen</label>
+                <div class="bot-char-select-card">
+                  <div class="avatar-circle-preview clickable" id="btnPreviewAvatarBotClick" title="Klikk for å tilpasse figuren din">
+                    <img src="" id="botAvatarPreview" alt="Din figur" />
+                    <span class="avatar-edit-badge">✏️</span>
+                  </div>
+                  <div class="cpw-actions">
+                    <button type="button" class="btn-customize-char" id="btnOpenCharCreatorBot">
+                      🎨 Tilpass figur
+                    </button>
+                    <button type="button" class="btn-random-char" id="btnRandomCharBot" title="Generer ny tilfeldig figur">
+                      🎲 Tilfeldig
+                    </button>
+                  </div>
                 </div>
+                <div id="pickerBotSprite" class="hidden"></div>
               </div>
 
               <div class="form-group">
@@ -539,9 +565,11 @@
   </div>
 
   <!-- Background Parallax Logic -->
-  <script src="/hub/parallax-bg.js"></script>
+  <script src="/parallax-bg.js?v=2.1"></script>
+  <!-- Character Creator & Compositor -->
+  <script src="/character/character-creator.js"></script>
   <!-- Main Game App Script -->
-  <script src="app.js"></script>
+  <script src="/korridorer/app.js?v=1.1"></script>
 </body>
 
 </html>

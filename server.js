@@ -413,7 +413,18 @@ print(json.dumps(res, ensure_ascii=False))
           fullPath = assetCand;
         } else if (fs.existsSync(path.join(BASE_DIR, safeRel))) {
           fullPath = path.join(BASE_DIR, safeRel);
+        } else {
+          return sendJson(res, { error: "Fil ikke funnet" }, 404);
         }
+      } else if (safeRel.startsWith("character/")) {
+        const charCand = path.join(BASE_DIR, safeRel);
+        if (fs.existsSync(charCand)) {
+          fullPath = charCand;
+        } else {
+          return sendJson(res, { error: "Fil ikke funnet" }, 404);
+        }
+      } else if (fs.existsSync(path.join(BASE_DIR, safeRel))) {
+        fullPath = path.join(BASE_DIR, safeRel);
       } else {
         const hubIndex = path.join(HUB_DIR, "index.html");
         if (fs.existsSync(hubIndex) && !safeRel.startsWith("api/")) {

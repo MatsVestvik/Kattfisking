@@ -924,7 +924,7 @@ class PartyAPI:
 
         if rel_path == "/api/create":
             host_name = str(body.get("hostName") or "Vert").strip()[:18] or "Vert"
-            host_avatar = str(body.get("avatar") or "charbear").strip()[:64] or "charbear"
+            host_avatar = str(body.get("avatar") or "charbear").strip()[:200000] or "charbear"
 
             with _rooms_lock:
                 # Pick unique memorable 4-letter word or random letters
@@ -956,7 +956,7 @@ class PartyAPI:
         if rel_path == "/api/join":
             code = str(body.get("roomCode") or "").strip().upper()
             player_name = str(body.get("playerName") or "Spiller").strip()[:18] or "Spiller"
-            avatar = str(body.get("avatar") or "charbear").strip()[:64] or "charbear"
+            avatar = str(body.get("avatar") or "charbear").strip()[:200000] or "charbear"
 
             with _rooms_lock:
                 room = _rooms.get(code)

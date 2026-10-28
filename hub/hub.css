@@ -146,6 +146,41 @@ body {
   gap: 0.75rem;
 }
 
+.hub-character-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 180, 216, 0.12);
+  border: 1.5px solid rgba(0, 180, 216, 0.4);
+  color: #00b4d8;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem 0.3rem 0.45rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(0, 180, 216, 0.2);
+}
+
+.hub-character-btn:hover {
+  background: rgba(0, 180, 216, 0.25);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(0, 180, 216, 0.45);
+}
+
+.hub-avatar-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .status-dot-pill {
   display: inline-flex;
   align-items: center;
