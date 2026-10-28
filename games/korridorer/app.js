@@ -27,6 +27,25 @@
     return found ? found.img : `/assets/mons/${avatarId}.png`;
   }
 
+  function extractCharacterColor(avatarId, fallbackColor = "#ef4444") {
+    if (!avatarId) return fallbackColor;
+    if (typeof CharacterCreator !== "undefined" && typeof CharacterCreator.parseConfig === "function") {
+      try {
+        const cfg = CharacterCreator.parseConfig(avatarId);
+        if (cfg && cfg.headColor) return cfg.headColor;
+      } catch (e) {}
+    }
+    const str = String(avatarId).trim();
+    if (str.startsWith("char:")) {
+      for (const part of str.slice(5).split(":")) {
+        if (part.startsWith("c_")) return "#" + part.slice(2).toLowerCase();
+        if (part.startsWith("c") && !part.startsWith("char")) return "#" + part.slice(1).toLowerCase();
+      }
+    }
+    if (str.startsWith("#") && (str.length === 4 || str.length === 7)) return str.toLowerCase();
+    return fallbackColor;
+  }
+
   // Player configuration defaults for 4 slots
   const PLAYER_DEFAULTS = [
     {
@@ -1397,7 +1416,7 @@
         id: `local_p${i}`,
         name: pData.name || cfg.defaultName,
         avatar: pData.avatar || cfg.defaultAvatar,
-        color: cfg.color,
+        color: extractCharacterColor(pData.avatar, cfg.color),
         colorName: cfg.colorName,
         pos: [...cfg.start],
         walls: wallsCount,
@@ -1438,7 +1457,7 @@
         id: "player_human",
         name: humanName,
         avatar: selectedBotAvatar,
-        color: PLAYER_DEFAULTS[0].color,
+        color: extractCharacterColor(selectedBotAvatar, PLAYER_DEFAULTS[0].color),
         colorName: PLAYER_DEFAULTS[0].colorName,
         pos: [...PLAYER_DEFAULTS[0].start],
         walls: wallsCount,
@@ -1461,7 +1480,7 @@
         id: `bot_${i}`,
         name: botNames[i - 1],
         avatar: botAvatars[i - 1],
-        color: cfg.color,
+        color: extractCharacterColor(botAvatars[i - 1], cfg.color),
         colorName: cfg.colorName,
         pos: [...cfg.start],
         walls: wallsCount,
@@ -1959,7 +1978,8 @@
       const totalWalls = state.players.length === 2 ? 10 : state.players.length === 3 ? 6 : 5;
       let slatsHtml = "";
       for (let s = 0; s < totalWalls; s++) {
-        slatsHtml += `<div class="wall-slat ${s >= p.walls ? "used" : ""}"></div>`;
+        const isUsed = s >= p.walls;
+        slatsHtml += `<div class="wall-slat ${isUsed ? "used" : ""}" style="${!isUsed ? `background: ${p.color}; box-shadow: 0 0 6px ${p.color}88;` : ""}"></div>`;
       }
 
       card.innerHTML = `
@@ -2018,11 +2038,9 @@
       const pawn = document.createElement("div");
       const isTurn = idx === state.currentTurn;
       pawn.className = `pawn-token ${isTurn ? "active-turn" : ""}`;
-      pawn.style.borderColor = p.color;
 
       pawn.innerHTML = `
         <img src="${getMonImg(p.avatar)}" alt="${p.name}" />
-        <span class="pawn-player-tag" style="background:${p.color};">P${idx + 1}</span>
       `;
 
       cell.appendChild(pawn);
@@ -2052,6 +2070,12 @@
         wall.style.top = `${(r / 9) * 100}%`;
         wall.style.height = `${(2 / 9) * 100}%`;
       }
+
+      // Wall color matches the placing player's character color
+      const ownerPlayer = state.players.find(p => p.id === w.owner);
+      const wallColor = w.color || (ownerPlayer ? ownerPlayer.color : null) || "#f59e0b";
+      wall.style.backgroundColor = wallColor;
+      wall.style.boxShadow = `0 3px 8px rgba(0, 0, 0, 0.6), 0 0 10px ${wallColor}88`;
 
       el.boardWallsLayer.appendChild(wall);
     });
@@ -2108,6 +2132,15 @@
     const ghost = document.createElement("div");
     ghost.id = "activeGhostWall";
     ghost.className = `ghost-wall ${val.ok ? "valid" : "invalid"} ${isStaged ? "staged" : ""} wall-${orientation.toLowerCase()}`;
+
+    const curPlayer = state.players[state.currentTurn] || state.players[0];
+    const playerColor = curPlayer ? curPlayer.color : "#f59e0b";
+
+    if (val.ok) {
+      ghost.style.backgroundColor = playerColor;
+      ghost.style.boxShadow = `0 0 16px ${playerColor}, 0 0 8px rgba(255, 255, 255, 0.8)`;
+      ghost.style.border = `1px solid #ffffff`;
+    }
 
     if (orientation === "H") {
       ghost.style.top = `${((r + 1) / 9) * 100}%`;

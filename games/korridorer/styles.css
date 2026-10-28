@@ -1583,22 +1583,22 @@ body {
 /* ======================================================== */
 .pawn-token {
   position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: rgba(15, 23, 42, 0.95);
+  inset: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
-  border: 2.5px solid var(--p1-color);
   z-index: 10;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .pawn-token.active-turn {
   animation: pawnActiveBounce 2s ease-in-out infinite;
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.7), 0 8px 18px rgba(0, 0, 0, 0.7);
+  box-shadow: none !important;
 }
 
 @keyframes pawnActiveBounce {
@@ -1607,24 +1607,21 @@ body {
 }
 
 .pawn-token img {
-  width: 82%;
-  height: 82%;
+  width: 90%;
+  height: 90%;
   object-fit: contain;
   image-rendering: pixelated;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.65));
+  transition: filter 0.2s ease;
+}
+
+.pawn-token.active-turn img {
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.9)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.65));
 }
 
 .pawn-player-tag {
-  position: absolute;
-  bottom: -6px;
-  font-size: 0.55rem;
-  font-weight: 900;
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.85);
-  letter-spacing: 0.05em;
-  white-space: nowrap;
+  display: none !important;
 }
 
 /* ======================================================== */
@@ -1683,32 +1680,25 @@ body {
 /* Placed Walls (2 grid units long) */
 .placed-wall {
   position: absolute;
-  background: linear-gradient(135deg, var(--wall-wood-top) 0%, var(--wall-wood-base) 100%);
   border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7), 0 0 10px var(--wall-glow);
   z-index: 22;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: wallPlacePop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes wallPlacePop {
-  0% { transform: scale(0.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  animation: none !important;
+  transition: none !important;
 }
 
 /* Wall Thickness & Length relative to 9x9 board */
 .placed-wall.wall-h {
   height: 8px;
   transform: translate(0, -50%);
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 1.5px solid var(--wall-wood-shadow);
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.45);
 }
 
 .placed-wall.wall-v {
   width: 8px;
   transform: translate(-50%, 0);
-  border-left: 1px solid rgba(255, 255, 255, 0.4);
-  border-right: 1.5px solid var(--wall-wood-shadow);
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+  border-right: 1.5px solid rgba(0, 0, 0, 0.45);
 }
 
 /* Ghost Wall Preview */

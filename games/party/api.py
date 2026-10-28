@@ -1275,16 +1275,19 @@ class PartyAPI:
                             )
                             k_room.host_id = room.host_id
                             k_room.players[0]["id"] = room.host_id
+                            k_room.players[0]["avatar"] = host_player.get("avatar", "charbear")
+                            k_room.players[0]["color"] = host_player.get("color") or extract_color_from_avatar(host_player.get("avatar"), PLAYER_CONFIGS[0]["color"])
                             for pid, pdata in room.players.items():
                                 if pid != room.host_id and len(k_room.players) < 4:
                                     idx = len(k_room.players)
                                     cfg = PLAYER_CONFIGS[idx]
+                                    p_color = pdata.get("color") or extract_color_from_avatar(pdata.get("avatar"), cfg["color"])
                                     k_room.players.append({
                                         "id": pid,
                                         "name": pdata.get("name", f"Spiller {idx + 1}"),
                                         "avatar": pdata.get("avatar", cfg["defaultAvatar"]),
-                                        "color": cfg["color"],
-                                        "colorName": cfg["colorName"],
+                                        "color": p_color,
+                                        "colorName": pdata.get("colorName", cfg["colorName"]),
                                         "pos": list(cfg["start"]),
                                         "walls": 10 if len(room.players) == 2 else 5,
                                         "goalDesc": cfg["goalDesc"],

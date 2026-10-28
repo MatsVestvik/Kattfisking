@@ -61,6 +61,34 @@ PLAYER_CONFIGS = [
 ]
 
 
+def extract_color_from_avatar(avatar: str, fallback: str = "#ef4444") -> str:
+    """Extract head color hex string from avatar string or config."""
+    if not avatar:
+        return fallback
+    av_str = str(avatar).strip()
+    if av_str.startswith("char:"):
+        for part in av_str[5:].split(":"):
+            if part.startswith("c_"):
+                hex_val = part[2:].strip()
+                if hex_val:
+                    return "#" + hex_val.lower()
+            elif part.startswith("c") and not part.startswith("char"):
+                hex_val = part[1:].strip()
+                if hex_val:
+                    return "#" + hex_val.lower()
+    elif av_str.startswith("{"):
+        try:
+            import json
+            data = json.loads(av_str)
+            if "headColor" in data:
+                return str(data["headColor"]).lower()
+        except Exception:
+            pass
+    elif av_str.startswith("#") and len(av_str) in (4, 7):
+        return av_str.lower()
+    return fallback
+
+
 def in_bounds(r: int, c: int) -> bool:
     return 0 <= r <= 8 and 0 <= c <= 8
 
@@ -189,7 +217,7 @@ class KorridorerRoom:
                 "id": self.host_id,
                 "name": host_name[:18].strip() or "Spiller 1",
                 "avatar": host_avatar or "charbear",
-                "color": PLAYER_CONFIGS[0]["color"],
+                "color": extract_color_from_avatar(host_avatar, PLAYER_CONFIGS[0]["color"]),
                 "colorName": PLAYER_CONFIGS[0]["colorName"],
                 "pos": list(PLAYER_CONFIGS[0]["start"]),
                 "walls": 10,
@@ -238,7 +266,7 @@ class KorridorerRoom:
                 "id": bot_id,
                 "name": name,
                 "avatar": avatar,
-                "color": cfg["color"],
+                "color": extract_color_from_avatar(avatar, cfg["color"]),
                 "colorName": cfg["colorName"],
                 "pos": list(cfg["start"]),
                 "walls": 10 if self.max_players == 2 else 5,
@@ -291,8 +319,8 @@ class KorridorerRoom:
             # Position each player at their starting slot
             for idx, p in enumerate(self.players):
                 cfg = PLAYER_CONFIGS[idx]
-                p["color"] = cfg["color"]
-                p["colorName"] = cfg["colorName"]
+                p["color"] = p.get("color") or extract_color_from_avatar(p.get("avatar"), cfg["color"])
+                p["colorName"] = p.get("colorName") or cfg["colorName"]
                 p["pos"] = list(cfg["start"])
                 p["walls"] = walls_per_player
                 p["goalDesc"] = cfg["goalDesc"]
@@ -555,7 +583,7 @@ class KorridorerAPI:
                         "id": player_id,
                         "name": player_name,
                         "avatar": avatar,
-                        "color": cfg["color"],
+                        "color": extract_color_from_avatar(avatar, cfg["color"]),
                         "colorName": cfg["colorName"],
                         "pos": list(cfg["start"]),
                         "walls": 10 if room.max_players == 2 else 5,
@@ -592,8 +620,8 @@ class KorridorerAPI:
                     }
 
         elif path == "/api/korridorer/start":
-            code = str(body.get("roomCode", "")).strip().upper()
-            player_id = str(body.get("playerId", "")).strip()
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            player_id = str(body.get("playerId") or body.get("player") or "").strip()
 
             with _rooms_lock:
                 room = _rooms.get(code)
@@ -611,8 +639,8 @@ class KorridorerAPI:
             return 200, {"ok": True, "message": msg, "state": room.get_public_state(player_id)}
 
         elif path == "/api/korridorer/bot":
-            code = str(body.get("roomCode", "")).strip().upper()
-            player_id = str(body.get("playerId", "")).strip()
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            player_id = str(body.get("playerId") or body.get("player") or "").strip()
 
             with _rooms_lock:
                 room = _rooms.get(code)
@@ -630,8 +658,8 @@ class KorridorerAPI:
             return 200, {"ok": True, "message": msg, "state": room.get_public_state(player_id)}
 
         elif path == "/api/korridorer/move":
-            code = str(body.get("roomCode", "")).strip().upper()
-            player_id = str(body.get("playerId", "")).strip()
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            player_id = str(body.get("playerId") or body.get("player") or "").strip()
             target_r = int(body.get("r", -1))
             target_c = int(body.get("c", -1))
 
@@ -648,8 +676,8 @@ class KorridorerAPI:
             return 200, {"ok": True, "message": msg, "state": room.get_public_state(player_id)}
 
         elif path == "/api/korridorer/wall":
-            code = str(body.get("roomCode", "")).strip().upper()
-            player_id = str(body.get("playerId", "")).strip()
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            player_id = str(body.get("playerId") or body.get("player") or "").strip()
             r = int(body.get("r", -1))
             c = int(body.get("c", -1))
             orientation = str(body.get("orientation", "")).strip().upper()
@@ -667,8 +695,8 @@ class KorridorerAPI:
             return 200, {"ok": True, "message": msg, "state": room.get_public_state(player_id)}
 
         elif path == "/api/korridorer/chat":
-            code = str(body.get("roomCode", "")).strip().upper()
-            player_id = str(body.get("playerId", "")).strip()
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            player_id = str(body.get("playerId") or body.get("player") or "").strip()
             message = str(body.get("message", "")).strip()
 
             with _rooms_lock:
@@ -683,8 +711,8 @@ class KorridorerAPI:
             return 200, {"ok": True}
 
         elif path == "/api/korridorer/rematch":
-            code = str(body.get("roomCode", "")).strip().upper()
-            player_id = str(body.get("playerId", "")).strip()
+            code = str(body.get("roomCode") or body.get("code") or "").strip().upper()
+            player_id = str(body.get("playerId") or body.get("player") or "").strip()
 
             with _rooms_lock:
                 room = _rooms.get(code)
