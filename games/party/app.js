@@ -86,33 +86,24 @@
     connStatusText: document.getElementById("connStatusText"),
   };
 
-  let selectedJoinAvatar = getInitialAvatar();
-  let selectedCreateAvatar = getInitialAvatar();
+  let lobbyWidget = null;
+  let isSyncingAvatar = false;
+  let pendingAvatarSync = null;
 
-  const joinContainer = document.getElementById("skribblCustomizerJoin");
-  const createContainer = document.getElementById("skribblCustomizerCreate");
-
-  let joinWidget = null;
-  let createWidget = null;
-
-  if (window.CharacterCreator && joinContainer) {
-    joinWidget = window.CharacterCreator.renderSkribblWidget(joinContainer, {
-      initialConfig: window.CharacterCreator.getSavedCharacter(),
-      onChange: (encoded, dataUrl, cfg) => {
-        selectedJoinAvatar = encoded;
-        selectedCreateAvatar = encoded;
-      }
-    });
-  }
-
-  if (window.CharacterCreator && createContainer) {
-    createWidget = window.CharacterCreator.renderSkribblWidget(createContainer, {
-      initialConfig: window.CharacterCreator.getSavedCharacter(),
-      onChange: (encoded, dataUrl, cfg) => {
-        selectedCreateAvatar = encoded;
-        selectedJoinAvatar = encoded;
-      }
-    });
+  function showToast(msg) {
+    let toast = document.getElementById("partyToast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "partyToast";
+      toast.className = "party-toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3200);
   }
 
   // Tabs switching (Join / Create)
@@ -121,9 +112,6 @@
     el.tabCreate.classList.remove("active");
     el.contentJoin.classList.remove("hidden");
     el.contentCreate.classList.add("hidden");
-    if (joinWidget && window.CharacterCreator) {
-      joinWidget.setConfig(window.CharacterCreator.getSavedCharacter(), true);
-    }
   });
 
   el.tabCreate.addEventListener("click", () => {
@@ -131,9 +119,6 @@
     el.tabJoin.classList.remove("active");
     el.contentCreate.classList.remove("hidden");
     el.contentJoin.classList.add("hidden");
-    if (createWidget && window.CharacterCreator) {
-      createWidget.setConfig(window.CharacterCreator.getSavedCharacter(), true);
-    }
   });
 
   // Display domain host in instructions
@@ -154,7 +139,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           hostName: hostName,
-          avatar: selectedCreateAvatar,
+          avatar: state.avatar || getInitialAvatar(),
         }),
       });
 
@@ -170,7 +155,7 @@
       state.hostToken = data.hostToken;
       state.playerId = data.playerId;
       state.playerName = hostName;
-      state.avatar = selectedCreateAvatar;
+      if (data.avatar) state.avatar = data.avatar;
       state.isHost = true;
 
       saveSession();
@@ -205,7 +190,7 @@
         body: JSON.stringify({
           roomCode: code,
           playerName: playerName,
-          avatar: selectedJoinAvatar,
+          avatar: state.avatar || getInitialAvatar(),
         }),
       });
 
@@ -221,7 +206,7 @@
       state.hostToken = null;
       state.playerId = data.playerId;
       state.playerName = data.playerName;
-      state.avatar = data.avatar;
+      state.avatar = data.avatar || state.avatar;
       state.isHost = false;
 
       saveSession();
@@ -286,7 +271,69 @@
     const newUrl = `${window.location.pathname}?code=${state.roomCode}`;
     history.replaceState(null, "", newUrl);
 
+    initLobbyCustomizer();
     startPolling();
+  }
+
+  function initLobbyCustomizer() {
+    const lobbyContainer = document.getElementById("skribblCustomizerLobby");
+    if (!window.CharacterCreator || !lobbyContainer) return;
+    if (lobbyWidget) return;
+
+    lobbyWidget = window.CharacterCreator.renderSkribblWidget(lobbyContainer, {
+      initialConfig: state.avatar,
+      showRandomize: true,
+      autoSave: true,
+      onChange: (encoded, dataUrl, cfg) => {
+        state.avatar = encoded;
+        saveSession();
+        scheduleAvatarSync(encoded);
+      },
+    });
+  }
+
+  function scheduleAvatarSync(avatar) {
+    pendingAvatarSync = avatar;
+    if (isSyncingAvatar) return;
+    doAvatarSync();
+  }
+
+  async function doAvatarSync() {
+    if (!pendingAvatarSync || !state.roomCode || !state.playerId) return;
+    const avToSend = pendingAvatarSync;
+    pendingAvatarSync = null;
+    isSyncingAvatar = true;
+
+    try {
+      const resp = await fetch("/api/party/update-avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomCode: state.roomCode,
+          playerId: state.playerId,
+          avatar: avToSend,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!data.ok) {
+        if (data.error) {
+          showToast(data.error);
+        }
+      } else {
+        if (data.avatar) {
+          state.avatar = data.avatar;
+          saveSession();
+        }
+      }
+    } catch (err) {
+      console.warn("Avatar sync error:", err);
+    } finally {
+      isSyncingAvatar = false;
+      if (pendingAvatarSync) {
+        doAvatarSync();
+      }
+    }
   }
 
   // Polling loop to sync room state in real-time
@@ -367,13 +414,38 @@
     el.connStatusText.textContent = "Live";
     el.playersCountNum.textContent = String(room.playerCount || 1);
 
+    const me = (room.players || []).find((p) => p.id === state.playerId);
+
+    // Calculate colors taken by other players in the room (only 1 player per color)
+    const takenColors = {};
+    (room.players || []).forEach((p) => {
+      if (p.id !== state.playerId && p.color) {
+        takenColors[p.color.toLowerCase()] = p.name;
+      }
+    });
+
+    if (lobbyWidget && typeof lobbyWidget.setDisabledColors === "function") {
+      lobbyWidget.setDisabledColors(takenColors);
+    }
+
+    // If server resolved/updated our avatar upon room entry
+    if (me && me.avatar && me.avatar !== state.avatar) {
+      state.avatar = me.avatar;
+      saveSession();
+      if (lobbyWidget && typeof lobbyWidget.setConfig === "function") {
+        lobbyWidget.setConfig(me.avatar, true);
+      }
+    }
+
     // Render players grid
     el.playersGrid.innerHTML = "";
-    (room.players || []).forEach(p => {
+    (room.players || []).forEach((p) => {
+      const isMe = p.id === state.playerId;
       const tile = document.createElement("div");
-      tile.className = `player-tile ${p.isHost ? "is-host" : ""}`;
+      tile.className = `player-tile ${p.isHost ? "is-host" : ""} ${isMe ? "is-me" : ""}`;
       tile.innerHTML = `
         ${p.isHost ? '<span class="player-crown-badge">VERT</span>' : ''}
+        ${isMe ? '<span class="player-me-badge">DEG</span>' : ''}
         <div class="player-avatar-circle" style="border-color: ${p.color || '#3b5080'}">${renderAvatarHtml(p.avatar)}</div>
         <div class="player-name-text">${escapeHtml(p.name)}</div>
       `;
@@ -587,6 +659,11 @@
       } catch (e) { }
     }
 
+    if (lobbyWidget) {
+      lobbyWidget.destroy();
+      lobbyWidget = null;
+    }
+
     sessionStorage.clear();
     state.roomCode = null;
     state.hostToken = null;
@@ -618,9 +695,16 @@
     })[m]);
   }
 
-  // Initialization: check query params (?code=ABCD or ?room=ABCD)
+  // Initialization: check query params (?code=ABCD or ?room=ABCD or ?tab=create)
   const urlParams = new URLSearchParams(window.location.search);
   const codeParam = (urlParams.get("code") || urlParams.get("room") || "").trim().toUpperCase();
+  const tabParam = (urlParams.get("tab") || urlParams.get("action") || "").trim().toLowerCase();
+
+  const savedName = localStorage.getItem("spillhjornet_player_name") || sessionStorage.getItem("party_player_name") || "";
+  if (savedName) {
+    if (!el.inputJoinName.value) el.inputJoinName.value = savedName;
+    if (!el.inputCreateName.value) el.inputCreateName.value = savedName;
+  }
 
   if (loadSession()) {
     enterLobbyView();
@@ -628,6 +712,9 @@
     el.inputJoinCode.value = codeParam;
     el.tabJoin.click();
     el.inputJoinName.focus();
+  } else if (tabParam === "create" || tabParam === "opprett") {
+    el.tabCreate.click();
+    el.inputCreateName.focus();
   }
 
 })();

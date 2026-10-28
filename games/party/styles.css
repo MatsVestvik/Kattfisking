@@ -534,6 +534,63 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
+.player-tile.is-me {
+  border-color: #00b4d8;
+  box-shadow: 0 0 16px rgba(0, 180, 216, 0.35);
+  background: rgba(16, 32, 60, 0.9);
+}
+
+.player-me-badge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #00b4d8;
+  color: #000;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.lobby-character-section {
+  background: rgba(13, 19, 33, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.lobby-character-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.party-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #ef476f;
+  color: #ffffff;
+  padding: 0.75rem 1.4rem;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  box-shadow: 0 8px 24px rgba(239, 71, 111, 0.5);
+  z-index: 10000;
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.party-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
 /* Games Selector in Lobby */
 .lobby-games-list {
   display: flex;

@@ -50,7 +50,8 @@
     { id: 5, name: "Blader / Horn", icon: "🌿", file: "hair/hair_0005.png" },
     { id: 6, name: "Hodetelefoner", icon: "🎧", file: "hair/hair_0006.png" },
     { id: 7, name: "Djevelhorn / Ører", icon: "😈", file: "hair/hair_0007.png" },
-    { id: 8, name: "Rød lue / Caps", icon: "🧢", file: "hair/hair_0008.png" }
+    { id: 8, name: "Rød lue / Caps", icon: "🧢", file: "hair/hair_0008.png" },
+    { id: 9, name: "Langt hår / Sider", icon: "💇", file: "hair/hair_0009.png" }
   ];
 
   const EYES_OPTIONS = [
@@ -61,7 +62,8 @@
     { id: 5, name: "Solbriller", icon: "😎", file: "eyes/eyes_0005.png" },
     { id: 6, name: "Rødme-blikk", icon: "😳", file: "eyes/eyes_0006.png" },
     { id: 7, name: "Smileøyne", icon: "😄", file: "eyes/eyes_0007.png" },
-    { id: 8, name: "Prikkøyne", icon: "😶", file: "eyes/eyes_0008.png" }
+    { id: 8, name: "Prikkøyne", icon: "😶", file: "eyes/eyes_0008.png" },
+    { id: 9, name: "Stjerneblikk", icon: "🤩", file: "eyes/eyes_0009.png" }
   ];
 
   const MOUTH_OPTIONS = [
@@ -73,6 +75,7 @@
     { id: 6, name: "Hoggtenner", icon: "🧛", file: "mouth/mouth_0006.png" },
     { id: 7, name: "Pipe / Sigarett", icon: "🚬", file: "mouth/mouth_0007.png" },
     { id: 8, name: "Sidelurv / Piercing", icon: "😏", file: "mouth/mouth_0008.png" },
+    { id: 9, name: "Liten munn", icon: "😗", file: "mouth/mouth_0009.png" },
     { id: 0, name: "Uten munn", icon: "😶", file: null }
   ];
 
@@ -122,6 +125,7 @@
       "hair/hair_0006.png",
       "hair/hair_0007.png",
       "hair/hair_0008.png",
+      "hair/hair_0009.png",
       "eyes/eyes_0001.png",
       "eyes/eyes_0002.png",
       "eyes/eyes_0003.png",
@@ -130,6 +134,7 @@
       "eyes/eyes_0006.png",
       "eyes/eyes_0007.png",
       "eyes/eyes_0008.png",
+      "eyes/eyes_0009.png",
       "mouth/mouth_0001.png",
       "mouth/mouth_0002.png",
       "mouth/mouth_0003.png",
@@ -137,7 +142,8 @@
       "mouth/mouth_0005.png",
       "mouth/mouth_0006.png",
       "mouth/mouth_0007.png",
-      "mouth/mouth_0008.png"
+      "mouth/mouth_0008.png",
+      "mouth/mouth_0009.png"
     ];
     preloadingPromise = Promise.all(files.map(preloadImage)).catch(() => {});
     return preloadingPromise;
@@ -212,9 +218,12 @@
     return `char:h1:c_${colorClean}:r${c.hair}:e${c.eyes}:m${c.mouth}`;
   }
 
-  function getRandomConfig() {
+  function getRandomConfig(options = {}) {
+    const excluded = (options.excludeColors || []).map((c) => String(c).toLowerCase());
+    const availableHeadColors = HEAD_COLORS.filter((c) => !excluded.includes(c.hex.toLowerCase()));
+    const palette = availableHeadColors.length > 0 ? availableHeadColors : HEAD_COLORS;
     const randomChoice = (arr) => arr[Math.floor(Math.random() * arr.length)];
-    const randomHeadColor = randomChoice(HEAD_COLORS).hex;
+    const randomHeadColor = randomChoice(palette).hex;
     return {
       head: 1, // Always circle!
       headColor: randomHeadColor,
@@ -510,12 +519,52 @@
     const canvas = container.querySelector(".skribbl-canvas");
     const colorsGrid = container.querySelector(".skribbl-colors-grid");
     const diceBtn = container.querySelector(".skribbl-randomize-btn");
+    let disabledColorsMap = {};
+
+    function normalizeDisabledMap(input) {
+      const map = {};
+      if (Array.isArray(input)) {
+        input.forEach((c) => {
+          if (c) map[String(c).toLowerCase()] = true;
+        });
+      } else if (input && typeof input === "object") {
+        Object.entries(input).forEach(([k, v]) => {
+          if (k) map[String(k).toLowerCase()] = v || true;
+        });
+      }
+      return map;
+    }
+
+    function refreshColorDots() {
+      const dots = colorsGrid.querySelectorAll(".skribbl-color-dot");
+      dots.forEach((chip) => {
+        const hex = chip.dataset.hex;
+        const col = HEAD_COLORS.find((c) => c.hex.toLowerCase() === hex);
+        const colName = col ? col.name : hex;
+        const disabledInfo = disabledColorsMap[hex];
+        const isDis = Boolean(disabledInfo);
+
+        chip.classList.toggle("is-disabled", isDis);
+        chip.disabled = isDis;
+
+        if (isDis) {
+          const taker = typeof disabledInfo === "string" ? disabledInfo : "";
+          chip.title = taker ? `${colName} (Tatt av ${taker})` : `${colName} (Allerede tatt)`;
+        } else {
+          chip.title = colName;
+        }
+
+        const isActive = hex === currentConfig.headColor.toLowerCase();
+        chip.classList.toggle("active", isActive);
+      });
+    }
 
     // Populate color chips
     HEAD_COLORS.forEach((col) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "skribbl-color-dot";
+      chip.dataset.hex = col.hex.toLowerCase();
       chip.style.backgroundColor = col.hex;
       chip.style.setProperty("--dot-col", col.hex);
       chip.title = col.name;
@@ -525,11 +574,19 @@
       chip.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (disabledColorsMap[col.hex.toLowerCase()]) {
+          return;
+        }
         currentConfig.headColor = col.hex;
         applyUpdate(false);
       });
       colorsGrid.appendChild(chip);
     });
+
+    if (options.disabledColors) {
+      disabledColorsMap = normalizeDisabledMap(options.disabledColors);
+      refreshColorDots();
+    }
 
     // Cycle helper
     function cycleOption(list, currentId, dir) {
@@ -592,7 +649,7 @@
       e.preventDefault();
       e.stopPropagation();
       triggerDiceSpin();
-      currentConfig = getRandomConfig();
+      currentConfig = getRandomConfig({ excludeColors: Object.keys(disabledColorsMap) });
       applyUpdate(false);
     });
 
@@ -601,17 +658,7 @@
       isUpdating = true;
       try {
         await compositeCharacter(canvas, currentConfig);
-
-        // Update color chip active state
-        const dots = colorsGrid.querySelectorAll(".skribbl-color-dot");
-        HEAD_COLORS.forEach((col, idx) => {
-          if (dots[idx]) {
-            dots[idx].classList.toggle(
-              "active",
-              col.hex.toLowerCase() === currentConfig.headColor.toLowerCase()
-            );
-          }
-        });
+        refreshColorDots();
 
         const encoded = encodeConfig(currentConfig);
         if (!skipSave) {
@@ -650,8 +697,13 @@
         currentConfig = parsed;
         applyUpdate(silent);
       },
+      setDisabledColors: (newDisabled) => {
+        disabledColorsMap = normalizeDisabledMap(newDisabled);
+        refreshColorDots();
+      },
+      getDisabledColors: () => ({ ...disabledColorsMap }),
       randomize: () => {
-        currentConfig = getRandomConfig();
+        currentConfig = getRandomConfig({ excludeColors: Object.keys(disabledColorsMap) });
         applyUpdate(false);
       },
       destroy: () => {

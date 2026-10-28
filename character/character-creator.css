@@ -348,6 +348,29 @@
   z-index: 2;
 }
 
+.skribbl-color-dot.is-disabled {
+  opacity: 0.22;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.skribbl-color-dot.is-disabled::after {
+  content: "✕";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
 /* ========================================================== */
 /* MODAL ACTION BUTTONS                                       */
 /* ========================================================== */

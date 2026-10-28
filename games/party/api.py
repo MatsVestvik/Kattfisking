@@ -26,6 +26,75 @@ CLEAN_WORDS = [
     "TAKK", "HYTTE", "VIND", "FJORD", "NORD", "BROR", "VENN", "TEAM"
 ]
 
+# Curated party colors (matching CharacterCreator palette, 16 distinct colors)
+HEAD_COLORS = [
+    "#ffd166", "#00b4d8", "#ef476f", "#06d6a0",
+    "#fb8500", "#8338ec", "#ff70a6", "#a0c4ff",
+    "#fadcba", "#f3c299", "#dfa27a", "#8d5b36",
+    "#4a2810", "#f1f5f9", "#94a3b8", "#1e293b"
+]
+
+
+def extract_color_from_avatar(avatar: str) -> str:
+    """Extract head color hex string from avatar string or config."""
+    if not avatar:
+        return "#ffd166"
+    av_str = str(avatar).strip()
+    if av_str.startswith("char:"):
+        for part in av_str[5:].split(":"):
+            if part.startswith("c_"):
+                hex_val = part[2:].strip()
+                if hex_val:
+                    return "#" + hex_val.lower()
+            elif part.startswith("c") and not part.startswith("char"):
+                hex_val = part[1:].strip()
+                if hex_val:
+                    return "#" + hex_val.lower()
+    elif av_str.startswith("{"):
+        try:
+            import json
+            data = json.loads(av_str)
+            if "headColor" in data:
+                return str(data["headColor"]).lower()
+        except Exception:
+            pass
+    elif av_str.startswith("#") and len(av_str) in (4, 7):
+        return av_str.lower()
+    return "#ffd166"
+
+
+def replace_color_in_avatar(avatar: str, new_hex: str) -> str:
+    """Return avatar string with updated head color."""
+    clean_hex = new_hex.lstrip("#").lower()
+    if not avatar or not str(avatar).startswith("char:"):
+        return f"char:h1:c_{clean_hex}:r1:e1:m1"
+    parts = str(avatar)[5:].split(":")
+    new_parts = []
+    has_color = False
+    for p in parts:
+        if p.startswith("c_") or (p.startswith("c") and not p.startswith("char")):
+            new_parts.append(f"c_{clean_hex}")
+            has_color = True
+        else:
+            new_parts.append(p)
+    if not has_color:
+        new_parts.insert(1, f"c_{clean_hex}")
+    return "char:" + ":".join(new_parts)
+
+
+def get_available_party_color(taken_colors: set, preferred_color: Optional[str] = None) -> str:
+    """Find a unique color in the party room not already taken by any player."""
+    taken_lower = {str(c).lower() for c in taken_colors if c}
+    if preferred_color:
+        pref = str(preferred_color).lower()
+        if pref in [c.lower() for c in HEAD_COLORS] and pref not in taken_lower:
+            return pref
+    for c in HEAD_COLORS:
+        if c.lower() not in taken_lower:
+            return c.lower()
+    # If room exceeds 16 players, pick cycled fallback
+    return HEAD_COLORS[len(taken_lower) % len(HEAD_COLORS)].lower()
+
 
 class PartyRoom:
     def __init__(self, code: str, host_token: str, host_name: str, host_avatar: str):
@@ -39,14 +108,18 @@ class PartyRoom:
         self.version = 1
         self.lock = threading.RLock()
 
-        # Add initial host player
+        # Add initial host player with unique color
         host_id = f"p_{uuid.uuid4().hex[:8]}"
         self.host_id = host_id
+        pref_color = extract_color_from_avatar(host_avatar)
+        host_color = get_available_party_color(set(), pref_color)
+        final_host_avatar = replace_color_in_avatar(host_avatar, host_color)
+
         self.players[host_id] = {
             "id": host_id,
             "name": host_name[:18].strip() or "Vert",
-            "avatar": host_avatar or "charbear",
-            "color": "#fb8500",
+            "avatar": final_host_avatar,
+            "color": host_color,
             "is_host": True,
             "is_ready": True,
             "score": 0,
@@ -974,13 +1047,15 @@ class PartyAPI:
                     counter += 1
 
                 player_id = f"p_{uuid.uuid4().hex[:8]}"
-                colors = ["#00b4d8", "#06d6a0", "#ffd166", "#ef476f", "#118ab2", "#8338ec", "#ff006e", "#fb8500"]
-                assigned_color = colors[len(room.players) % len(colors)]
+                taken_colors = {p.get("color", "").lower() for p in room.players.values()}
+                pref_color = extract_color_from_avatar(avatar)
+                assigned_color = get_available_party_color(taken_colors, pref_color)
+                final_avatar = replace_color_in_avatar(avatar, assigned_color)
 
                 room.players[player_id] = {
                     "id": player_id,
                     "name": final_name,
-                    "avatar": avatar,
+                    "avatar": final_avatar,
                     "color": assigned_color,
                     "is_host": False,
                     "is_ready": True,
@@ -997,8 +1072,47 @@ class PartyAPI:
                 "roomCode": room.code,
                 "playerId": player_id,
                 "playerName": final_name,
-                "avatar": avatar,
+                "avatar": final_avatar,
+                "color": assigned_color,
                 "isHost": False,
+            }
+
+        if rel_path in ("/api/update-avatar", "/api/avatar", "/api/update-character"):
+            code = str(body.get("roomCode") or "").strip().upper()
+            player_id = str(body.get("playerId") or "").strip()
+            avatar = str(body.get("avatar") or "").strip()[:200000]
+
+            with _rooms_lock:
+                room = _rooms.get(code)
+
+            if not room:
+                return 404, {"ok": False, "error": "Party-rommet finnes ikke."}
+
+            with room.lock:
+                player = room.players.get(player_id)
+                if not player:
+                    return 404, {"ok": False, "error": "Spiller ikke funnet i rommet."}
+
+                new_color = extract_color_from_avatar(avatar).lower()
+
+                # Check color conflict: only one person can have each color
+                for other_id, other_p in room.players.items():
+                    if other_id != player_id and other_p.get("color", "").lower() == new_color:
+                        other_name = other_p.get("name") or "en annen spiller"
+                        return 409, {
+                            "ok": False,
+                            "error": f"Fargen er allerede tatt av {other_name}!"
+                        }
+
+                player["avatar"] = avatar
+                player["color"] = new_color
+                player["last_seen"] = time.time()
+                room.bump()
+
+            return 200, {
+                "ok": True,
+                "avatar": avatar,
+                "color": new_color
             }
 
         if rel_path == "/api/select-game":

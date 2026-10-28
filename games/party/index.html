@@ -8,7 +8,7 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/favicon.png" />
-  <link rel="stylesheet" href="/party/styles.css?v=1.0" />
+  <link rel="stylesheet" href="/party/styles.css?v=1.2" />
   <link rel="stylesheet" href="/character/character-creator.css" />
   <link rel="stylesheet" href="/parallax-bg.css?v=2.1" />
 </head>
@@ -62,13 +62,7 @@
 
           <div class="form-group">
             <label for="inputJoinName">Ditt kallenavn</label>
-            <input type="text" id="inputJoinName" class="input-text" maxlength="16" placeholder="F.eks. Henrik"
-              required />
-          </div>
-
-          <div class="form-group">
-            <div class="form-label">Tilpass din festfigur</div>
-            <div id="skribblCustomizerJoin"></div>
+            <input type="text" id="inputJoinName" class="input-text" maxlength="16" placeholder="F.eks. Henrik" />
           </div>
 
           <button type="submit" class="party-btn primary-btn" id="btnSubmitJoin">
@@ -85,13 +79,7 @@
         <form id="formCreate" class="auth-form">
           <div class="form-group">
             <label for="inputCreateName">Vertens navn</label>
-            <input type="text" id="inputCreateName" class="input-text" maxlength="16" placeholder="F.eks. Mats (Vert)"
-              required />
-          </div>
-
-          <div class="form-group">
-            <div class="form-label">Vertens festfigur</div>
-            <div id="skribblCustomizerCreate"></div>
+            <input type="text" id="inputCreateName" class="input-text" maxlength="16" placeholder="F.eks. Mats (Vert)" />
           </div>
 
           <button type="submit" class="party-btn primary-btn" id="btnSubmitCreate">
@@ -127,6 +115,19 @@
         </div>
         <div class="players-grid" id="playersGrid">
           <!-- Rendered live -->
+        </div>
+      </section>
+
+      <!-- Character Customizer in Party Lobby (Only one person per color) -->
+      <section class="lobby-section lobby-character-section" id="sectionPartyCharacter">
+        <div class="section-title-row">
+          <h3 class="section-title">
+            <span class="char-section-icon">🎨</span> Tilpass din festfigur
+          </h3>
+          <span class="section-hint" id="charColorHint">Én farge per spiller</span>
+        </div>
+        <div class="lobby-character-wrap">
+          <div id="skribblCustomizerLobby"></div>
         </div>
       </section>
 
@@ -329,7 +330,7 @@
   </div>
 
   <script src="/character/character-creator.js"></script>
-  <script src="/party/app.js?v=1.0"></script>
+  <script src="/party/app.js?v=1.2"></script>
   <script src="/parallax-bg.js?v=2.1"></script>
 </body>
 
