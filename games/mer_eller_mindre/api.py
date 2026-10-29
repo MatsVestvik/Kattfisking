@@ -761,33 +761,19 @@ def calculate_mer_eller_mindre_stats(
     user_score: Optional[int] = None,
     db_path: str = DB_PATH,
 ) -> Dict[str, Any]:
-    """Calculates score distribution across 0-25 duels and player percentile."""
+    """Calculates score distribution across 0-25 duels and player percentile based purely on real submissions."""
     init_db(db_path)
     conn = get_db_connection(db_path)
     rows = conn.execute("SELECT score FROM submissions WHERE date = ?", (date_str,)).fetchall()
     conn.close()
 
     actual_scores = [int(r["score"]) for r in rows]
-    effective_scores = list(actual_scores)
-
-    # Seed baseline distribution for realistic community comparison if fewer than 8 plays today
-    if len(effective_scores) < 8:
-        seed_num = int(hashlib.md5(date_str.encode("utf-8")).hexdigest()[:6], 16) if date_str else 42
-        baseline_offsets = [0, 2, -2, 4, -3, 1, -1, 3, -4, 5, -2, 0, 2, -1, 1, 4, -3, 0, -5, 3]
-        for i, off in enumerate(baseline_offsets):
-            val = min(25, max(4, 15 + off + ((seed_num + i) % 4) - 1))
-            effective_scores.append(val)
-
-    if user_score is not None:
-        effective_scores.append(user_score)
-
-    total_count = len(effective_scores)
-    real_plays_count = len(actual_scores)
-    avg_score = round(sum(effective_scores) / total_count, 1) if total_count > 0 else 15.0
+    total_count = len(actual_scores)
+    avg_score = round(sum(actual_scores) / total_count, 1) if total_count > 0 else (user_score if user_score is not None else 0.0)
 
     # 26 score buckets (0 to 25)
     buckets = [{"score": i, "count": 0, "pct": 0} for i in range(26)]
-    for s in effective_scores:
+    for s in actual_scores:
         idx = min(25, max(0, s))
         buckets[idx]["count"] += 1
 
@@ -802,7 +788,7 @@ def calculate_mer_eller_mindre_stats(
         {"label": "16–20", "min": 16, "max": 20, "count": 0, "pct": 0},
         {"label": "21–25", "min": 21, "max": 25, "count": 0, "pct": 0},
     ]
-    for s in effective_scores:
+    for s in actual_scores:
         for br in brackets:
             if br["min"] <= s <= br["max"]:
                 br["count"] += 1
@@ -813,15 +799,19 @@ def calculate_mer_eller_mindre_stats(
     percentile = None
     better_than_pct = None
     if user_score is not None:
-        strictly_below = sum(1 for s in effective_scores if s < user_score)
-        equal = sum(1 for s in effective_scores if s == user_score)
-        better_than_pct = round((strictly_below / total_count) * 100) if total_count > 0 else 50
-        raw_perc = round(((strictly_below + 0.5 * equal) / total_count) * 100) if total_count > 0 else 50
-        percentile = max(1, min(99, raw_perc))
+        if total_count > 0:
+            strictly_below = sum(1 for s in actual_scores if s < user_score)
+            equal = sum(1 for s in actual_scores if s == user_score)
+            better_than_pct = round((strictly_below / total_count) * 100)
+            raw_perc = round(((strictly_below + 0.5 * equal) / total_count) * 100)
+            percentile = max(1, min(99, raw_perc))
+        else:
+            percentile = 50
+            better_than_pct = 0
 
     return {
-        "totalPlays": real_plays_count if real_plays_count > 0 else total_count,
-        "realPlays": real_plays_count,
+        "totalPlays": total_count,
+        "realPlays": total_count,
         "averageScore": avg_score,
         "percentile": percentile,
         "betterThanPct": better_than_pct,
@@ -897,13 +887,23 @@ class MerEllerMindreAPI:
             cat_scores = body.get("categoryScores", [])
             results = body.get("results", [])
 
+            cat_json = json.dumps(cat_scores)
+            res_json = json.dumps(results)
+
             init_db()
             conn = get_db_connection()
-            with conn:
-                conn.execute(
-                    "INSERT INTO submissions (date, score, category_scores_json, results_json) VALUES (?, ?, ?, ?)",
-                    (date_str, score, json.dumps(cat_scores), json.dumps(results)),
-                )
+            # Deduplication: do not insert duplicate entry if same date and category breakdown was already saved
+            existing = conn.execute(
+                "SELECT id FROM submissions WHERE date = ? AND score = ? AND category_scores_json = ? LIMIT 1",
+                (date_str, score, cat_json),
+            ).fetchone()
+
+            if not existing:
+                with conn:
+                    conn.execute(
+                        "INSERT INTO submissions (date, score, category_scores_json, results_json) VALUES (?, ?, ?, ?)",
+                        (date_str, score, cat_json, res_json),
+                    )
             conn.close()
 
             stats = calculate_mer_eller_mindre_stats(date_str, user_score=score)

@@ -162,16 +162,20 @@ class KattfiskingAPI:
 
             clean_results = [max(0.0, min(1.0, float(x))) for x in results[:10]]
             total_score = round(sum(clean_results), 2)
+            results_json = json.dumps(clean_results)
 
             conn = harvester.get_db_connection()
-            with conn:
-                conn.execute(
-                    "INSERT INTO puzzle_submissions (date, total_score, results_json) VALUES (?, ?, ?)",
-                    (date_str, total_score, json.dumps(clean_results)),
-                )
-            conn.close()
+            existing = conn.execute(
+                "SELECT id FROM puzzle_submissions WHERE date = ? AND total_score = ? AND results_json = ? LIMIT 1",
+                (date_str, total_score, results_json),
+            ).fetchone()
+            if not existing:
+                with conn:
+                    conn.execute(
+                        "INSERT INTO puzzle_submissions (date, total_score, results_json) VALUES (?, ?, ?)",
+                        (date_str, total_score, results_json),
+                    )
 
-            conn = harvester.get_db_connection()
             subs = conn.execute(
                 "SELECT total_score FROM puzzle_submissions WHERE date = ?",
                 (date_str,),

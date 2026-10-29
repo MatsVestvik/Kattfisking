@@ -751,6 +751,8 @@ class PartyRoom:
 
         elif turn_state == "round_recap":
             recap_until = gs.get("recap_until", 0)
+            remaining = max(0.0, recap_until - now)
+            gs["time_remaining"] = round(remaining, 1)
             if now >= recap_until:
                 self._advance_turn()
 
@@ -927,14 +929,15 @@ class PartyRoom:
 
             return 400, {"ok": False, "error": f"Ukjent handling «{action}»"}
 
-    def get_draw_actions_since(self, since_id: int) -> List[Dict[str, Any]]:
+    def get_draw_actions_since(self, since_id: int) -> Tuple[List[Dict[str, Any]], int]:
         with self.lock:
             if self.current_game != "tegn_og_gjett":
-                return []
+                return [], 0
             actions = self.game_state.get("draw_actions", [])
+            last_id = self.game_state.get("next_action_id", 1) - 1
             if since_id <= 0:
-                return actions
-            return [a for a in actions if a.get("id", 0) > since_id]
+                return list(actions), last_id
+            return [a for a in actions if a.get("id", 0) > since_id], last_id
 
 
 class PartyAPI:
@@ -982,11 +985,11 @@ class PartyAPI:
             if not room:
                 return 404, {"ok": False, "error": "Rommet finnes ikke"}
 
-            actions = room.get_draw_actions_since(since_id)
+            actions, last_action_id = room.get_draw_actions_since(since_id)
             return 200, {
                 "ok": True,
                 "actions": actions,
-                "lastActionId": room.game_state.get("next_action_id", 1) - 1,
+                "lastActionId": last_action_id,
             }
 
         if rel_path in ("/api/tegn-og-gjett/random-word", "/api/tegn-og-gjett/words"):

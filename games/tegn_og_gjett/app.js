@@ -534,7 +534,6 @@
         };
         recordAction(segAction);
         state.localStrokes.push(segAction);
-        flushUnsentDrawActions();
       }
     }
   }
@@ -583,7 +582,7 @@
     if (state.isSolo) return;
     state.unsentActions.push(action);
 
-    if (state.unsentActions.length >= 4) {
+    if (state.unsentActions.length >= 10) {
       flushUnsentDrawActions();
     }
   }
@@ -591,7 +590,7 @@
   async function flushUnsentDrawActions() {
     if (state.unsentActions.length === 0 || state.isSolo || state.isFlushingDraw) return;
     state.isFlushingDraw = true;
-    const batch = state.unsentActions.splice(0, 40);
+    const batch = state.unsentActions.splice(0, 50);
 
     try {
       await fetch("/api/party/tegn-og-gjett/action", {
@@ -610,14 +609,11 @@
       state.unsentActions.unshift(...batch);
     } finally {
       state.isFlushingDraw = false;
-      if (state.unsentActions.length > 0) {
-        setTimeout(flushUnsentDrawActions, 30);
-      }
     }
   }
 
-  // Regularly flush unsent drawer strokes every 60ms
-  setInterval(flushUnsentDrawActions, 60);
+  // Regularly flush unsent drawer strokes every 110ms
+  setInterval(flushUnsentDrawActions, 110);
 
   // =========================================================================
   // Solo Practice Mode
@@ -718,8 +714,11 @@
     // Start room heartbeat polling
     startPolling();
 
-    // Start fast draw delta sync loop (every 90ms)
+    // Start fast draw delta sync loop
     startDrawSyncLoop();
+
+    // Start smooth local countdown ticker
+    startLocalTimer();
 
     // Chat form submit
     el.chatForm.addEventListener("submit", onChatSubmit);
@@ -854,34 +853,60 @@
     poll();
   }
 
+  let isSyncingDraw = false;
   function startDrawSyncLoop() {
     async function syncDraw() {
       // Only guessers fetch draw strokes via delta loop; drawers own the canvas!
-      if (!state.isDrawer && state.turnState === "drawing" && state.roomCode) {
+      if (!state.isDrawer && state.turnState === "drawing" && state.roomCode && !isSyncingDraw) {
+        isSyncingDraw = true;
         try {
           const url = `/api/party/tegn-og-gjett/draw-sync?code=${encodeURIComponent(state.roomCode)}&since=${state.lastActionId}`;
           const resp = await fetch(url);
-          const data = await resp.json();
-
-          if (data.ok && Array.isArray(data.actions)) {
-            data.actions.forEach(action => {
-              if (action.id > state.lastActionId) {
-                applyRemoteDrawAction(action);
-                state.lastActionId = action.id;
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.ok && Array.isArray(data.actions)) {
+              data.actions.forEach(action => {
+                if (action.id > state.lastActionId) {
+                  applyRemoteDrawAction(action);
+                  state.lastActionId = action.id;
+                }
+              });
+              if (data.lastActionId !== undefined && data.lastActionId > state.lastActionId) {
+                state.lastActionId = data.lastActionId;
               }
-            });
-            if (data.lastActionId !== undefined && data.lastActionId > state.lastActionId) {
-              state.lastActionId = data.lastActionId;
             }
           }
         } catch (e) {
           // silently continue
+        } finally {
+          isSyncingDraw = false;
         }
       }
-      state.drawSyncTimer = setTimeout(syncDraw, 90);
+      state.drawSyncTimer = setTimeout(syncDraw, 180);
     }
 
     syncDraw();
+  }
+
+  function startLocalTimer() {
+    setInterval(() => {
+      if (state.isSolo) return;
+      if (state.turnState === "drawing" || state.turnState === "choosing" || state.turnState === "round_recap") {
+        if (state.timeRemaining > 0) {
+          state.timeRemaining = Math.max(0, state.timeRemaining - 1);
+          el.timerText.textContent = String(state.timeRemaining);
+          if (el.modalWordChoice && el.modalWordChoice.classList.contains("active")) {
+            el.choiceTimerText.textContent = String(state.timeRemaining);
+          }
+          el.timerBubble.classList.remove("warning", "danger");
+          if (state.timeRemaining <= 15 && state.turnState === "drawing") {
+            el.timerBubble.classList.add("danger");
+          } else if (state.timeRemaining <= 30 && state.turnState === "drawing") {
+            el.timerBubble.classList.add("warning");
+          }
+        }
+      }
+    }, 1000);
   }
 
   function applyRemoteDrawAction(action) {
@@ -894,28 +919,50 @@
     }
   }
 
+  let lastChoiceKey = "";
+  let lastTurnIdx = -1;
+
   function updateMultiplayerUI(room) {
     const gs = room.gameState || {};
     const oldTurnState = state.turnState;
     const oldDrawerId = state.activeDrawerId;
+    const newTurnIdx = gs.turn_idx !== undefined ? gs.turn_idx : 0;
+    const newTurnState = gs.turn_state || "choosing";
+    const newDrawerId = gs.active_drawer_id;
 
-    state.turnState = gs.turn_state || "choosing";
+    state.turnState = newTurnState;
     state.isDrawer = !!gs.is_drawer;
     state.hasGuessed = !!gs.has_guessed;
     state.currentRound = gs.current_round || 1;
     state.totalRounds = gs.total_rounds || 3;
     state.timeRemaining = Math.max(0, Math.round(gs.time_remaining || 0));
-    state.activeDrawerId = gs.active_drawer_id;
+    state.activeDrawerId = newDrawerId;
     state.activeDrawerName = gs.active_drawer_name || "Tegner";
     state.secretWord = gs.word || "";
     state.maskedWord = gs.masked_word || "";
     state.wordCategory = gs.category || "";
 
-    // Turn transition detected (new drawer or turn restarted)
-    if (oldDrawerId !== state.activeDrawerId || (oldTurnState === "round_recap" && state.turnState === "drawing")) {
+    // Turn transition detected (new turn index, drawer changed, or state moved to choosing/drawing)
+    const turnTransition =
+      (lastTurnIdx !== -1 && lastTurnIdx !== newTurnIdx) ||
+      (oldDrawerId && newDrawerId && oldDrawerId !== newDrawerId) ||
+      (oldTurnState !== "choosing" && newTurnState === "choosing") ||
+      (oldTurnState === "round_recap" && newTurnState === "drawing");
+
+    if (turnTransition) {
       clearCanvasLocally("#ffffff");
       state.lastActionId = 0;
       state.localStrokes = [];
+      state.unsentActions = [];
+    }
+    lastTurnIdx = newTurnIdx;
+
+    // Reset game over modal on new game
+    if (state.turnState !== "game_over") {
+      if (el.modalGameOver && el.modalGameOver.classList.contains("active")) {
+        el.modalGameOver.classList.remove("active");
+        gameOverModalShown = false;
+      }
     }
 
     // 1. Update Header & Timer
@@ -1042,6 +1089,12 @@
     el.modalWordChoice.classList.add("active");
     el.choiceTimerText.textContent = String(state.timeRemaining);
 
+    const choiceKey = choices.map(c => c.word).join("|");
+    if (lastChoiceKey === choiceKey && el.wordChoicesGrid.children.length > 0) {
+      return;
+    }
+    lastChoiceKey = choiceKey;
+
     el.wordChoicesGrid.innerHTML = "";
     choices.forEach(c => {
       const btn = document.createElement("button");
@@ -1060,6 +1113,7 @@
   }
 
   function hideWordChoiceModal() {
+    lastChoiceKey = "";
     el.modalWordChoice.classList.remove("active");
   }
 

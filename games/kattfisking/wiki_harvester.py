@@ -657,26 +657,12 @@ def calculate_score_distribution(
     date_str: str = "",
     max_score: int = 10,
 ) -> Dict[str, Any]:
-    """Calculates histogram distribution (0 to max_score) and player percentile."""
-    effective_scores = list(actual_scores)
-
-    # If fewer than 8 real scores, blend in a seeded realistic baseline distribution
-    if len(effective_scores) < 8:
-        seed_num = int(hashlib.md5(date_str.encode("utf-8")).hexdigest()[:6], 16) if date_str else 42
-        baseline_offsets = [0, 1, 2, 0, -1, 1, 0, -2, 2, -1, 0, 1, 3, -1, 0, 1, -2, 2, 0, -3]
-        for i, off in enumerate(baseline_offsets):
-            val = round(min(float(max_score), max(1.0, 6.0 + off + ((seed_num + i) % 3) * 0.5)), 1)
-            effective_scores.append(val)
-
-    if user_score is not None:
-        effective_scores.append(user_score)
-
-    total_count = len(effective_scores)
-    real_plays_count = len(actual_scores)
-    avg_score = round(sum(effective_scores) / total_count, 1) if total_count > 0 else 6.0
+    """Calculates histogram distribution (0 to max_score) and player percentile based purely on real submissions."""
+    total_count = len(actual_scores)
+    avg_score = round(sum(actual_scores) / total_count, 1) if total_count > 0 else (user_score if user_score is not None else 0.0)
 
     buckets = [{"score": i, "count": 0, "pct": 0} for i in range(max_score + 1)]
-    for s in effective_scores:
+    for s in actual_scores:
         b_idx = min(max_score, max(0, int(round(s))))
         buckets[b_idx]["count"] += 1
 
@@ -686,15 +672,19 @@ def calculate_score_distribution(
     percentile = None
     better_than_pct = None
     if user_score is not None:
-        strictly_below = sum(1 for s in effective_scores if s < user_score)
-        equal = sum(1 for s in effective_scores if s == user_score)
-        better_than_pct = round((strictly_below / total_count) * 100) if total_count > 0 else 50
-        raw_perc = round(((strictly_below + 0.5 * equal) / total_count) * 100) if total_count > 0 else 50
-        percentile = max(1, min(99, raw_perc))
+        if total_count > 0:
+            strictly_below = sum(1 for s in actual_scores if s < user_score)
+            equal = sum(1 for s in actual_scores if s == user_score)
+            better_than_pct = round((strictly_below / total_count) * 100)
+            raw_perc = round(((strictly_below + 0.5 * equal) / total_count) * 100)
+            percentile = max(1, min(99, raw_perc))
+        else:
+            percentile = 50
+            better_than_pct = 0
 
     return {
-        "totalPlays": real_plays_count if real_plays_count > 0 else total_count,
-        "realPlays": real_plays_count,
+        "totalPlays": total_count,
+        "realPlays": total_count,
         "averageScore": avg_score,
         "percentile": percentile,
         "betterThanPct": better_than_pct,
@@ -759,35 +749,8 @@ def seed_database_if_needed(db_path: str = DB_PATH, min_articles: int = 120) -> 
 def add_baseline_submissions_if_empty(
     date_str: str, puzzle: Dict[str, Any], db_path: str = DB_PATH
 ) -> None:
-    conn = get_db_connection(db_path)
-    cnt = conn.execute(
-        "SELECT COUNT(*) AS c FROM puzzle_submissions WHERE date = ?", (date_str,)
-    ).fetchone()["c"]
-    if cnt > 0:
-        conn.close()
-        return
-
-    rng = random.Random(f"baseline-{date_str}")
-    # Create 12 synthetic baseline scorecards based on category count & familiarity
-    with conn:
-        for _ in range(12):
-            scores = []
-            for art in puzzle["articles"]:
-                cat_count = len(art["categories"])
-                prob = min(0.82, 0.35 + cat_count * 0.04)
-                r = rng.random()
-                if r < prob:
-                    scores.append(1.0)
-                elif r < prob + 0.12:
-                    scores.append(0.5)
-                else:
-                    scores.append(0.0)
-            total = sum(scores)
-            conn.execute(
-                "INSERT INTO puzzle_submissions (date, total_score, results_json) VALUES (?, ?, ?)",
-                (date_str, total, json.dumps(scores)),
-            )
-    conn.close()
+    # No synthetic submissions: maintain accurate real-user statistics
+    pass
 
 
 if __name__ == "__main__":

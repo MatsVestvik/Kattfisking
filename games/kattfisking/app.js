@@ -841,6 +841,10 @@
 
   async function maybeSubmitDailyScore() {
     if (state.submittedToServer || state.mode !== "daily") return;
+    if (!state.progress || state.progress.length === 0) return;
+    const allDone = state.progress.length === state.articles.length && state.progress.every((p) => p.status !== "pending");
+    if (!allDone) return;
+
     state.submittedToServer = true;
     saveDailyProgress();
 

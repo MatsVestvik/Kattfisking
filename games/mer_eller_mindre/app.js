@@ -280,7 +280,26 @@
       }
     }
 
-    submitGameResults(state.score);
+    if (savedData && !savedData.submittedToServer) {
+      submitGameResults(state.score);
+    } else {
+      updateGraphAndPercentileUI(state.score, {
+        averageScore: state.averageScore,
+        totalPlays: state.totalPlays,
+        brackets: state.brackets,
+        distribution: state.distribution,
+        betterThanPct: state.betterThanPct,
+        percentile: state.percentile,
+      });
+      fetch(`/api/mer-eller-mindre/stats?date=${encodeURIComponent(state.todayStr)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((statsData) => {
+          if (statsData) {
+            updateGraphAndPercentileUI(state.score, statsData);
+          }
+        })
+        .catch((e) => console.warn("Kunne ikke oppdatere dagsstatistikk:", e));
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -903,6 +922,7 @@
   }
 
   async function submitGameResults(score) {
+    if (state.mode !== "daily") return;
     try {
       const res = await fetch("/api/mer-eller-mindre/submit", {
         method: "POST",
@@ -917,6 +937,15 @@
       if (!res.ok) throw new Error("Kunne ikke registrere resultat på server");
       const data = await res.json();
       if (data) {
+        state.submittedToServer = true;
+        const savedRaw = localStorage.getItem(DAILY_PREFIX + state.todayStr);
+        if (savedRaw) {
+          try {
+            const savedData = JSON.parse(savedRaw);
+            savedData.submittedToServer = true;
+            localStorage.setItem(DAILY_PREFIX + state.todayStr, JSON.stringify(savedData));
+          } catch (_) {}
+        }
         state.totalPlays = data.totalPlays || state.totalPlays;
         state.averageScore = data.averageScore !== undefined ? data.averageScore : state.averageScore;
         state.betterThanPct = data.betterThanPct;
@@ -971,8 +1000,10 @@
           source_detail: c.source_detail,
         })),
         completed: true,
+        submittedToServer: true,
       };
       localStorage.setItem(DAILY_PREFIX + state.todayStr, JSON.stringify(dailyData));
+      submitGameResults(state.score);
     }
 
     const curHs = parseInt(localStorage.getItem(HIGHSCORE_KEY) || "0", 10);
@@ -1008,9 +1039,6 @@
     if (state.brackets && el.merEllerMindreChartBars) {
       renderMerEllerMindreGraph(el.merEllerMindreChartBars, state.brackets, state.score);
     }
-
-    // Asynchronously submit score & receive updated community percentile
-    submitGameResults(state.score);
 
     // Build Category Scorecard Breakdown
     if (el.categoryBreakdownList) {
